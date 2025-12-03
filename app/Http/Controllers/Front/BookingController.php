@@ -10,9 +10,10 @@ class BookingController extends Controller
 {
     public function show(Booking $booking)
     {
-        // load relasi item
+        // Load relasi items
         $booking->load('items');
 
+        // Ambil rekening bank aktif
         $bankAccounts = BankAccount::where('is_active', true)
             ->orderBy('sort_order')
             ->get();

@@ -9,6 +9,9 @@ use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\BankAccountController;
 use App\Http\Controllers\Admin\TourReviewController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Front\TourController;
+use App\Http\Controllers\Front\TourBookingController;
+use App\Http\Controllers\Front\BookingController as FrontBookingController;
 
 // ADMIN PANEL
 Route::prefix('bw-admin')
@@ -28,6 +31,10 @@ Route::prefix('bw-admin')
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::post('settings/general', [SettingController::class, 'saveGeneral']);
     });
+Route::get('/booking/{booking}', [FrontBookingController::class, 'show'])
+    ->name('booking.show');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -40,9 +47,16 @@ Route::prefix('bw-admin')
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// homepage (opsional, bisa kamu ganti)
+Route::get('/', [TourController::class, 'index'])->name('home');
+
+// halaman detail paket tour (pakai slug)
+Route::get('/paket/{tourPackage:slug}', [TourController::class, 'show'])
+    ->name('tour.show');
+
+// kirim form booking paket tour
+Route::post('/paket/{tourPackage:slug}/book', [TourBookingController::class, 'store'])
+    ->name('tour.book');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

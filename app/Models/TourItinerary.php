@@ -18,11 +18,6 @@ class TourItinerary extends Model
         'sort_order',
     ];
 
-    protected $casts = [
-        'day_number' => 'integer',
-        'sort_order' => 'integer',
-    ];
-
     public function tourPackage()
     {
         return $this->belongsTo(TourPackage::class);

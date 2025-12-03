@@ -11,15 +11,13 @@ class TourPriceTier extends Model
 
     protected $fillable = [
         'tour_package_id',
-        'audience_type',
+        'audience_type',   // domestic / wna
         'min_pax',
         'max_pax',
-        'price_per_pax',
+        'price_per_pax',   // diartikan: HARGA PER PAKET
     ];
 
     protected $casts = [
-        'min_pax' => 'integer',
-        'max_pax' => 'integer',
         'price_per_pax' => 'float',
     ];
 
