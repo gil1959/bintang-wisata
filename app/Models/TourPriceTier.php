@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class TourPriceTier extends Model
 {
@@ -11,18 +11,21 @@ class TourPriceTier extends Model
 
     protected $fillable = [
         'tour_package_id',
-        'audience_type',   // domestic / wna
-        'min_pax',
-        'max_pax',
-        'price_per_pax',   // diartikan: HARGA PER PAKET
+        'audience',
+        'label',
+        'min_peserta',
+        'max_peserta',
+        'harga_per_orang',
+        'sort_order',
     ];
 
-    protected $casts = [
-        'price_per_pax' => 'float',
-    ];
-
-    public function tourPackage()
+    public function package()
     {
-        return $this->belongsTo(TourPackage::class);
+        return $this->belongsTo(TourPackage::class, 'tour_package_id');
+    }
+
+    public function isCustom()
+    {
+        return is_null($this->min_peserta) && is_null($this->max_peserta);
     }
 }

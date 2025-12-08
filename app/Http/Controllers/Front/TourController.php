@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 
 class TourController extends Controller
 {
-    // Halaman list paket (home)
+    /**
+     * Halaman list paket (homepage)
+     */
     public function index(Request $request)
     {
         $query = TourPackage::query()
@@ -26,22 +28,19 @@ class TourController extends Controller
         return view('front.tours.index', compact('packages', 'search'));
     }
 
-    // Halaman detail paket (pakai slug binding)
+    /**
+     * Halaman detail paket (pakai slug binding)
+     */
     public function show(TourPackage $tourPackage)
     {
-        // kalau mau, load relasi harga + itinerary
         $tourPackage->load([
-            'priceTiers' => function ($q) {
-                $q->orderBy('audience_type')->orderBy('min_pax');
-            },
-            'itineraries' => function ($q) {
-                $q->orderBy('day_number')->orderBy('sort_order');
-            },
-            'images' => function ($q) {
-                $q->orderBy('sort_order');
-            },
+            'tiers',
+            'itineraries',
+            'photos'
         ]);
 
-        return view('front.tours.show', compact('tourPackage'));
+        return view('front.tours.show', [
+            'package' => $tourPackage
+        ]);
     }
 }

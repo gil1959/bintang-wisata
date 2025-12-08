@@ -3,159 +3,218 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTourPackageRequest;
+use App\Http\Requests\Admin\UpdateTourPackageRequest;
+use App\Models\TourCategory;
 use App\Models\TourPackage;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use App\Models\TourPackagePhoto;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class TourPackageController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = TourPackage::query()->orderByDesc('created_at');
-
-        if ($search = $request->get('q')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('destination', 'like', "%{$search}%");
-            });
-        }
-
-        $packages = $query->paginate(10);
-
+        $packages = TourPackage::orderBy('created_at', 'desc')->paginate(20);
         return view('admin.tour-packages.index', compact('packages'));
     }
 
     public function create()
     {
-        $package = new TourPackage([
-            'category' => 'domestic',
-            'include_flight_option' => false,
-            'is_active' => true,
-        ]);
-
-        // relasi kosong, nanti di-view dikasih default 1 baris
-        $package->setRelation('priceTiers', collect());
-
-        return view('admin.tour-packages.form', compact('package'));
+        $categories = TourCategory::orderBy('name')->get();
+        return view('admin.tour-packages.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTourPackageRequest $request)
     {
-        $data = $this->validateData($request);
 
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
+        DB::transaction(function () use ($request) {
 
-        $package = TourPackage::create($data);
+            $package = TourPackage::create([
+                'title'            => $request->title,
+                'slug'             => $request->slug,
+                'category_id'      => $request->category_id,
+                'duration_text'    => $request->duration_text,
+                'destination'      => $request->destination,
+                'long_description' => $request->long_description,
+                'includes'         => $request->includes ?? [],
+                'excludes'         => $request->excludes ?? [],
+                'flight_info'      => $request->flight_info,
+            ]);
 
-        // ===== SIMPAN HARGA TIER =====
-        $this->syncPriceTiers($request, $package);
-
-        return redirect()
-            ->route('admin.tour-packages.edit', $package)
-            ->with('success', 'Paket wisata berhasil dibuat. Lanjut lengkapi itinerary & gambar jika perlu.');
-    }
-
-    public function edit(TourPackage $tourPackage)
-    {
-        $package = $tourPackage->load('priceTiers');
-
-        return view('admin.tour-packages.form', compact('package'));
-    }
-
-    public function update(Request $request, TourPackage $tourPackage)
-    {
-        $data = $this->validateData($request, $tourPackage->id);
-
-        if (empty($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
-        $tourPackage->update($data);
-
-        // reset & isi ulang harga tier
-        $tourPackage->priceTiers()->delete();
-        $this->syncPriceTiers($request, $tourPackage);
-
-        return redirect()
-            ->route('admin.tour-packages.edit', $tourPackage)
-            ->with('success', 'Data paket wisata berhasil diperbarui.');
-    }
-
-    public function destroy(TourPackage $tourPackage)
-    {
-        $tourPackage->delete();
-
-        return redirect()
-            ->route('admin.tour-packages.index')
-            ->with('success', 'Paket wisata berhasil dihapus.');
-    }
-
-    protected function validateData(Request $request, $ignoreId = null): array
-    {
-        $data = $request->validate([
-            'title'   => ['required', 'string', 'max:255'],
-            'slug'    => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('tour_packages', 'slug')->ignore($ignoreId),
-            ],
-            'category'              => ['required', 'in:domestic,international'],
-            'destination'           => ['nullable', 'string', 'max:255'],
-            'duration_text'         => ['nullable', 'string', 'max:255'],
-            'short_description'     => ['nullable', 'string'],
-            'description'           => ['nullable', 'string'],
-
-            'include_flight_option'     => ['nullable', 'boolean'],
-            'flight_surcharge_per_pax' => ['nullable', 'numeric', 'min:0'],
-            'is_active'                 => ['nullable', 'boolean'],
-
-            'thumbnail_path'        => ['nullable', 'string', 'max:255'],
-            'meta_title'            => ['nullable', 'string', 'max:255'],
-            'meta_description'      => ['nullable', 'string'],
-
-            'price_tiers'                       => ['array'],
-            'price_tiers.*.audience_type'       => ['nullable', 'in:domestic,wna'],
-            'price_tiers.*.min_pax'             => ['nullable', 'integer', 'min:1'],
-            'price_tiers.*.max_pax'             => ['nullable', 'integer', 'min:1'],
-            'price_tiers.*.price_per_pax'       => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        // checkbox → boolean
-        $data['include_flight_option'] = $request->boolean('include_flight_option');
-        $data['is_active']             = $request->boolean('is_active');
-
-        return $data;
-    }
-
-
-    /**
-     * Simpan harga DOM & WNA (tanpa tiket + dengan tiket).
-     */
-    protected function syncPriceTiers(Request $request, TourPackage $package): void
-    {
-        $priceTiers = $request->input('price_tiers', []);
-
-        foreach ($priceTiers as $tier) {
-            $audience = $tier['audience_type'] ?? null;
-            $minPax   = $tier['min_pax'] ?? null;
-            $maxPax   = $tier['max_pax'] ?? null;
-            $price    = $tier['price_per_pax'] ?? null;
-
-            // skip baris kosong
-            if (! $audience || ! $minPax || ! $maxPax || $price === null || $price === '') {
-                continue;
+            // =====================
+            // SAVE THUMBNAIL
+            // =====================
+            if ($request->hasFile('thumbnail')) {
+                $thumbPath = $request->file('thumbnail')->store('tour-packages', 'public');
+                $package->update(['thumbnail_path' => $thumbPath]);
             }
 
-            $package->priceTiers()->create([
-                'audience_type' => $audience,           // domestic / wna
-                'min_pax'       => (int) $minPax,
-                'max_pax'       => (int) $maxPax,
-                'price_per_pax' => (float) $price,      // HARGA PER PAKET
+            // =====================
+            // SAVE GALLERY
+            // =====================
+            if ($request->hasFile('gallery')) {
+                foreach ($request->file('gallery') as $img) {
+                    $path = $img->store('tour-packages', 'public');
+                    $package->photos()->create([
+                        'file_path' => $path   // FIX: field berubah
+                    ]);
+                }
+            }
+
+            // =====================
+            // SAVE ITINERARIES
+            // =====================
+            if (!empty($request->itineraries)) {
+                foreach ($request->itineraries as $row) {
+                    $package->itineraries()->create([
+                        'time'  => $row['time'],
+                        'title' => $row['title'], // FIX: pakai title (sesuai migration)
+                    ]);
+                }
+            }
+
+            // =====================
+            // SAVE TIERS
+            // =====================
+            $this->syncTiers($package, $request->tiers);
+        });
+
+        return redirect()->route('admin.tour-packages.index')
+            ->with('success', 'Paket berhasil dibuat.');
+    }
+
+    public function edit(TourPackage $tour_package)
+    {
+        $categories = TourCategory::orderBy('name')->get();
+        $package = $tour_package->load(['tiers', 'itineraries', 'photos']);
+        return view('admin.tour-packages.edit', compact('package', 'categories'));
+    }
+
+    public function update(UpdateTourPackageRequest $request, TourPackage $tour_package)
+    {
+        DB::transaction(function () use ($request, $tour_package) {
+
+            $tour_package->update([
+                'title'            => $request->title,
+                'slug'             => $request->slug,
+                'category_id'      => $request->category_id,
+                'duration_text'    => $request->duration_text,
+                'destination'      => $request->destination,
+                'long_description' => $request->long_description,
+                'includes'         => $request->includes ?? [],
+                'excludes'         => $request->excludes ?? [],
+                'flight_info'      => $request->flight_info,
             ]);
+
+            // UPDATE THUMBNAIL
+            if ($request->hasFile('thumbnail')) {
+                if ($tour_package->thumbnail_path) {
+                    Storage::disk('public')->delete($tour_package->thumbnail_path);
+                }
+                $newThumb = $request->file('thumbnail')->store('tour-packages', 'public');
+                $tour_package->update(['thumbnail_path' => $newThumb]);
+            }
+
+            // ADD NEW GALLERY PHOTOS
+            if ($request->hasFile('gallery')) {
+                foreach ($request->file('gallery') as $img) {
+                    $path = $img->store('tour-packages', 'public');
+                    $tour_package->photos()->create(['file_path' => $path]);
+                }
+            }
+
+            $this->syncItineraries($tour_package, $request->itineraries);
+            $this->syncTiers($tour_package, $request->tiers);
+        });
+
+        return redirect()->route('admin.tour-packages.index')
+            ->with('success', 'Paket berhasil diperbarui.');
+    }
+
+    public function destroy(TourPackage $tour_package)
+    {
+        $tour_package->delete();
+        return redirect()->route('admin.tour-packages.index')
+            ->with('success', 'Paket berhasil dihapus.');
+    }
+
+    private function syncItineraries(TourPackage $package, ?array $items)
+    {
+        $existing = $package->itineraries()->pluck('id')->toArray();
+        $submitted = [];
+
+        if ($items) {
+            foreach ($items as $row) {
+                if (!empty($row['id'])) {
+                    $submitted[] = (int)$row['id'];
+                    $package->itineraries()->where('id', $row['id'])->update([
+                        'time'  => $row['time'],
+                        'title' => $row['title'],
+                    ]);
+                } else {
+                    $new = $package->itineraries()->create([
+                        'time'  => $row['time'],
+                        'title' => $row['title'],
+                    ]);
+                    $submitted[] = $new->id;
+                }
+            }
         }
+
+        $toDelete = array_diff($existing, $submitted);
+
+        if ($toDelete) {
+            $package->itineraries()->whereIn('id', $toDelete)->delete();
+        }
+    }
+
+    private function syncTiers(TourPackage $package, array $tiers)
+    {
+        $existing = $package->tiers()->pluck('id')->toArray();
+        $submitted = [];
+
+        foreach (['domestic', 'international'] as $type) {
+
+            foreach ($tiers[$type] ?? [] as $row) {
+
+                if (!empty($row['id'])) {
+                    $submitted[] = (int)$row['id'];
+
+                    $package->tiers()->where('id', $row['id'])->update([
+                        'type'       => $row['type'],
+                        'is_custom'  => (bool)$row['is_custom'],
+                        'min_people' => $row['is_custom'] ? 2 : $row['min_people'],
+                        'max_people' => $row['is_custom'] ? null : $row['max_people'],
+                        'price'      => $row['price'],
+                    ]);
+                } else {
+                    $new = $package->tiers()->create([
+                        'type'       => $row['type'],
+                        'is_custom'  => (bool)$row['is_custom'],
+                        'min_people' => $row['is_custom'] ? 2 : $row['min_people'],
+                        'max_people' => $row['is_custom'] ? null : $row['max_people'],
+                        'price'      => $row['price'],
+                    ]);
+                    $submitted[] = $new->id;
+                }
+            }
+        }
+
+        $toDelete = array_diff($existing, $submitted);
+        if ($toDelete) {
+            $package->tiers()->whereIn('id', $toDelete)->delete();
+        }
+    }
+
+    public function deletePhoto(TourPackagePhoto $photo)
+    {
+        if (Storage::disk('public')->exists($photo->file_path)) {
+            Storage::disk('public')->delete($photo->file_path);
+        }
+
+        $photo->delete();
+
+        return back()->with('success', 'Foto berhasil dihapus.');
     }
 }

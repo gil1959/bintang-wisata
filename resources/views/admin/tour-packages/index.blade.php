@@ -4,86 +4,62 @@
 @section('page-title', 'Paket Wisata')
 
 @section('content')
-    <div class="flex items-center justify-between mb-4">
-        <form method="GET" class="flex gap-2">
-            <input type="text" name="q" value="{{ request('q') }}"
-                   placeholder="Cari paket / destinasi..."
-                   class="border rounded px-3 py-1 text-sm">
-            <button class="px-3 py-1 rounded bg-emerald-500 text-white text-sm">
-                Cari
-            </button>
-        </form>
 
-       <a href="{{ route('admin.tour-packages.create') }}"
-   class="inline-block px-4 py-2 rounded bg-emerald-500 text-white text-sm">
-    + Tambah Paket
-</a>
-    </div>
+<div class="flex justify-between mb-4">
+    <h2 class="text-xl font-semibold">Daftar Paket Wisata</h2>
 
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-        <table class="min-w-full text-sm">
-            <thead>
-            <tr class="border-b bg-gray-50">
-                <th class="px-4 py-2 text-left">Paket</th>
-                <th class="px-4 py-2 text-left">Kategori</th>
-                <th class="px-4 py-2 text-left">Destinasi</th>
-                <th class="px-4 py-2 text-left">Status</th>
-                <th class="px-4 py-2 text-right">Aksi</th>
+    <a href="{{ route('admin.tour-packages.create') }}"
+       class="px-4 py-2 bg-[#0194F3] text-white rounded hover:bg-blue-600">
+        + Tambah Paket
+    </a>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+    <table class="w-full text-left">
+        <thead>
+        <tr class="border-b">
+            <th class="py-2">Judul</th>
+            <th class="py-2">Kategori</th>
+            <th class="py-2">Durasi</th>
+            <th class="py-2">Status</th>
+            <th class="py-2 text-right">Aksi</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        @foreach($packages as $p)
+            <tr class="border-b">
+                <td class="py-2">{{ $p->title }}</td>
+                <td class="py-2">{{ $p->category?->name ?? '-' }}</td>
+                <td class="py-2">{{ $p->duration_text }}</td>
+                <td class="py-2">
+                    @if($p->is_active)
+                        <span class="text-green-600 font-medium">Aktif</span>
+                    @else
+                        <span class="text-red-600 font-medium">Nonaktif</span>
+                    @endif
+                </td>
+
+                <td class="py-2 text-right">
+                    <a href="{{ route('admin.tour-packages.edit', $p->id) }}"
+                       class="px-3 py-1 text-sm bg-yellow-400 text-black rounded hover:bg-yellow-500">
+                        Edit
+                    </a>
+
+                    <form action="{{ route('admin.tour-packages.destroy', $p->id) }}"
+                          method="POST" class="inline-block"
+                          onsubmit="return confirm('Yakin hapus paket ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">
+                            Hapus
+                        </button>
+                    </form>
+                </td>
             </tr>
-            </thead>
-            <tbody>
-            @forelse($packages as $package)
-                <tr class="border-b last:border-0">
-                    <td class="px-4 py-2">
-                        <div class="font-semibold">{{ $package->title }}</div>
-                        <div class="text-xs text-gray-500">{{ $package->duration_text }}</div>
-                    </td>
-                    <td class="px-4 py-2">
-                        {{ $package->category === 'domestic' ? 'Domestik' : 'Internasional' }}
-                    </td>
-                    <td class="px-4 py-2">
-                        {{ $package->destination ?? '-' }}
-                    </td>
-                    <td class="px-4 py-2">
-                        @if($package->is_active)
-                            <span class="text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700">
-                                Aktif
-                            </span>
-                        @else
-                            <span class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
-                                Nonaktif
-                            </span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-2 text-right space-x-2">
-                        <a href="{{ route('admin.tour-packages.edit', $package) }}"
-                           class="text-xs px-3 py-1 rounded bg-blue-500 text-white">
-                            Edit
-                        </a>
+        @endforeach
+        </tbody>
+    </table>
+</div>
 
-                        <form action="{{ route('admin.tour-packages.destroy', $package) }}"
-                              method="POST" class="inline"
-                              onsubmit="return confirm('Hapus paket ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="text-xs px-3 py-1 rounded bg-red-500 text-white">
-                                Hapus
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="px-4 py-4 text-center text-gray-500">
-                        Belum ada paket wisata.
-                    </td>
-                </tr>
-            @endforelse
-            </tbody>
-        </table>
-
-        <div class="p-4">
-            {{ $packages->withQueryString()->links() }}
-        </div>
-    </div>
 @endsection

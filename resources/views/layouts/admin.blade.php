@@ -47,6 +47,10 @@
                class="block px-6 py-2 text-sm {{ request()->routeIs('admin.tour-packages.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
                 Paket Wisata
             </a>
+            <a href="{{ route('admin.categories.index') }}"
+   class="block px-6 py-2 text-sm {{ request()->routeIs('admin.categories.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+    Kategori Tour
+</a>
 
             <a href="{{ route('admin.rental-units.index') }}"
                class="block px-6 py-2 text-sm {{ request()->routeIs('admin.rental-units.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">

@@ -3,21 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class TourImage extends Model
+class TourPackagePhoto extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'tour_package_id',
-        'path',
-        'is_primary',
+        'file_path',
     ];
 
-    protected $casts = [
-        'is_primary' => 'boolean',
-    ];
 
     public function package()
     {

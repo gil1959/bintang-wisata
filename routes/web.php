@@ -13,7 +13,8 @@ use App\Http\Controllers\Front\TourController;
 use App\Http\Controllers\Front\TourBookingController;
 use App\Http\Controllers\Front\BookingController as FrontBookingController;
 
-// ADMIN PANEL
+
+// ================= ADMIN =================
 Route::prefix('bw-admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin|staff'])
@@ -30,34 +31,34 @@ Route::prefix('bw-admin')
 
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::post('settings/general', [SettingController::class, 'saveGeneral']);
+        Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);
+        Route::delete(
+            'tour-packages/photo/{photo}',
+            [TourPackageController::class, 'deletePhoto']
+        )
+            ->name('tour-packages.delete-photo');
     });
+
+
+// ================= FRONTEND =================
+
+// Homepage
+Route::get('/', [TourController::class, 'index'])->name('home');
+
+// Detail paket
+Route::get('/paket/{tourPackage:slug}', [TourController::class, 'show'])
+    ->name('tour.show');
+
+// Booking submit
+Route::post('/booking', [TourBookingController::class, 'store'])
+    ->name('booking.store');
+
+// Booking show (checkout page)
 Route::get('/booking/{booking}', [FrontBookingController::class, 'show'])
     ->name('booking.show');
 
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-// homepage (opsional, bisa kamu ganti)
-Route::get('/', [TourController::class, 'index'])->name('home');
-
-// halaman detail paket tour (pakai slug)
-Route::get('/paket/{tourPackage:slug}', [TourController::class, 'show'])
-    ->name('tour.show');
-
-// kirim form booking paket tour
-Route::post('/paket/{tourPackage:slug}/book', [TourBookingController::class, 'store'])
-    ->name('tour.book');
-
+// Breeze dashboard
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
