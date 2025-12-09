@@ -14,8 +14,33 @@
 
     <!-- Scripts -->
     <script src="{{ mix('js/app.js') }}" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+<style>
+    /* HILANGKAN UNDERLINE UNTUK SEMUA NAV LINK DI SIDEBAR */
+    aside a {
+        text-decoration: none !important;
+    }
+
+    /* HILANGKAN UNDERLINE UNTUK TOMBOL BERBENTUK <a> */
+    .btn {
+        text-decoration: none !important;
+    }
+     a.no-underline,
+    a.btn {
+        text-decoration: none !important;
+    }
+    a {
+    text-decoration: none !important;
+}
+
+a:hover {
+    text-decoration: none !important;
+}
+</style>
 </head>
-</head>
+
 <body class="bg-gray-100 antialiased">
 <div class="min-h-screen flex">
 
@@ -38,8 +63,8 @@
                 Order
             </a>
 
-            <a href="{{ route('admin.bank-accounts.index') }}"
-               class="block px-6 py-2 text-sm {{ request()->routeIs('admin.bank-accounts.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+            <a href="{{ route('admin.payments.index') }}"
+                class="block px-6 py-2 text-sm {{ request()->routeIs('admin.payments.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
                 Pembayaran
             </a>
 
@@ -52,8 +77,9 @@
     Kategori Tour
 </a>
 
-            <a href="{{ route('admin.rental-units.index') }}"
-               class="block px-6 py-2 text-sm {{ request()->routeIs('admin.rental-units.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+            <a href="{{ route('admin.rent-car-packages.index') }}"
+
+               class="block px-6 py-2 text-sm {{ request()->routeIs('admin.rent-car-packages.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
                 Rental
             </a>
 

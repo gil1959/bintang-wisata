@@ -1,39 +1,13 @@
-<div
-    x-data="{
-        isOpen: false,
-        tier: null,
-        count: 1,
-        total: 0,
-        flightInfo: flightInfo,
+<div x-data="tourBooking()" 
+     x-on:open-booking.window="open($event)" 
+     x-cloak>
 
-        open(e) {
-            this.tier = e.detail.tier;
-            this.count = this.tier.is_custom ? 2 : this.tier.min_people;
-            this.recalc();
-            this.isOpen = true;
-        },
-        close() { this.isOpen = false },
-        recalc() {
-            let min = this.tier.is_custom ? 2 : this.tier.min_people;
-            let max = this.tier.max_people ?? 9999;
-            if (this.count < min) this.count = min;
-            if (this.count > max) this.count = max;
-            this.total = this.count * this.tier.price;
-        }
-    }"
-    x-on:open-booking.window="open($event)"
->
     <div
         x-show="isOpen"
-        x-transition.opacity
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
-        style="display: none;"
     >
-        <div
-            x-show="isOpen"
-            x-transition.scale
-            class="bg-white rounded-2xl shadow-xl w-full max-w-xl mx-4 p-6 relative"
-        >
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl mx-4 p-6 relative">
+
             <button
                 type="button"
                 class="absolute top-3 right-10 text-gray-400 hover:text-gray-600"
@@ -44,27 +18,31 @@
 
             <h2 class="text-xl font-bold mb-4">Booking Form</h2>
 
-            <form class="space-y-4 rounded-lg">
+            <form class="space-y-4">
+
+                <!-- INPUTS -->
                 <div class="grid md:grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-semibold text-gray-600">Nama Lengkap</label>
-                        <input type="text" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
+                        <input id="tourName" type="text" class="form-control mt-1">
                     </div>
+
                     <div>
                         <label class="text-xs font-semibold text-gray-600">Tanggal Keberangkatan</label>
-                        <input type="date" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
+                        <input id="tourDate" type="date" class="form-control mt-1">
                     </div>
+
                     <div>
                         <label class="text-xs font-semibold text-gray-600">Email</label>
-                        <input type="email" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
+                        <input id="tourEmail" type="email" class="form-control mt-1">
                     </div>
+
                     <div>
                         <label class="text-xs font-semibold text-gray-600">WhatsApp</label>
-                        <input type="text" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
+                        <input id="tourPhone" type="text" class="form-control mt-1">
                     </div>
                 </div>
-
-                <!-- PILIHAN TIKET PESAWAT -->
+ <!-- PILIHAN TIKET PESAWAT -->
 <div class="space-y-2 mt-4"
      x-show="flightInfo === 'not_included'">
 
@@ -90,13 +68,8 @@
     </button>
     </div>
 
-    <!-- TANPA TIKET (RADIO) -->
-    
-
-</div>
-
-
-                <div class="mt-2">
+                <!-- JUMLAH PESERTA -->
+                <div>
                     <label class="text-xs font-semibold text-gray-600">Jumlah Peserta</label>
                     <div class="mt-1 flex items-center gap-3 text-sm">
                         <input
@@ -107,27 +80,148 @@
                         >
                         <p>
                             x <span x-text="tier ? tier.price.toLocaleString('id-ID') : 0"></span>
-                            = <b>Rp <span x-text="total.toLocaleString('id-ID')"></span></b>
+                            = <b>Rp <span x-text="totalFormatted"></span></b>
                         </p>
                     </div>
                 </div>
 
+                <!-- PROMO -->
+                <div>
+                    <label class="form-label fw-semibold">Kode Promo</label>
+
+                    <div class="input-group">
+                        <input type="text" id="promoCode" class="form-control" placeholder="Contoh: LIBURAN50">
+
+                        <button type="button" id="btnApplyPromo" class="btn text-white" style="background:#0194F3;">
+                            Gunakan
+                        </button>
+                    </div>
+
+                    <div id="promoMessage" class="small mt-2"></div>
+                    <input type="hidden" id="promoId">
+                </div>
+
+                <!-- TOTAL -->
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm">
                         <p class="text-gray-500">Total Bayar</p>
                         <p class="text-2xl font-bold text-emerald-600">
-                            Rp <span x-text="total.toLocaleString('id-ID')"></span>
+                            Rp <span id="totalPrice" x-text="totalFormatted"></span>
                         </p>
                     </div>
 
                     <button
                         type="button"
                         class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-sm"
+                        @click="submitBooking()"
                     >
                         Bayar Sekarang
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
 </div>
+
+<script>
+function tourBooking() {
+    return {
+        isOpen: false,
+        tier: null,
+        count: 1,
+        total: 0,
+
+        open(e) {
+            this.tier = e.detail.tier;
+            this.count = this.tier.is_custom ? 2 : this.tier.min_people;
+            this.recalc();
+            this.isOpen = true;
+        },
+
+        close() {
+            this.isOpen = false;
+        },
+
+        recalc() {
+            let min = this.tier.is_custom ? 2 : this.tier.min_people;
+            let max = this.tier.max_people ?? 9999;
+
+            if (this.count < min) this.count = min;
+            if (this.count > max) this.count = max;
+
+            this.total = this.count * this.tier.price;
+        },
+
+        get totalFormatted() {
+            return this.total.toLocaleString('id-ID');
+        },
+
+        submitBooking() {
+            fetch(`/tours/{{ $package->slug }}/draft-booking`, {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json',
+                    'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content
+                },
+                body:JSON.stringify({
+                    type: "tour",
+                    product_id: {{ $package->id }},
+
+                    name: document.getElementById('tourName').value,
+                    email: document.getElementById('tourEmail').value,
+                    phone: document.getElementById('tourPhone').value,
+                    departure_date: document.getElementById('tourDate').value,
+
+                    participants: this.count,
+                    promo_id: document.getElementById('promoId').value,
+                    frontend_total: this.total
+                })
+            })
+            .then(r=>r.json())
+            .then(res=>{
+                if(res.redirect) window.location.href = res.redirect;
+            });
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const promoBtn = document.getElementById("btnApplyPromo");
+    const promoCode = document.getElementById("promoCode");
+    const promoMsg = document.getElementById("promoMessage");
+    const promoId = document.getElementById("promoId");
+    const totalPrice = document.getElementById("totalPrice");
+
+    promoBtn.addEventListener("click", function () {
+        let code = promoCode.value.trim();
+        let price = Number(totalPrice.innerText.replace(/\./g, ''));
+
+        if (!code) {
+            promoMsg.innerHTML = `<span class='text-danger'>Masukkan kode promo!</span>`;
+            return;
+        }
+
+        fetch("/promo/validate", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "X-CSRF-TOKEN":document.querySelector('meta[name="csrf-token"]').content
+            },
+            body:JSON.stringify({ code: code, price: price })
+        })
+        .then(r=>r.json())
+        .then(res=>{
+            if(!res.valid){
+                promoMsg.innerHTML = `<span class='text-danger'>${res.message}</span>`;
+                promoId.value = "";
+                return;
+            }
+
+            totalPrice.innerText = res.final_price.toLocaleString("id-ID");
+            promoMsg.innerHTML = `<span class='text-success'>Diskon diterapkan!</span>`;
+            promoId.value = res.promo_id;
+        });
+    });
+});
+</script>

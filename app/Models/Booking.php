@@ -2,57 +2,37 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'code',
-        'user_id',
-        'customer_name',
-        'customer_email',
-        'customer_phone',
-        'type',
-        'status',
-        'payment_status',
-        'payment_method',
-        'total_amount',
-        'discount_amount',
-        'final_amount',
+        'invoice',
+        'booking_type',
+        'booking_id',
+        'name',
+        'email',
+        'phone',
+        'pickup_date',
+        'return_date',
+        'people_count',
+        'base_price',
+        'discount',
+        'final_price',
         'promo_id',
-        'with_flight',
-        'notes',
-        'paid_at',
+        'payment_type',
+        'payment_code',
+        'status',
+        'proof_path'
     ];
 
-    protected $casts = [
-        'total_amount' => 'float',
-        'discount_amount' => 'float',
-        'final_amount' => 'float',
-        'with_flight' => 'boolean',
-        'paid_at' => 'datetime',
-    ];
-
-    public function user()
+    protected static function boot()
     {
-        return $this->belongsTo(User::class);
-    }
+        parent::boot();
 
-    public function promo()
-    {
-        return $this->belongsTo(Promo::class);
-    }
-
-    public function items()
-    {
-        return $this->hasMany(BookingItem::class);
-    }
-
-    public function tourReviews()
-    {
-        return $this->hasMany(TourReview::class);
+        static::creating(function ($booking) {
+            $last = Booking::max('id') + 1;
+            $booking->invoice = 'BW-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+        });
     }
 }
