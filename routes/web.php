@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Route;
 */
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\TourPackageController;
-use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\BankAccountController;
 use App\Http\Controllers\Admin\TourReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RentCarPackageController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Front\PaymentController as FrontPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,9 +63,6 @@ Route::prefix('bw-admin')
         Route::post('/payments/gateway/{gateway}', [PaymentController::class, 'updateGateway'])
             ->name('gateway.update');
 
-        // Booking Admin
-        Route::resource('bookings', BookingController::class)->only(['index', 'show', 'update']);
-
         // Promo Admin
         Route::resource('promos', PromoController::class)->except(['show']);
 
@@ -77,6 +75,16 @@ Route::prefix('bw-admin')
         // Settings
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::post('settings/general', [SettingController::class, 'saveGeneral']);
+
+        // Orders (sistem baru)
+        Route::get('orders/approved', [AdminOrderController::class, 'approved'])
+            ->name('orders.approved');
+
+        Route::get('orders/rejected', [AdminOrderController::class, 'rejected'])
+            ->name('orders.rejected');
+
+        Route::resource('orders', AdminOrderController::class)
+            ->only(['index', 'show', 'update', 'destroy']);
 
         // Categories
         Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);
@@ -116,6 +124,23 @@ Route::get('/checkout/{order}', [CheckoutController::class, 'show'])
 
 Route::post('/checkout/{order}', [CheckoutController::class, 'process'])
     ->name('checkout.process');
+
+/*
+|--------------------------------------------------------------------------
+| Payment Pages (frontend)
+|--------------------------------------------------------------------------
+*/
+Route::get('/payment/{order}', [FrontPaymentController::class, 'show'])
+    ->name('payment.page');
+
+Route::post('/payment/{order}/manual', [FrontPaymentController::class, 'submitManual'])
+    ->name('payment.manual.submit');
+
+Route::get('/payment/{order}/waiting', [FrontPaymentController::class, 'waiting'])
+    ->name('payment.waiting');
+
+Route::post('/payment/{order}/gateway', [FrontPaymentController::class, 'startGateway'])
+    ->name('payment.gateway.start');
 /*
 |--------------------------------------------------------------------------
 | Frontend Pages

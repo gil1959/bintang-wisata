@@ -81,7 +81,7 @@ class RentCarOrderController extends Controller
         ]);
 
         return response()->json([
-            'redirect' => route('checkout', $order->id)
+            'redirect' => route('checkout.show', $order->id)
         ]);
     }
 }

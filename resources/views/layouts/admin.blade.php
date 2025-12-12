@@ -58,10 +58,10 @@ a:hover {
                 Dashboard
             </a>
 
-            <a href="{{ route('admin.bookings.index') }}"
-               class="block px-6 py-2 text-sm {{ request()->routeIs('admin.bookings.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                Order
-            </a>
+           <a href="{{ route('admin.orders.index') }}"
+   class="block px-6 py-2 text-sm {{ request()->routeIs('admin.orders.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+    Orders
+</a>
 
             <a href="{{ route('admin.payments.index') }}"
                 class="block px-6 py-2 text-sm {{ request()->routeIs('admin.payments.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
@@ -73,9 +73,9 @@ a:hover {
                 Paket Wisata
             </a>
             <a href="{{ route('admin.categories.index') }}"
-   class="block px-6 py-2 text-sm {{ request()->routeIs('admin.categories.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-    Kategori Tour
-</a>
+                class="block px-6 py-2 text-sm {{ request()->routeIs('admin.categories.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+                Kategori Tour
+            </a>
 
             <a href="{{ route('admin.rent-car-packages.index') }}"
 

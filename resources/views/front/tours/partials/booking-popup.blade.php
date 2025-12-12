@@ -132,7 +132,13 @@ function tourBooking() {
         count: 1,
         total: 0,
 
+        // NEW: state untuk radio tiket pesawat
+        flightOption: 'no_ticket',
+        // NEW: copy dari flight_info package (buat x-show)
+        flightInfo: "{{ $package->flight_info }}",
+
         open(e) {
+            // e adalah CustomEvent
             this.tier = e.detail.tier;
             this.count = this.tier.is_custom ? 2 : this.tier.min_people;
             this.recalc();
@@ -158,13 +164,16 @@ function tourBooking() {
         },
 
         submitBooking() {
+            const promoValue = document.getElementById('promoId').value;
+
             fetch(`/tours/{{ $package->slug }}/draft-booking`, {
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json', // paksa Laravel balikin JSON
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
-                body:JSON.stringify({
+                body: JSON.stringify({
                     type: "tour",
                     product_id: {{ $package->id }},
 
@@ -174,15 +183,30 @@ function tourBooking() {
                     departure_date: document.getElementById('tourDate').value,
 
                     participants: this.count,
-                    promo_id: document.getElementById('promoId').value,
+                    promo_id: promoValue ? Number(promoValue) : null,
                     frontend_total: this.total
                 })
             })
-            .then(r=>r.json())
-            .then(res=>{
-                if(res.redirect) window.location.href = res.redirect;
+            .then(async (r) => {
+                if (!r.ok) {
+                    const text = await r.text();
+                    console.error('Draft booking failed', r.status, text);
+                    alert('Booking gagal. Cek lagi data yang diisi / hubungi admin.');
+                    return null;
+                }
+
+                return r.json();
+            })
+            .then((res) => {
+                if (res && res.redirect) {
+                    window.location.href = res.redirect;
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                alert('Terjadi kesalahan jaringan. Coba lagi nanti.');
             });
-        }
+        },
     }
 }
 
@@ -210,9 +234,9 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             body:JSON.stringify({ code: code, price: price })
         })
-        .then(r=>r.json())
-        .then(res=>{
-            if(!res.valid){
+        .then(r => r.json())
+        .then(res => {
+            if (!res.valid) {
                 promoMsg.innerHTML = `<span class='text-danger'>${res.message}</span>`;
                 promoId.value = "";
                 return;
@@ -225,3 +249,4 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+

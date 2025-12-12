@@ -15,17 +15,31 @@
             this.calc();
         },
 
+        close(){
+            this.isOpen = false;
+        },
+
         calc(){
             let pickup = document.getElementById('pickup').value;
             let ret    = document.getElementById('return').value;
 
-            if (pickup && ret) {
-                let start = new Date(pickup);
-                let end   = new Date(ret);
-                let diff  = Math.ceil((end - start)/(1000*60*60*24)) + 1;
-                this.days = diff > 0 ? diff : 1;
+            if (!pickup || !ret) {
+                this.days = 0;
+                this.total = 0;
+                return;
             }
 
+            let start = new Date(pickup);
+            let end   = new Date(ret);
+
+            if (end < start) {
+                this.days = 0;
+                this.total = 0;
+                return;
+            }
+
+            let diff  = Math.ceil((end - start)/(1000*60*60*24)) + 1;
+            this.days = diff > 0 ? diff : 1;
             this.total = this.days * this.base;
         },
 
@@ -68,10 +82,19 @@
                 return;
             }
 
+            const pickup = document.getElementById('pickup').value;
+            const ret    = document.getElementById('return').value;
+
+            if (!pickup || !ret) {
+                alert('Tanggal pickup & return harus diisi.');
+                return;
+            }
+
             fetch(`/rent-car/{{ $package->slug }}/draft-booking`, {
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
+                    'Accept':'application/json',
                     'X-CSRF-TOKEN': csrf()
                 },
                 body: JSON.stringify({
@@ -82,29 +105,56 @@
                     email: this.email,
                     phone: this.phone,
 
-                    pickup_date: document.getElementById('pickup').value,
-                    return_date: document.getElementById('return').value,
+                    pickup: pickup,
+                    return: ret,
 
-                    total_days: this.days,
-                    promo_id: this.promoId,
-                    frontend_total: this.total
+                    promo_id: this.promoId ? Number(this.promoId) : null,
+                    final_price: this.total
                 })
             })
-            .then(r => r.json())
-            .then(res => {
-                if(res.redirect){
+            .then(async (r) => {
+                if (!r.ok) {
+                    const text = await r.text();
+                    console.error('Draft rent car failed', r.status, text);
+                    alert('Booking gagal. Cek lagi data yang diisi / hubungi admin.');
+                    return null;
+                }
+
+                return r.json();
+            })
+            .then((res) => {
+                if (res && res.redirect) {
                     window.location.href = res.redirect;
-                } else {
+                } else if (res) {
                     alert('Gagal membuat pesanan.');
                 }
+            })
+            .catch((err) => {
+                console.error(err);
+                alert('Terjadi kesalahan jaringan. Coba lagi.');
             });
         }
     }"
+    x-on:open-rentcar-booking.window="open()"
+    x-cloak
 >
-    <div x-show="isOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-lg">
+    {{-- backdrop, klik di luar form juga nutup --}}
+    <div x-show="isOpen"
+         class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+         @click.self="close()">
 
-            <h2 class="text-xl font-bold mb-3">Booking Rent Car</h2>
+        <div class="bg-white rounded-2xl p-6 w-full max-w-lg relative">
+
+            {{-- HEADER + TOMBOL X --}}
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold mb-0">Booking Rent Car</h2>
+
+                <button type="button"
+                        class="text-gray-400 hover:text-gray-600 text-lg"
+                        @click="close()">
+                    ✕
+                </button>
+            </div>
 
             <div class="space-y-3">
 
@@ -133,7 +183,11 @@
                     </div>
                 </div>
 
-                <button class="btn btn-success w-full" @click="submitBooking()">Booking Sekarang</button>
+                <button type="button"
+                        class="btn btn-success w-full"
+                        @click="submitBooking()">
+                    Booking Sekarang
+                </button>
 
             </div>
 
