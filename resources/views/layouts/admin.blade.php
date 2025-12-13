@@ -92,6 +92,12 @@ a:hover {
                class="block px-6 py-2 text-sm {{ request()->routeIs('admin.tour-reviews.*') ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
                 Komentar Paket
             </a>
+            <a href="{{ route('admin.settings.general') }}"
+            class="block px-6 py-2 text-sm {{ request()->routeIs('admin.settings.*')  ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
+            Settings
+            </a>
+
+
 
             {{-- nanti: Konten Home, Artikel, SEO, Users, Settings --}}
         </nav>

@@ -13,29 +13,53 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+    @php
+        $q = request('q');
+        $queryParams = array_filter(['q' => $q]);
+    @endphp
 
     {{-- FILTER TABS --}}
     <div class="mb-3">
-        <a href="{{ route('admin.orders.index') }}"
-           class="btn btn-sm {{ ($currentFilter ?? 'all') === 'all' ? 'btn-primary' : 'btn-outline-primary' }}">
-            Semua
-        </a>
+        <form class="mb-3" method="GET" action="{{ url()->current() }}">
+    <div class="input-group" style="max-width: 520px;">
+        <input
+            type="text"
+            name="q"
+            class="form-control"
+            placeholder="Cari berdasarkan nama customer atau invoice..."
+            value="{{ $q }}"
+            autocomplete="off"
+        />
 
-        <a href="{{ route('admin.orders.approved') }}"
-           class="btn btn-sm {{ ($currentFilter ?? '') === 'approved' ? 'btn-success' : 'btn-outline-success' }}">
-            Approved
-        </a>
+        <button class="btn btn-outline-secondary" type="submit">Cari</button>
 
-        <a href="{{ route('admin.orders.rejected') }}"
-           class="btn btn-sm {{ ($currentFilter ?? '') === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }}">
-            Rejected
-        </a>
+        @if(!empty($q))
+            <a class="btn btn-outline-danger" href="{{ url()->current() }}">Reset</a>
+        @endif
     </div>
+</form>
+
+    <a href="{{ route('admin.orders.index', $queryParams) }}"
+       class="btn btn-sm {{ ($currentFilter ?? 'all') === 'all' ? 'btn-primary' : 'btn-outline-primary' }}">
+        Semua
+    </a>
+
+    <a href="{{ route('admin.orders.approved', $queryParams) }}"
+       class="btn btn-sm {{ ($currentFilter ?? '') === 'approved' ? 'btn-success' : 'btn-outline-success' }}">
+        Approved
+    </a>
+
+    <a href="{{ route('admin.orders.rejected', $queryParams) }}"
+       class="btn btn-sm {{ ($currentFilter ?? '') === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }}">
+        Rejected
+    </a>
+</div>
 
     <table class="table table-striped table-bordered align-middle">
         <thead>
             <tr>
                 <th>Invoice</th>
+                <th>Customer</th>
                 <th>Tipe</th>
                 <th>Produk</th>
                 <th>Total</th>
@@ -49,6 +73,7 @@
         @forelse($orders as $order)
             <tr>
                 <td>{{ $order->invoice_number }}</td>
+                <td>{{ $order->customer_name }}</td>
                 <td>{{ strtoupper($order->type) }}</td>
                 <td>{{ $order->product_name }}</td>
                 <td>Rp {{ number_format($order->final_price,0,',','.') }}</td>

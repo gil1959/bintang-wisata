@@ -8,41 +8,71 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    private function buildOrdersQuery(Request $request, ?string $status = null)
+    {
+        // Ambil keyword dari query string ?q=...
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $keyword = isset($validated['q']) ? trim($validated['q']) : null;
+
+        $query = Order::query();
+
+        // Filter status kalau tab approved/rejected
+        if ($status) {
+            $query->where('order_status', $status);
+        }
+
+        // Filter pencarian
+        if ($keyword !== null && $keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('customer_name', 'like', "%{$keyword}%")
+                    ->orWhere('invoice_number', 'like', "%{$keyword}%");
+            });
+        }
+
+        return $query;
+    }
+
     public function index(Request $request)
     {
-        // Semua order
-        $orders = Order::query()
+        $orders = $this->buildOrdersQuery($request)
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString(); // penting: pagination tetap bawa ?q=
 
         $currentFilter = 'all';
 
         return view('admin.orders.index', compact('orders', 'currentFilter'));
     }
 
+
     public function approved(Request $request)
     {
-        // Hanya yang sudah approved
-        $orders = Order::where('order_status', 'approved')
+        $orders = $this->buildOrdersQuery($request, 'approved')
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         $currentFilter = 'approved';
 
         return view('admin.orders.index', compact('orders', 'currentFilter'));
     }
 
+
     public function rejected(Request $request)
     {
-        // Hanya yang sudah rejected
-        $orders = Order::where('order_status', 'rejected')
+        $orders = $this->buildOrdersQuery($request, 'rejected')
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         $currentFilter = 'rejected';
 
         return view('admin.orders.index', compact('orders', 'currentFilter'));
     }
+
 
     public function show(Order $order)
     {

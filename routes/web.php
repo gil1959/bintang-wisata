@@ -74,7 +74,7 @@ Route::prefix('bw-admin')
 
         // Settings
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
-        Route::post('settings/general', [SettingController::class, 'saveGeneral']);
+        Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save');
 
         // Orders (sistem baru)
         Route::get('orders/approved', [AdminOrderController::class, 'approved'])
@@ -146,6 +146,11 @@ Route::post('/payment/{order}/gateway', [FrontPaymentController::class, 'startGa
 | Frontend Pages
 |--------------------------------------------------------------------------
 */
+Route::get('/paket-tour', [\App\Http\Controllers\Front\TourController::class, 'index'])->name('tours.index');
+
+Route::view('/dokumentasi', 'front.pages.docs')->name('docs');
+Route::view('/about', 'front.pages.about')->name('about');
+Route::view('/artikel', 'front.pages.articles')->name('articles');
 
 // Homepage
 Route::get('/', [TourController::class, 'index'])->name('home');

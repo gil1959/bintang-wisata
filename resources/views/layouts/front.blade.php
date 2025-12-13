@@ -12,26 +12,22 @@
     {{-- APP CSS via MIX --}}
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
-    {{-- BOOTSTRAP (CSS AJA, DAN HARUS SETELAH TAILWIND CSS) --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     {{-- ALPINE JS HARUS DI BAWAH CSS & DEFER --}}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0194F3">
+
 </head>
 
 <body class="bg-gray-50 font-[Poppins] text-gray-800">
 
     <div class="min-h-screen flex flex-col">
 
-        <header class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
-                <a href="{{ route('home') }}" class="text-xl font-bold text-[#0194F3]">
-                    Bintang Wisata
-                </a>
-            </div>
-        </header>
+        @include('front.partials.navbar')
+
 
         <main class="flex-1">
             @yield('content')
@@ -40,6 +36,13 @@
     </div>
 
     @yield('scripts')
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script> AOS.init({ once:true, duration:700, offset:80 }); </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+  }
+</script>
 
 </body>
 </html>
