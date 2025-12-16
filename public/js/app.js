@@ -22928,6 +22928,30 @@ __webpack_require__.r(__webpack_exports__);
 
 window.Alpine = alpinejs__WEBPACK_IMPORTED_MODULE_1__["default"];
 alpinejs__WEBPACK_IMPORTED_MODULE_1__["default"].start();
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.querySelector('.reviewSwiper');
+  if (!el || typeof Swiper === 'undefined') return;
+  var swiper = new Swiper(el, {
+    slidesPerView: 1,
+    spaceBetween: 16,
+    navigation: {
+      nextEl: '.review-next',
+      prevEl: '.review-prev'
+    },
+    on: {
+      init: function init() {
+        var currentEl = document.querySelector('.review-current');
+        var totalEl = document.querySelector('.review-total');
+        if (currentEl) currentEl.textContent = String(this.realIndex + 1);
+        if (totalEl) totalEl.textContent = String(this.slides.length);
+      },
+      slideChange: function slideChange() {
+        var currentEl = document.querySelector('.review-current');
+        if (currentEl) currentEl.textContent = String(this.realIndex + 1);
+      }
+    }
+  });
+});
 
 /***/ }),
 

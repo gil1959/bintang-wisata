@@ -1,87 +1,162 @@
 @extends('layouts.admin')
 
+@section('title', 'Rental')
+@section('page-title', 'Rental')
+
 @section('content')
-<div class="container">
+<div class="space-y-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Rent Car Packages</h3>
+    {{-- Header --}}
+    <div class="flex items-start sm:items-center justify-between gap-3">
+        <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Rent Car Packages</h2>
+            <p class="mt-1 text-sm text-slate-600">Kelola paket rental mobil.</p>
+        </div>
 
-        <a href="{{ route('admin.rent-car-packages.create') }}" 
-           class="btn btn-primary">
-           + Add New Package
+        <a href="{{ route('admin.rent-car-packages.create') }}"
+           class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+           style="background:#0194F3;"
+           onmouseover="this.style.background='#0186DB'"
+           onmouseout="this.style.background='#0194F3'">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add New Package
         </a>
     </div>
 
+    {{-- Flash --}}
     @if(session('success'))
-        <div class="alert alert-success mb-3">
-            {{ session('success') }}
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+            <div class="font-extrabold">Berhasil</div>
+            <div class="text-sm mt-1">{{ session('success') }}</div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <div class="font-extrabold">Gagal</div>
+            <div class="text-sm mt-1">{{ session('error') }}</div>
         </div>
     @endif
 
-    <div class="card shadow-sm">
-        <div class="card-body table-responsive">
-            <table class="table align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 120px;">Thumbnail</th>
-                        <th>Title</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Features</th>
-                        <th style="width: 120px;">Actions</th>
-                    </tr>
+    {{-- Table --}}
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-[980px] w-full text-left">
+                <thead class="bg-slate-50">
+                <tr class="text-xs font-extrabold text-slate-600">
+                    <th class="px-5 py-3 w-[140px]">Thumbnail</th>
+                    <th class="px-5 py-3">Title</th>
+                    <th class="px-5 py-3 w-[160px]">Price / Day</th>
+                    <th class="px-5 py-3 w-[140px]">Status</th>
+                    <th class="px-5 py-3">Features</th>
+                    <th class="px-5 py-3 text-right w-[190px]">Actions</th>
+                </tr>
                 </thead>
 
-                <tbody>
-                    @foreach ($packages as $p)
-                        <tr>
-                            <td>
-                                <img src="{{ asset('storage/' . $p->thumbnail_path) }}" 
-                                     class="rounded" style="width: 80px; height: auto;">
-                            </td>
+                <tbody class="divide-y divide-slate-100">
+                @forelse($packages as $p)
+                    <tr class="text-sm text-slate-700 hover:bg-slate-50/70 transition">
+                        <td class="px-5 py-4">
+                            <div class="h-16 w-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                                <img src="{{ asset('storage/' . $p->thumbnail_path) }}"
+                                     class="h-full w-full object-cover"
+                                     alt="{{ $p->title }}">
+                            </div>
+                        </td>
 
-                            <td class="fw-semibold">{{ $p->title }}</td>
+                        <td class="px-5 py-4">
+                            <div class="font-extrabold text-slate-900">{{ $p->title }}</div>
+                        </td>
 
-                            <td>Rp {{ number_format($p->price_per_day) }}</td>
+                        <td class="px-5 py-4">
+                            <div class="font-extrabold" style="color:#0194F3;">
+                                Rp {{ number_format($p->price_per_day, 0, ',', '.') }}
+                            </div>
+                            <div class="text-xs text-slate-500">per hari</div>
+                        </td>
 
-                            <td>
-                                <span class="badge {{ $p->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ $p->is_active ? 'Active' : 'Inactive' }}
+                        <td class="px-5 py-4">
+                            @if($p->is_active)
+                                <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border"
+                                      style="background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.25); color:#065f46;">
+                                    <span class="h-2 w-2 rounded-full" style="background:#10b981;"></span>
+                                    Active
                                 </span>
-                            </td>
+                            @else
+                                <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border"
+                                      style="background: rgba(148,163,184,0.18); border-color: rgba(148,163,184,0.35); color:#475569;">
+                                    <span class="h-2 w-2 rounded-full" style="background:#94a3b8;"></span>
+                                    Inactive
+                                </span>
+                            @endif
+                        </td>
 
-                            <td>
-                                @foreach($p->features as $f)
-                                    <div>
-                                        @if($f['available'])
-                                            <span class="text-success fw-bold">✔</span>
+                        <td class="px-5 py-4">
+                            <div class="space-y-1">
+                                @foreach(($p->features ?? []) as $f)
+                                    <div class="flex items-center gap-2">
+                                        @if(!empty($f['available']))
+                                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
                                         @else
-                                            <span class="text-danger fw-bold">✘</span>
+                                            <i data-lucide="x-circle" class="w-4 h-4 text-red-400"></i>
                                         @endif
-                                        {{ $f['name'] }}
+                                        <span class="text-slate-700">{{ $f['name'] ?? '-' }}</span>
                                     </div>
                                 @endforeach
-                            </td>
+                                @if(empty($p->features) || count($p->features) === 0)
+                                    <span class="text-xs text-slate-500">—</span>
+                                @endif
+                            </div>
+                        </td>
 
-                            <td>
-                                <a href="{{ route('admin.rent-car-packages.edit', $p->id) }}" 
-                                   class="btn btn-sm btn-warning mb-1">Edit</a>
+                        <td class="px-5 py-4 text-right">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{{ route('admin.rent-car-packages.edit', $p->id) }}"
+                                   class="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold border border-slate-200 bg-white hover:bg-slate-50 transition">
+                                    <i data-lucide="pencil" class="w-4 h-4" style="color:#0194F3;"></i>
+                                    Edit
+                                </a>
 
-                                <form action="{{ route('admin.rent-car-packages.destroy', $p->id) }}" 
-                                      method="POST" onsubmit="return confirm('Delete this package?')">
+                                <form action="{{ route('admin.rent-car-packages.destroy', $p->id) }}"
+                                      method="POST"
+                                      class="inline"
+                                      onsubmit="return confirm('Delete this package?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger w-100">Delete</button>
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold text-white transition"
+                                            style="background:#ef4444"
+                                            onmouseover="this.style.background='#dc2626'"
+                                            onmouseout="this.style.background='#ef4444'">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        Delete
+                                    </button>
                                 </form>
-                            </td>
-
-                        </tr>
-                    @endforeach
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-5 py-12 text-center">
+                            <div class="mx-auto h-12 w-12 rounded-2xl border grid place-items-center"
+                                 style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
+                                <i data-lucide="car" class="w-6 h-6" style="color:#0194F3;"></i>
+                            </div>
+                            <div class="mt-3 font-extrabold text-slate-900">Belum ada paket rental</div>
+                            <div class="mt-1 text-sm text-slate-600">Klik “Add New Package” untuk mulai bikin paket.</div>
+                        </td>
+                    </tr>
+                @endforelse
                 </tbody>
-
             </table>
         </div>
     </div>
+
+    {{-- Pagination kalau paginate --}}
+    @if(method_exists($packages, 'links'))
+        <div>
+            {{ $packages->links() }}
+        </div>
+    @endif
 
 </div>
 @endsection

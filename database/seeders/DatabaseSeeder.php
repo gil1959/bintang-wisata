@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -17,5 +18,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
         ]);
+        $admin = User::where('email', 'admin@admin.com')->first();
+        if ($admin && !$admin->hasRole('admin')) {
+            $admin->assignRole('admin');
+        }
     }
 }

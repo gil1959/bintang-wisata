@@ -18,6 +18,9 @@ class Order extends Model
         'customer_email',
         'customer_phone',
 
+        'pickup_date',
+        'return_date',
+
         // DATA KHUSUS TOUR
         'departure_date',
         'participants',
@@ -48,6 +51,9 @@ class Order extends Model
 
     protected $casts = [
         'departure_date' => 'date',
+        'pickup_date' => 'date',
+        'return_date' => 'date',
+
     ];
 
     /*

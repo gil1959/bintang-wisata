@@ -11,22 +11,22 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        // bikin role
-        $adminRole  = Role::firstOrCreate(['name' => 'admin']);
-        $staffRole  = Role::firstOrCreate(['name' => 'staff']);
-        $customerRole = Role::firstOrCreate(['name' => 'customer']);
+        // Pastikan guard web (default Laravel)
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $userRole  = Role::firstOrCreate(['name' => 'user',  'guard_name' => 'web']);
 
         // bikin user admin pertama (kalau belum ada)
         $admin = User::firstOrCreate(
-            ['email' => 'admin@bintangwisata.test'],
+            ['email' => 'bintangwisataofficial@gmail.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password123'), // ganti nanti
+                'password' => Hash::make('@BINTANGwisata12345'),
             ]
         );
 
+        // assign role admin kalau belum
         if (! $admin->hasRole('admin')) {
-            $admin->assignRole($adminRole);
+            $admin->assignRole($adminRole); // atau: $admin->assignRole('admin');
         }
     }
 }

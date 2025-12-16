@@ -21,6 +21,11 @@ class RentCarPackage extends Model
     protected $casts = [
         'price_per_day' => 'float',
         'is_active' => 'boolean',
-        'features' => 'array', // fitur langsung JSON
+        'features' => 'array',
     ];
+
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
 }

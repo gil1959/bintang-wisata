@@ -1,36 +1,27 @@
 <x-guest-layout>
-    <x-auth-card>
-        <x-slot name="logo">
-            <a href="/">
-                <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-            </a>
-        </x-slot>
+    <x-auth.auth-wrapper>
 
-        <div class="mb-4 text-sm text-gray-600">
-            {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
-        </div>
+        <h2 class="text-xl font-bold mb-4">Konfirmasi Password</h2>
 
-        <!-- Validation Errors -->
+        <p class="text-sm text-gray-600 mb-6">
+            Demi keamanan, silakan konfirmasi password Anda.
+        </p>
+
         <x-auth-validation-errors class="mb-4" :errors="$errors" />
 
-        <form method="POST" action="{{ route('password.confirm') }}">
+        <form method="POST" action="{{ route('password.confirm') }}" class="space-y-4">
             @csrf
 
-            <!-- Password -->
             <div>
-                <x-label for="password" :value="__('Password')" />
-
-                <x-input id="password" class="block mt-1 w-full"
-                                type="password"
-                                name="password"
-                                required autocomplete="current-password" />
+                <x-label for="password" value="Password" />
+                <x-input id="password" class="w-full rounded-xl"
+                         type="password" name="password" required />
             </div>
 
-            <div class="flex justify-end mt-4">
-                <x-button>
-                    {{ __('Confirm') }}
-                </x-button>
-            </div>
+            <button class="w-full py-3 rounded-xl bg-[#0194F3] text-white font-semibold">
+                Konfirmasi
+            </button>
         </form>
-    </x-auth-card>
+
+    </x-auth.auth-wrapper>
 </x-guest-layout>

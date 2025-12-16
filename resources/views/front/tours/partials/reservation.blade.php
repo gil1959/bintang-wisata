@@ -19,7 +19,7 @@
                 :class="active === 'international' ? 'bg-[#0194F3] text-white shadow-sm' : 'text-gray-600'"
                 class="flex-1 py-2 rounded-full transition"
             >
-                WNA
+                Foreign Tourists
             </button>
         </div>
 

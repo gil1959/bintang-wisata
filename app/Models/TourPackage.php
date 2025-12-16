@@ -47,4 +47,8 @@ class TourPackage extends Model
     {
         return $this->hasMany(TourPackagePhoto::class);
     }
+    public function reviews()
+    {
+        return $this->morphMany(\App\Models\Review::class, 'reviewable');
+    }
 }

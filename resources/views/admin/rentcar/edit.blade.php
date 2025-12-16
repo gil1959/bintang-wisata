@@ -1,26 +1,28 @@
 @extends('layouts.admin')
 
+@section('title', 'Edit Paket Rental')
+@section('page-title', 'Edit Paket Rental')
+
 @section('content')
-<div class="container">
+<div class="space-y-5">
 
-    <h3>Edit Rent Car Package</h3>
     @if ($errors->any())
-    <div class="alert alert-danger">
-        <strong>Validation Error:</strong>
-        <ul class="mt-2 mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <div class="font-extrabold">Validation Error</div>
+            <ul class="mt-2 list-disc pl-5 text-sm space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    <hr>
-@endif
-
-
-    <form action="{{ route('admin.rent-car-packages.update', $package->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.rent-car-packages.update', $package->id) }}"
+          method="POST"
+          enctype="multipart/form-data"
+          class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         @method('PUT')
-        @include('admin.rentcar._form', ['buttonText' => 'Update Package'])
+        @include('admin.rentcar._form', ['buttonText' => 'Update Package', 'package' => $package])
     </form>
 
 </div>

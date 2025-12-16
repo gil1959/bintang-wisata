@@ -1,39 +1,36 @@
 <x-guest-layout>
-    <x-auth-card>
-        <x-slot name="logo">
-            <a href="/">
-                <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-            </a>
-        </x-slot>
+    <x-auth.auth-wrapper>
 
-        <div class="mb-4 text-sm text-gray-600">
-            {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
-        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">
+            Verifikasi Email
+        </h2>
+
+        <p class="text-sm text-gray-600 mb-6">
+            Kami telah mengirimkan link verifikasi ke email Anda.
+            Silakan klik link tersebut untuk mengaktifkan akun.
+        </p>
 
         @if (session('status') == 'verification-link-sent')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+            <div class="mb-4 text-sm text-emerald-600 font-medium">
+                Link verifikasi baru telah dikirim.
             </div>
         @endif
 
-        <div class="mt-4 flex items-center justify-between">
+        <div class="flex items-center justify-between">
             <form method="POST" action="{{ route('verification.send') }}">
                 @csrf
-
-                <div>
-                    <x-button>
-                        {{ __('Resend Verification Email') }}
-                    </x-button>
-                </div>
+                <button class="px-4 py-2 rounded-xl bg-[#0194F3] text-white font-semibold hover:opacity-90">
+                    Kirim Ulang Email
+                </button>
             </form>
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-
-                <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900">
-                    {{ __('Log Out') }}
+                <button class="text-sm text-gray-500 hover:underline">
+                    Logout
                 </button>
             </form>
         </div>
-    </x-auth-card>
+
+    </x-auth.auth-wrapper>
 </x-guest-layout>

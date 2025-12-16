@@ -52,15 +52,17 @@
 
             <div class="mt-2 text-sm text-gray-500 flex flex-wrap items-center gap-4">
                 @if($package->duration_text)
-                    <span class="flex items-center gap-1">
-                        <span>🕒</span> <span>{{ $package->duration_text }}</span>
-                    </span>
+                    <span class="flex items-center gap-2">
+    <i data-lucide="clock" class="w-4 h-4 text-gray-500"></i>
+    <span>{{ $package->duration_text }}</span>
+</span>
                 @endif
 
                 @if($package->destination)
-                    <span class="flex items-center gap-1">
-                        <span>📍</span> <span>{{ $package->destination }}</span>
-                    </span>
+                    <span class="flex items-center gap-2">
+    <i data-lucide="map-pin" class="w-4 h-4 text-gray-500"></i>
+    <span>{{ $package->destination }}</span>
+</span>
                 @endif
             </div>
         </div>
@@ -79,7 +81,8 @@
         @if($package->itineraries->count())
             <section class="bg-white rounded-xl shadow-sm p-5">
                 <h2 class="text-lg font-semibold mb-4 text-[#0194F3] flex items-center gap-2">
-                    🗺️ <span>Itinerary Perjalanan</span>
+                    <i data-lucide="map" class="w-5 h-5 text-[#0194F3]"></i>
+<span>Itinerary Perjalanan</span>
                 </h2>
 
                 <div class="space-y-4">
@@ -90,7 +93,10 @@
                                 <div class="flex-1 w-px bg-[#0194F3]/30"></div>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold text-gray-800">{{ $item->time }}</p>
+                               <p class="text-sm font-semibold text-gray-800">
+    {{ \Carbon\Carbon::parse($item->time)->format('H:i') }}
+</p>
+
                                 <p class="text-sm text-gray-700">{{ $item->title }}</p>
                             </div>
                         </div>
@@ -103,9 +109,10 @@
         <div class="grid md:grid-cols-2 gap-4">
             @if($package->includes)
                 <section class="bg-green-50 border border-green-200 rounded-xl p-5">
-                    <h2 class="text-lg font-semibold text-green-700 mb-3">
-                        ✓ Termasuk (Include)
-                    </h2>
+                    <h2 class="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
+    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+    Termasuk (Include)
+</h2>
                     <ul class="list-disc ml-5 space-y-1 text-sm text-gray-700">
                         @foreach($package->includes as $item)
                             <li>{{ $item }}</li>
@@ -116,9 +123,10 @@
 
             @if($package->excludes)
                 <section class="bg-red-50 border border-red-200 rounded-xl p-5">
-                    <h2 class="text-lg font-semibold text-red-700 mb-3">
-                        ✕ Tidak Termasuk (Exclude)
-                    </h2>
+                    <h2 class="text-lg font-semibold text-red-700 mb-3 flex items-center gap-2">
+    <i data-lucide="x-circle" class="w-5 h-5 text-red-600"></i>
+    Tidak Termasuk (Exclude)
+</h2>
                     <ul class="list-disc ml-5 space-y-1 text-sm text-gray-700">
                         @foreach($package->excludes as $item)
                             <li>{{ $item }}</li>
@@ -131,7 +139,12 @@
     </div>
 
     {{-- =============== SIDEBAR RESERVATION =============== --}}
+   <aside class="md:col-span-1 space-y-6">
     @include('front.tours.partials.reservation')
+
+    @include('front.partials.reviews', ['item' => $package, 'type' => 'tour'])
+</aside>
+
 
     {{-- =============== POPUP BOOKING =============== --}}
     @include('front.tours.partials.booking-popup')

@@ -18,18 +18,22 @@ return new class extends Migration
             // Bukti transaksi manual transfer
             $table->string('proof_image')->nullable();
 
-            // Gateway transaction ID (Xendit/Midtrans)
-            $table->string('gateway_reference')->nullable();
+            // Gateway metadata
+            $table->string('gateway_name')->nullable();      // doku/tripay/midtrans
+            $table->string('channel_code')->nullable();      // VA, QRIS, etc
+            $table->string('gateway_reference')->nullable(); // id transaksi/invoice dari gateway
+            $table->string('payment_url')->nullable();
+            $table->json('gateway_payload')->nullable();
 
             $table->enum('status', [
-                'waiting_verification',
+                'waiting_payment',       // gateway pending sebelum bayar
+                'waiting_verification',  // manual setelah upload bukti
                 'paid',
                 'failed'
             ]);
 
             $table->timestamps();
 
-            // Relasi
             $table->foreign('order_id')
                 ->references('id')
                 ->on('orders')

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\RentCarPackage;
 use App\Models\Order;
 use App\Models\Promo;
-use App\Models\RentCarPackage;
 
 class RentCarOrderController extends Controller
 {
@@ -14,74 +14,103 @@ class RentCarOrderController extends Controller
     {
         $package = RentCarPackage::where('slug', $slug)->firstOrFail();
 
-        // Validasi input pop-up
-        $data = $request->validate([
-            'name'   => 'required|string|max:100',
-            'email'  => 'required|email',
-            'phone'  => 'required|string|max:20',
+        /**
+         * Frontend lo saat ini ngirim:
+         * - pickup (string date)
+         * - return (string date)
+         *
+         * Tapi untuk DB kita simpan sebagai:
+         * - pickup_date
+         * - return_date
+         *
+         * Jadi kita validasi yang ada, lalu normalisasi.
+         */
+        $validated = $request->validate([
+            'name'     => 'required|string|max:120',
+            'email'    => 'required|email',
+            'phone'    => 'required|string|max:50',
 
-            'pickup' => 'required|date',
-            'return' => 'required|date|after_or_equal:pickup',
+            // ✅ terima dua kemungkinan nama field
+            'pickup'       => 'nullable|date',
+            'return'       => 'nullable|date',
+            'pickup_date'  => 'nullable|date',
+            'return_date'  => 'nullable|date',
 
             'promo_id' => 'nullable|integer',
-            'final_price' => 'required|integer|min:1'
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | HITUNG ULANG TOTAL HARI (ANTI MANIPULASI)
-        |--------------------------------------------------------------------------
-        */
-        $days = (strtotime($data['return']) - strtotime($data['pickup'])) / 86400 + 1;
-        if ($days < 1) $days = 1;
+        // ✅ normalisasi tanggal (prioritaskan pickup_date jika ada)
+        $pickupDate = $validated['pickup_date'] ?? $validated['pickup'] ?? null;
+        $returnDate = $validated['return_date'] ?? $validated['return'] ?? null;
 
-        $backend_price = $package->price_per_day * $days;
+        if (!$pickupDate || !$returnDate) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'pickup_date' => ['Pickup date is required.'],
+                    'return_date' => ['Return date is required.'],
+                ]
+            ], 422);
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDASI PROMO DI BACKEND
-        |--------------------------------------------------------------------------
-        */
+        // ✅ validasi return >= pickup
+        if (strtotime($returnDate) < strtotime($pickupDate)) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'return_date' => ['Return date must be after or equal to pickup date.'],
+                ]
+            ], 422);
+        }
+
+        // ===================== HITUNG DURASI ======================
+        $start = strtotime($pickupDate);
+        $end   = strtotime($returnDate);
+
+        $days = max(1, floor(($end - $start) / 86400) + 1);
+        $subtotal = $days * $package->price_per_day;
+
+        // ===================== PROMO ======================
         $discount = 0;
-
-        if (!empty($data['promo_id'])) {
-            $promo = Promo::find($data['promo_id']);
-
-            if ($promo && $promo->is_valid_for($backend_price)) {
-                $discount = $promo->calculate_discount($backend_price);
+        if (!empty($validated['promo_id'])) {
+            $promo = Promo::find($validated['promo_id']);
+            if ($promo && $promo->is_valid_for($subtotal)) {
+                $discount = $promo->calculate_discount($subtotal);
             }
         }
 
-        $final_price = $backend_price - $discount;
+        $final = max(0, $subtotal - $discount);
 
-        /*
-        |--------------------------------------------------------------------------
-        | BUAT ORDER
-        |--------------------------------------------------------------------------
-        */
+        // ===================== SIMPAN ORDER ======================
         $order = Order::create([
-            'invoice_number' => 'INV-' . date('YmdHis') . rand(100, 999),
+            'invoice_number' => 'INV-' . date('YmdHis') . rand(1000, 9999),
+            'type'           => 'rent_car',
+            'product_id'     => $package->id,
+            'product_name'   => $package->title,
 
-            'type' => 'rent_car',
-            'product_id' => $package->id,
-            'product_name' => $package->title,
+            'customer_name'  => $validated['name'],
+            'customer_email' => $validated['email'],
+            'customer_phone' => $validated['phone'],
 
-            'customer_name' => $data['name'],
-            'customer_email' => $data['email'],
-            'customer_phone' => $data['phone'],
+            // ✅ ini yang bikin admin bisa tampil
+            'pickup_date'    => $pickupDate,
+            'return_date'    => $returnDate,
 
-            'total_days' => $days,
+            'departure_date' => null,
+            'participants'   => null,
 
-            'subtotal' => $backend_price,
-            'discount' => $discount,
-            'final_price' => $final_price,
+            'total_days'     => $days,
+
+            'subtotal'       => $subtotal,
+            'discount'       => $discount,
+            'final_price'    => $final,
 
             'payment_status' => 'waiting_payment',
-            'order_status' => 'pending',
+            'order_status'   => 'pending',
         ]);
 
         return response()->json([
-            'redirect' => route('checkout.show', $order->id)
+            'redirect' => route('checkout.show', $order->id),
         ]);
     }
 }

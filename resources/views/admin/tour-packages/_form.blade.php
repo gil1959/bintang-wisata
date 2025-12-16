@@ -1,294 +1,362 @@
+@php
+  $pkg = $package ?? null;
+@endphp
 
-
-{{-- ========================== --}}
-{{-- SECTION: INFORMASI DASAR --}}
-{{-- ========================== --}}
-<div x-data="{ open: true }" class="mb-4 border rounded shadow bg-white">
-
+{{-- INFORMASI DASAR --}}
+<div x-data="{ open: true }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
     <button type="button"
         @click="open = !open"
-        class="w-full px-4 py-3 text-left font-semibold bg-[#0194F3] text-white">
-        Informasi Dasar Paket
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Informasi Dasar Paket</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4 space-y-4">
+    <div x-show="open" x-cloak class="p-5 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="md:col-span-6">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Judul Paket</label>
+                <input type="text" name="title"
+                       value="{{ old('title', $pkg->title ?? '') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                       required>
+            </div>
 
-        <div>
-            <label class="block font-medium mb-1">Judul Paket</label>
-            <input type="text" name="title"
-                value="{{ old('title', $package->title ?? '') }}"
-                class="w-full border rounded px-3 py-2">
+            <div class="md:col-span-6">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Slug (URL)</label>
+                <input type="text" name="slug"
+                       value="{{ old('slug', $pkg->slug ?? '') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                       required>
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Durasi</label>
+                <input type="text" name="duration_text"
+                       value="{{ old('duration_text', $pkg->duration_text ?? '') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                       placeholder="contoh: 3D2N">
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Destinasi</label>
+                <input type="text" name="destination"
+                       value="{{ old('destination', $pkg->destination ?? '') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Kategori</label>
+                <select name="category_id"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                        required>
+                    <option value="">-- Pilih Kategori --</option>
+                    @foreach ($categories as $cat)
+                        <option value="{{ $cat->id }}"
+                            {{ old('category_id', $pkg->category_id ?? '') == $cat->id ? 'selected':'' }}>
+                            {{ $cat->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
-
-        <div>
-            <label class="block font-medium mb-1">Slug (URL)</label>
-            <input type="text" name="slug"
-                value="{{ old('slug', $package->slug ?? '') }}"
-                class="w-full border rounded px-3 py-2">
-        </div>
-
-        <div>
-            <label class="block font-medium mb-1">Durasi Paket</label>
-            <input type="text" name="duration_text"
-                value="{{ old('duration_text', $package->duration_text ?? '') }}"
-                class="w-full border rounded px-3 py-2"
-                placeholder="contoh: 3D2N">
-        </div>
-
-        <div>
-            <label class="block font-medium mb-1">Destinasi</label>
-            <input type="text" name="destination"
-                value="{{ old('destination', $package->destination ?? '') }}"
-                class="w-full border rounded px-3 py-2">
-        </div>
-
-        <div>
-            <label class="block font-medium mb-1">Kategori</label>
-            <select name="category_id" class="w-full border rounded px-3 py-2">
-                <option value="">-- Pilih Kategori --</option>
-                @foreach ($categories as $cat)
-                    <option value="{{ $cat->id }}"
-                        {{ old('category_id', $package->category_id ?? '') == $cat->id ? 'selected':'' }}>
-                        {{ $cat->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
     </div>
 </div>
 
-{{-- ========================== --}}
-{{-- SECTION: FOTO --}}
-{{-- ========================== --}}
-<div x-data="{ open: true }" class="mb-4 border rounded shadow bg-white">
-
+{{-- FOTO --}}
+<div x-data="{ open: true }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
     <button type="button"
         @click="open = !open"
-        class="w-full px-4 py-3 bg-[#0194F3] text-white font-semibold text-left">
-        Foto Paket Wisata
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Foto Paket Wisata</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4 space-y-4">
+    <div x-show="open" x-cloak class="p-5 space-y-4">
 
-        {{-- Thumbnail --}}
-        <div>
-            <label class="block font-medium mb-1">Thumbnail</label>
-            <input type="file"
-                name="thumbnail"
-                accept="image/*"
-                class="border rounded px-3 py-2 w-full">
+        @if(!empty($pkg?->thumbnail_path))
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="text-sm font-extrabold text-slate-900">Thumbnail Saat Ini</div>
+                <img src="{{ asset('storage/' . $pkg->thumbnail_path) }}"
+                     class="mt-3 h-28 w-auto rounded-xl object-cover border border-slate-200">
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="md:col-span-6">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Upload Thumbnail</label>
+                <input type="file" name="thumbnail" accept="image/*"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                <div class="text-xs text-slate-500 mt-1">PNG/JPG/WEBP disarankan.</div>
+            </div>
+
+            <div class="md:col-span-6">
+                <label class="block text-sm font-bold text-slate-800 mb-1">Tambah Gallery (multi upload)</label>
+                <input type="file" name="gallery[]" accept="image/*" multiple
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                <div class="text-xs text-slate-500 mt-1">Boleh lebih dari 1 foto.</div>
+            </div>
         </div>
 
-        {{-- Gallery --}}
-        <div>
-            <label class="block font-medium mb-1">Gallery Foto (multi upload)</label>
-            <input type="file"
-                name="gallery[]"
-                accept="image/*"
-                multiple
-                class="border rounded px-3 py-2 w-full">
-        </div>
+        {{-- Gallery existing (edit only) --}}
+        @if($pkg && method_exists($pkg, 'photos') && $pkg->photos->count())
+            <div class="pt-2">
+                <div class="text-sm font-extrabold text-slate-900 mb-3">Galeri Foto</div>
 
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    @foreach($pkg->photos as $photo)
+                        <div class="rounded-2xl border border-slate-200 bg-white p-3">
+                            <img src="{{ asset('storage/' . $photo->file_path) }}"
+                                 class="h-24 w-full object-cover rounded-xl border border-slate-200">
+
+                            <form action="{{ route('admin.tour-packages.delete-photo', $photo->id) }}"
+                                  method="POST"
+                                  class="mt-3"
+                                  onsubmit="return confirm('Hapus foto ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold text-white transition"
+                                        style="background:#ef4444"
+                                        onmouseover="this.style.background='#dc2626'"
+                                        onmouseout="this.style.background='#ef4444'">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 
-
-{{-- ========================== --}}
-{{-- SECTION: DESKRIPSI --}}
-{{-- ========================== --}}
-<div x-data="{ open: false }" class="mb-4 border rounded shadow bg-white">
-
-    <button type="button" 
+{{-- DESKRIPSI --}}
+<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <button type="button"
         @click="open = !open"
-        class="w-full px-4 py-3 text-left font-semibold bg-[#0194F3] text-white">
-        Deskripsi Paket
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Deskripsi Paket</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4">
-        <label class="block font-medium mb-1">Deskripsi Lengkap</label>
-        <textarea name="long_description" rows="6"
-            class="w-full border rounded px-3 py-2">{{ old('long_description', $package->long_description ?? '') }}</textarea>
+    <div x-show="open" x-cloak class="p-5">
+        <label class="block text-sm font-bold text-slate-800 mb-1">Deskripsi Lengkap</label>
+        <textarea name="long_description" rows="7"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('long_description', $pkg->long_description ?? '') }}</textarea>
     </div>
 </div>
 
-{{-- ========================== --}}
-{{-- SECTION: ITINERARY --}}
-{{-- ========================== --}}
-<div x-data="{ open: false }" class="mb-4 border rounded shadow bg-white">
+{{-- ITINERARY --}}
+@php
+    // NORMALISASI DATA ITINERARY (EDIT: HH:MM:SS -> HH:MM)
+    $itinerariesForForm = old('itineraries') ?? collect($pkg->itineraries ?? [])
+        ->map(function ($i) {
+            return [
+                'id'    => $i->id,
+                'time'  => $i->time ? substr((string) $i->time, 0, 5) : '',
+                'title' => $i->title ?? '',
+            ];
+        })
+        ->values()
+        ->toArray();
+@endphp
 
+<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
     <button type="button"
         @click="open = !open"
-        class="w-full px-4 py-3 bg-[#0194F3] text-white font-semibold text-left">
-        Itinerary Perjalanan
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Itinerary Perjalanan</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4">
+    <div x-show="open" x-cloak class="p-5">
+        <div x-data='{ items: @json($itinerariesForForm) }' class="space-y-3">
 
-        <div x-data='{
-            "items": @json(old("itineraries", $package->itineraries ?? []))
-        }'>
+            <template x-for="(row, index) in items" :key="(row.id ?? index)">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
 
-            <template x-for="(row, index) in items" :key="index">
-                <div class="mb-3 p-3 border rounded bg-gray-50">
-
-                    <div class="grid grid-cols-12 gap-2">
-
-                        <div class="col-span-3">
-                            <label class="text-sm">Waktu (HH:MM)</label>
+                        {{-- TIME --}}
+                        <div class="sm:col-span-3">
+                            <label class="block text-sm font-bold text-slate-800 mb-1">Waktu</label>
                             <input type="time"
-                                x-model="row.time"
-                                :name="`itineraries[${index}][time]`"
-                                class="border rounded px-2 py-1 w-full">
+                                   x-model="row.time"
+                                   :name="`itineraries[${index}][time]`"
+                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
                         </div>
 
-                        <div class="col-span-8">
-                            <label class="text-sm">Judul</label>
+                        {{-- TITLE --}}
+                        <div class="sm:col-span-8">
+                            <label class="block text-sm font-bold text-slate-800 mb-1">Judul</label>
                             <input type="text"
-                                x-model="row.title"
-                                :name="`itineraries[${index}][title]`"
-                                class="border rounded px-2 py-1 w-full">
+                                   x-model="row.title"
+                                   :name="`itineraries[${index}][title]`"
+                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                                   placeholder="Contoh: Check-in hotel, makan malam, dll">
                         </div>
 
-                        <div class="col-span-1 flex items-end">
+                        {{-- DELETE --}}
+                        <div class="sm:col-span-1 flex sm:items-end">
                             <button type="button"
-                                @click="items.splice(index, 1)"
-                                class="px-3 py-1 bg-red-500 text-white rounded">
+                                    @click="items.splice(index, 1)"
+                                    class="w-full inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
+                                    style="background:#ef4444"
+                                    onmouseover="this.style.background='#dc2626'"
+                                    onmouseout="this.style.background='#ef4444'">
                                 X
                             </button>
                         </div>
 
+                        {{-- HIDDEN ID (PENTING BUAT EDIT) --}}
+                        <input type="hidden"
+                               x-model="row.id"
+                               :name="`itineraries[${index}][id]`">
                     </div>
                 </div>
             </template>
 
+            {{-- ADD --}}
             <button type="button"
-                @click="items.push({ time: '', title: '' })"
-                class="px-4 py-2 bg-green-600 text-white rounded">
-                + Tambah Itinerary
+                    @click="items.push({ id: null, time: '', title: '' })"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                    style="background:#16a34a"
+                    onmouseover="this.style.background='#15803d'"
+                    onmouseout="this.style.background='#16a34a'">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Tambah Itinerary
             </button>
 
         </div>
     </div>
 </div>
 
-{{-- ========================== --}}
-{{-- SECTION: INCLUDE / EXCLUDE --}}
-{{-- ========================== --}}
-<div x-data="{ open: false }" class="mb-4 border rounded shadow bg-white">
 
+
+{{-- INCLUDE / EXCLUDE --}}
+<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
     <button type="button"
         @click="open = !open"
-        class="w-full px-4 py-3 bg-[#0194F3] text-white text-left font-semibold">
-        Include & Exclude
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Include & Exclude</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4 grid grid-cols-2 gap-4">
+    <div x-show="open" x-cloak class="p-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-        {{-- INCLUDES --}}
-        <div x-data='{"list": @json(old("includes", $package->includes ?? [])) }'>
-            <label class="font-medium">Includes</label>
+            {{-- Includes --}}
+            <div x-data='{ list: @json(old("includes", $pkg->includes ?? [])) }' class="space-y-3">
+                <div class="font-extrabold text-slate-900">Includes</div>
 
-            <template x-for="(item, index) in list" :key="index">
-                <div class="flex gap-2 mb-2">
+                <template x-for="(item, index) in list" :key="index">
+                    <div class="flex items-center gap-2">
+                        <input type="text"
+                               x-model="list[index]"
+                               name="includes[]"
+                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                               placeholder="Contoh: Hotel, Makan, Transport">
 
-                    <input type="text"
-                        x-model="item"
-                        :name="`includes[${index}]`"
-                        class="border rounded px-3 py-1 w-full">
+                        <button type="button"
+                                @click="list.splice(index, 1)"
+                                class="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
+                                style="background:#ef4444"
+                                onmouseover="this.style.background='#dc2626'"
+                                onmouseout="this.style.background='#ef4444'">
+                            X
+                        </button>
+                    </div>
+                </template>
 
-                    <button type="button"
-                        @click="list.splice(index,1)"
-                        class="px-3 bg-red-500 text-white rounded">
-                        X
-                    </button>
-                </div>
-            </template>
+                <button type="button"
+                        @click="list.push('')"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                        style="background:#16a34a"
+                        onmouseover="this.style.background='#15803d'"
+                        onmouseout="this.style.background='#16a34a'">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Tambah Include
+                </button>
+            </div>
 
-            <button type="button"
-                @click="list.push('')"
-                class="px-3 py-1 bg-green-600 text-white rounded">
-                + Add Include
-            </button>
+            {{-- Excludes --}}
+            <div x-data='{ list: @json(old("excludes", $pkg->excludes ?? [])) }' class="space-y-3">
+                <div class="font-extrabold text-slate-900">Excludes</div>
+
+                <template x-for="(item, index) in list" :key="index">
+                    <div class="flex items-center gap-2">
+                        <input type="text"
+                               x-model="list[index]"
+                               name="excludes[]"
+                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                               placeholder="Contoh: Tiket pesawat, Tips guide">
+
+                        <button type="button"
+                                @click="list.splice(index, 1)"
+                                class="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
+                                style="background:#ef4444"
+                                onmouseover="this.style.background='#dc2626'"
+                                onmouseout="this.style.background='#ef4444'">
+                            X
+                        </button>
+                    </div>
+                </template>
+
+                <button type="button"
+                        @click="list.push('')"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                        style="background:#16a34a"
+                        onmouseover="this.style.background='#15803d'"
+                        onmouseout="this.style.background='#16a34a'">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Tambah Exclude
+                </button>
+            </div>
+
         </div>
-
-        {{-- EXCLUDES --}}
-        <div x-data='{"list": @json(old("excludes", $package->excludes ?? [])) }'>
-            <label class="font-medium">Excludes</label>
-
-            <template x-for="(item, index) in list" :key="index">
-                <div class="flex gap-2 mb-2">
-
-                    <input type="text"
-                        x-model="item"
-                        :name="`excludes[${index}]`"
-                        class="border rounded px-3 py-1 w-full">
-
-                    <button type="button"
-                        @click="list.splice(index,1)"
-                        class="px-3 bg-red-500 text-white rounded">
-                        X
-                    </button>
-                </div>
-            </template>
-
-            <button type="button"
-                @click="list.push('')"
-                class="px-3 py-1 bg-green-600 text-white rounded">
-                + Add Exclude
-            </button>
-        </div>
-
     </div>
 </div>
 
-{{-- ========================== --}}
-{{-- SECTION: TIER --}}
-{{-- ========================== --}}
+{{-- TIERS --}}
 @include('admin.tour-packages._tier_section', [
     'type' => 'domestic',
-    'label' => 'Harga Domestik'
+    'label' => 'Harga Domestik',
+    'package' => $pkg
 ])
 
 @include('admin.tour-packages._tier_section', [
     'type' => 'international',
-    'label' => 'Harga WNA'
+    'label' => 'Harga WNA',
+    'package' => $pkg
 ])
 
-{{-- ========================== --}}
-{{-- SECTION: FLIGHT INFO --}}
-{{-- ========================== --}}
-<div x-data="{ open: false }" class="mb-4 border rounded shadow bg-white">
-
-    <button type="button" @click="open = !open"
-        class="w-full px-4 py-3 bg-[#0194F3] text-white text-left font-semibold">
-        Pengaturan Tiket Pesawat
+{{-- FLIGHT INFO --}}
+<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <button type="button"
+        @click="open = !open"
+        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
+        style="background:#0194F3;">
+        <span>Pengaturan Tiket Pesawat</span>
+        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" class="p-4 space-y-3">
-
-        <label class="font-medium block mb-1">Paket Termasuk Tiket Pesawat?</label>
-
-        <select name="flight_info" class="border rounded px-3 py-2 w-full">
-            <option value="not_included" 
-                {{ old('flight_info', $package->flight_info ?? '') === 'not_included' ? 'selected':'' }}>
+    <div x-show="open" x-cloak class="p-5">
+        <label class="block text-sm font-bold text-slate-800 mb-1">Paket Termasuk Tiket Pesawat?</label>
+        <select name="flight_info"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+            <option value="not_included"
+                {{ old('flight_info', $pkg->flight_info ?? '') === 'not_included' ? 'selected':'' }}>
                 Tidak termasuk tiket pesawat
             </option>
-
             <option value="included"
-                {{ old('flight_info', $package->flight_info ?? '') === 'included' ? 'selected':'' }}>
+                {{ old('flight_info', $pkg->flight_info ?? '') === 'included' ? 'selected':'' }}>
                 Termasuk tiket pesawat
             </option>
         </select>
-
     </div>
-</div>
-
-{{-- ========================== --}}
-{{-- SUBMIT --}}
-{{-- ========================== --}}
-<div class="mt-6">
-    <button class="px-6 py-3 bg-[#0194F3] text-white rounded shadow font-semibold">
-        Simpan Paket
-    </button>
 </div>

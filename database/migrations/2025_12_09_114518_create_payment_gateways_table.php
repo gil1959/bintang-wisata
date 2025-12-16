@@ -4,35 +4,27 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePaymentGatewaysTable extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+    public function up(): void
     {
         Schema::create('payment_gateways', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // xendit, duitku, tripay
+            $table->string('name')->unique(); // doku/tripay/midtrans
+            $table->string('label');
+            $table->json('credentials')->nullable();
             $table->boolean('is_active')->default(false);
 
-            $table->json('credentials')->nullable(); // simpan API key dsb
-
+            // NEW: daftar channel/metode yang ditampilkan di checkout
+            $table->json('channels')->nullable();
+            $table->timestamp('channels_synced_at')->nullable();
 
             $table->timestamps();
         });
     }
 
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('payment_gateways');
     }
-}
+};

@@ -21,21 +21,40 @@ class CheckoutController extends Controller
             $package = \App\Models\RentCarPackage::find($order->product_id);
         }
 
-        // Semua metode pembayaran yang diaktifkan admin
+        // Manual methods tetap sama
         $manualMethods = PaymentMethod::where('is_active', 1)
             ->where('type', 'manual')
             ->orderBy('id')
             ->get();
 
+        // Gateway: batasi cuma 3
         $gateways = PaymentGateway::where('is_active', 1)
+            ->whereIn('name', ['doku', 'tripay', 'midtrans'])
             ->orderBy('id')
             ->get();
 
+        // Bangun opsi gateway per channel, supaya checkout bisa list metode
+        // payment_method format: gateway:{gateway_name}:{channel_code}
+        $gatewayOptions = [];
+        foreach ($gateways as $g) {
+            $channels = is_array($g->channels) ? $g->channels : [];
+            foreach ($channels as $ch) {
+                $code = $ch['channel_code'] ?? null;
+                if (!$code) continue;
+
+                $gatewayOptions[] = [
+                    'value' => "gateway:{$g->name}:{$code}",
+                    'label' => ($g->label ?? strtoupper($g->name)) . ' - ' . ($ch['name'] ?? $code),
+                ];
+            }
+        }
+
         return view('front.checkout.index', [
-            'order'         => $order,
-            'package'       => $package,
-            'manualMethods' => $manualMethods,
-            'gateways'      => $gateways,
+            'order'          => $order,
+            'package'        => $package,
+            'manualMethods'  => $manualMethods,
+            'gateways'       => $gateways,
+            'gatewayOptions' => $gatewayOptions,
         ]);
     }
 
@@ -55,62 +74,102 @@ class CheckoutController extends Controller
             'payment_method'     => 'required|string',
         ]);
 
-        // --- Validasi & normalisasi payment_method ---
-        $raw   = $data['payment_method'];
-        $parts = explode(':', $raw, 2);
+        $raw = $data['payment_method'];
 
-        if (count($parts) !== 2) {
-            return back()->withErrors([
-                'payment_method' => 'Metode pembayaran tidak valid.',
-            ])->withInput();
-        }
+        // --- Manual: manual:{id} ---
+        if (str_starts_with($raw, 'manual:')) {
+            $value = substr($raw, strlen('manual:'));
 
-        [$type, $value] = $parts;
-
-        if ($type === 'manual') {
-            // Harus ada di tabel payment_methods dengan type=manual
-            $method = PaymentMethod::where('id', (int) $value)
+            $method = PaymentMethod::where('id', (int)$value)
                 ->where('type', 'manual')
                 ->where('is_active', 1)
                 ->first();
 
-            if (! $method) {
+            if (!$method) {
                 return back()->withErrors([
                     'payment_method' => 'Rekening transfer tidak ditemukan / nonaktif.',
                 ])->withInput();
             }
-        } elseif ($type === 'gateway') {
-            // Harus ada gateway aktif
-            $gateway = PaymentGateway::where('name', $value)
+
+            // Update order tetap sama seperti flow lama
+            $order->update([
+                'billing_first_name' => $data['billing_first_name'],
+                'billing_last_name'  => $data['billing_last_name'],
+                'billing_country'    => $data['billing_country'],
+                'billing_address'    => $data['billing_address'],
+                'billing_city'       => $data['billing_city'],
+                'billing_state'      => $data['billing_state'],
+                'billing_postal'     => $data['billing_postal'],
+                'billing_phone'      => $data['billing_phone'],
+                'payment_method'     => $raw,
+                'payment_status'     => 'waiting_payment',
+            ]);
+
+            return redirect()->route('payment.manual.page', $order->id);
+        }
+
+        // --- Gateway: gateway:{gateway}:{channel_code} ---
+        if (str_starts_with($raw, 'gateway:')) {
+            $parts = explode(':', $raw, 3);
+            if (count($parts) !== 3) {
+                return back()->withErrors([
+                    'payment_method' => 'Format payment gateway tidak valid.',
+                ])->withInput();
+            }
+
+            [, $gatewayName, $channelCode] = $parts;
+
+            // Batasi gateway hanya 3
+            if (!in_array($gatewayName, ['doku', 'tripay', 'midtrans'], true)) {
+                return back()->withErrors([
+                    'payment_method' => 'Payment gateway tidak didukung.',
+                ])->withInput();
+            }
+
+            $gateway = PaymentGateway::where('name', $gatewayName)
                 ->where('is_active', 1)
                 ->first();
 
-            if (! $gateway) {
+            if (!$gateway) {
                 return back()->withErrors([
                     'payment_method' => 'Payment gateway tidak tersedia.',
                 ])->withInput();
             }
-        } else {
-            return back()->withErrors([
-                'payment_method' => 'Metode pembayaran tidak dikenal.',
-            ])->withInput();
+
+            // Pastikan channelCode ada di channels yang tersimpan (anti-tamper)
+            $channels = is_array($gateway->channels) ? $gateway->channels : [];
+            $found = false;
+            foreach ($channels as $ch) {
+                if (($ch['channel_code'] ?? null) === $channelCode) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                return back()->withErrors([
+                    'payment_method' => 'Metode gateway tidak valid.',
+                ])->withInput();
+            }
+
+            // Update order sama: simpan payment_method & status waiting_payment
+            $order->update([
+                'billing_first_name' => $data['billing_first_name'],
+                'billing_last_name'  => $data['billing_last_name'],
+                'billing_country'    => $data['billing_country'],
+                'billing_address'    => $data['billing_address'],
+                'billing_city'       => $data['billing_city'],
+                'billing_state'      => $data['billing_state'],
+                'billing_postal'     => $data['billing_postal'],
+                'billing_phone'      => $data['billing_phone'],
+                'payment_method'     => $raw,
+                'payment_status'     => 'waiting_payment',
+            ]);
+
+            return redirect()->route('payment.gateway.page', $order->id);
         }
 
-        // Update order (payment_method disimpan apa adanya, mis: manual:1 / gateway:xendit)
-        $order->update([
-            'billing_first_name' => $data['billing_first_name'],
-            'billing_last_name'  => $data['billing_last_name'],
-            'billing_country'    => $data['billing_country'],
-            'billing_address'    => $data['billing_address'],
-            'billing_city'       => $data['billing_city'],
-            'billing_state'      => $data['billing_state'],
-            'billing_postal'     => $data['billing_postal'],
-            'billing_phone'      => $data['billing_phone'],
-
-            'payment_method'     => $raw,
-            'payment_status'     => 'waiting_payment',
-        ]);
-
-        return redirect()->route('payment.page', $order->id);
+        return back()->withErrors([
+            'payment_method' => 'Metode pembayaran tidak dikenal.',
+        ])->withInput();
     }
 }

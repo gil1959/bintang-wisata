@@ -1,125 +1,327 @@
 @extends('layouts.admin')
 
+@section('title', 'Pengaturan Pembayaran')
+@section('page-title', 'Pembayaran')
+
 @section('content')
-<div class="p-5">
+<div class="space-y-5">
 
-    <h2 class="text-2xl font-bold mb-5">Pembayaran</h2>
+    {{-- Header --}}
+    <div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Pengaturan Pembayaran</h2>
+        <p class="mt-1 text-sm text-slate-600">
+            Atur rekening manual dan konfigurasi gateway pembayaran.
+        </p>
+    </div>
 
-    {{-- SUCCESS MESSAGE --}}
-    @if (session('success'))
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-            {{ session('success') }}
+    {{-- Alerts --}}
+    @if(session('success'))
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+            <div class="font-bold">Berhasil</div>
+            <div class="text-sm mt-1">{{ session('success') }}</div>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <div class="font-bold">Gagal</div>
+            <div class="text-sm mt-1">{{ session('error') }}</div>
         </div>
     @endif
 
-    {{-- ========================================= --}}
-    {{-- ============== BANK MANUAL ============== --}}
-    {{-- ========================================= --}}
-    <div class="bg-white p-5 rounded shadow mb-8">
-        <h3 class="text-lg font-semibold mb-3">Rekening Transfer Manual</h3>
-
-        {{-- FORM TAMBAH BANK --}}
-        <form method="POST" action="{{ route('admin.bank.add') }}" class="grid grid-cols-3 gap-3 mb-4">
-            @csrf
-            <input name="bank_name" class="border p-2 rounded" placeholder="Nama Bank">
-            <input name="account_number" class="border p-2 rounded" placeholder="Nomor Rekening">
-            <input name="account_holder" class="border p-2 rounded" placeholder="Atas Nama">
-
-            {{-- type dan slug otomatis untuk manual --}}
-            <input type="hidden" name="type" value="manual">
-
-            <button class="col-span-3 bg-blue-600 text-white px-4 py-2 rounded">
-                Tambah Rekening
-            </button>
-        </form>
-
-        {{-- LIST BANK MANUAL --}}
-        <div class="space-y-3">
-
-            @foreach ($methods as $m)
-                @if ($m->type === 'manual')
-                    <div class="flex items-center justify-between border p-3 rounded">
-
-                        <div>
-                            <b>{{ $m->bank_name }}</b><br>
-                            {{ $m->account_number }} a.n {{ $m->account_holder }}
-                        </div>
-
-                        <form method="POST" action="{{ route('admin.bank.delete', $m->id) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button class="text-red-600">Hapus</button>
-                        </form>
-
-                    </div>
-                @endif
-            @endforeach
-
+    {{-- =======================
+        BANK TRANSFER MANUAL
+    ======================= --}}
+    <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div class="font-extrabold text-slate-900">Bank Transfer Manual</div>
+            <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-extrabold"
+                  style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
+                <i data-lucide="landmark" class="w-4 h-4" style="color:#0194F3;"></i>
+                Rekening Manual
+            </span>
         </div>
-    </div>
 
-    {{-- ========================================= --}}
-    {{-- ======== PAYMENT GATEWAY SECTION ======== --}}
-    {{-- ========================================= --}}
-    <div class="bg-white p-5 rounded shadow">
+        <div class="p-5 space-y-5">
 
-        <h3 class="text-lg font-semibold mb-4">Payment Gateway Integration</h3>
+            {{-- Add Bank --}}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <div class="font-extrabold text-slate-900">Tambah Rekening</div>
+                <p class="mt-1 text-sm text-slate-600">Isi data rekening bank untuk pembayaran manual.</p>
 
-        @foreach ($gateways as $g)
-            <div class="p-4 mb-6 rounded border
-                @if($g->name=='xendit') bg-blue-50 border-blue-200
-                @elseif($g->name=='duitku') bg-red-50 border-red-200
-                @else bg-yellow-50 border-yellow-300 @endif">
-
-                <form method="POST" action="{{ route('admin.gateway.update', $g) }}" class="space-y-3">
+                <form method="POST" action="{{ route('admin.bank.add') }}" class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3">
                     @csrf
 
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-lg font-semibold capitalize">{{ $g->name }}</h4>
-
-                        <label class="flex items-center gap-2">
-                            <span>Aktif</span>
-                            <input type="checkbox" name="is_active" {{ $g->is_active ? 'checked' : '' }}>
-                        </label>
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-bold text-slate-800 mb-1">Nama Bank</label>
+                        <input name="bank_name" required
+                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                               placeholder="Contoh: BCA">
                     </div>
 
-                    @php $creds = $g->credentials ?? []; @endphp
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-bold text-slate-800 mb-1">No Rekening</label>
+                        <input name="account_number" required
+                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                               placeholder="Contoh: 1234567890">
+                    </div>
 
-                    {{-- XENDIT --}}
-                    @if ($g->name === 'xendit')
-                        <input name="credentials[secret_key]" class="border p-2 rounded w-full"
-                               placeholder="Secret Key" value="{{ $creds['secret_key'] ?? '' }}">
-                        <input name="credentials[public_key]" class="border p-2 rounded w-full"
-                               placeholder="Public Key" value="{{ $creds['public_key'] ?? '' }}">
-                    @endif
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-bold text-slate-800 mb-1">Atas Nama</label>
+                        <input name="account_holder" required
+                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                               placeholder="Contoh: Bintang Wisata">
+                    </div>
 
-                    {{-- DUITKU --}}
-                    @if ($g->name === 'duitku')
-                        <input name="credentials[merchant_code]" class="border p-2 rounded w-full"
-                               placeholder="Merchant Code" value="{{ $creds['merchant_code'] ?? '' }}">
-                        <input name="credentials[api_key]" class="border p-2 rounded w-full"
-                               placeholder="API Key" value="{{ $creds['api_key'] ?? '' }}">
-                    @endif
-
-                    {{-- TRIPAY --}}
-                    @if ($g->name === 'tripay')
-                        <input name="credentials[merchant_code]" class="border p-2 rounded w-full"
-                               placeholder="Merchant Code" value="{{ $creds['merchant_code'] ?? '' }}">
-                        <input name="credentials[api_key]" class="border p-2 rounded w-full"
-                               placeholder="API Key" value="{{ $creds['api_key'] ?? '' }}">
-                        <input name="credentials[private_key]" class="border p-2 rounded w-full"
-                               placeholder="Private Key" value="{{ $creds['private_key'] ?? '' }}">
-                    @endif
-
-                    <button class="bg-green-600 text-white px-4 py-2 rounded">
-                        Simpan
-                    </button>
-
+                    <div class="md:col-span-12 flex justify-end">
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                                style="background:#0194F3;"
+                                onmouseover="this.style.background='#0186DB'"
+                                onmouseout="this.style.background='#0194F3'">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Tambah
+                        </button>
+                    </div>
                 </form>
             </div>
-        @endforeach
 
-    </div>
+            {{-- List Banks --}}
+            @php
+                $manualBanks = $methods->where('type', 'manual');
+            @endphp
+
+            <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-[900px] w-full">
+                        <thead class="bg-slate-50">
+                            <tr class="text-left text-xs font-extrabold text-slate-600">
+                                <th class="px-5 py-3 w-[70px]">#</th>
+                                <th class="px-5 py-3">Bank</th>
+                                <th class="px-5 py-3">No Rekening</th>
+                                <th class="px-5 py-3">Atas Nama</th>
+                                <th class="px-5 py-3 w-[160px]">Status</th>
+                                <th class="px-5 py-3 w-[130px]">Aksi</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-100">
+                        @forelse($manualBanks as $m)
+                            <tr class="text-sm text-slate-700 hover:bg-slate-50/70 transition">
+                                <td class="px-5 py-4 font-extrabold text-slate-900">{{ $m->id }}</td>
+                                <td class="px-5 py-4 font-bold text-slate-900">
+                                    {{ $m->bank_name ?? $m->method_name }}
+                                </td>
+                                <td class="px-5 py-4">{{ $m->account_number }}</td>
+                                <td class="px-5 py-4">{{ $m->account_holder }}</td>
+                                <td class="px-5 py-4">
+                                    @if($m->is_active)
+                                        <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border border-emerald-200 bg-emerald-50 text-emerald-800">
+                                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border border-slate-200 bg-white text-slate-700">
+                                            <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                                            Nonaktif
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4">
+                                    <form method="POST"
+                                          action="{{ route('admin.bank.delete', $m->id) }}"
+                                          onsubmit="return confirm('Yakin hapus bank ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold text-white transition"
+                                                style="background:#ef4444"
+                                                onmouseover="this.style.background='#dc2626'"
+                                                onmouseout="this.style.background='#ef4444'">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-5 py-12 text-center">
+                                    <div class="mx-auto h-12 w-12 rounded-2xl border grid place-items-center"
+                                         style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
+                                        <i data-lucide="inbox" class="w-6 h-6" style="color:#0194F3;"></i>
+                                    </div>
+                                    <div class="mt-3 font-extrabold text-slate-900">Belum ada rekening manual</div>
+                                    <div class="mt-1 text-sm text-slate-600">Tambahkan rekening untuk pembayaran transfer manual.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {{-- =======================
+        PAYMENT GATEWAY
+    ======================= --}}
+    <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200">
+            <div class="font-extrabold text-slate-900">Payment Gateway</div>
+            <div class="text-sm text-slate-600 mt-1">Hanya DOKU / TriPay / Midtrans.</div>
+        </div>
+
+        <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                @foreach($gateways as $g)
+                    @php
+                        $cred = is_array($g->credentials) ? $g->credentials : [];
+                        $modeVal = $cred['mode'] ?? 'sandbox';
+                        $isActive = (bool) $g->is_active;
+                    @endphp
+
+                    <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="font-extrabold text-slate-900">{{ $g->label }}</div>
+                                <div class="mt-1">
+                                    @if($isActive)
+                                        <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border border-emerald-200 bg-emerald-50 text-emerald-800">
+                                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border border-slate-200 bg-white text-slate-700">
+                                            <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                                            Nonaktif
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="h-10 w-10 rounded-2xl grid place-items-center border shrink-0"
+                                 style="background: rgba(1,148,243,0.10); border-color: rgba(1,148,243,0.22);">
+                                <i data-lucide="credit-card" class="w-5 h-5" style="color:#0194F3;"></i>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.payments.toggleGateway', $g->id) }}" class="mt-4 space-y-3">
+                            @csrf
+
+                            {{-- Mode --}}
+                            <div>
+                                <label class="block text-sm font-bold text-slate-800 mb-1">Mode</label>
+                                <select name="mode" required
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                    <option value="sandbox" {{ $modeVal === 'sandbox' ? 'selected' : '' }}>Sandbox</option>
+                                    <option value="production" {{ $modeVal === 'production' ? 'selected' : '' }}>Production</option>
+                                </select>
+                                <div class="text-xs text-slate-500 mt-1">
+                                    Sandbox untuk testing, Production untuk live.
+                                </div>
+                            </div>
+
+                            {{-- TriPay --}}
+                            @if($g->name === 'tripay')
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">API Key</label>
+                                    <input name="api_key" autocomplete="off"
+                                           value="{{ $cred['api_key'] ?? '' }}"
+                                           placeholder="Tripay API Key"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Private Key</label>
+                                    <input name="private_key" autocomplete="off"
+                                           value="{{ $cred['private_key'] ?? '' }}"
+                                           placeholder="Tripay Private Key"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Merchant Code</label>
+                                    <input name="merchant_code" autocomplete="off"
+                                           value="{{ $cred['merchant_code'] ?? '' }}"
+                                           placeholder="Tripay Merchant Code"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div class="text-xs text-slate-500">
+                                    Wajib: mode, api_key, private_key, merchant_code
+                                </div>
+                            @endif
+
+                            {{-- DOKU --}}
+                            @if($g->name === 'doku')
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Client ID</label>
+                                    <input name="client_id" autocomplete="off"
+                                           value="{{ $cred['client_id'] ?? '' }}"
+                                           placeholder="DOKU Client ID"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Secret Key</label>
+                                    <input name="secret_key" autocomplete="off"
+                                           value="{{ $cred['secret_key'] ?? '' }}"
+                                           placeholder="DOKU Secret Key"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div class="text-xs text-slate-500">
+                                    Wajib: mode, client_id, secret_key
+                                </div>
+                            @endif
+
+                            {{-- Midtrans --}}
+                            @if($g->name === 'midtrans')
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Server Key</label>
+                                    <input name="server_key" autocomplete="off"
+                                           value="{{ $cred['server_key'] ?? '' }}"
+                                           placeholder="Midtrans Server Key"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-800 mb-1">Client Key</label>
+                                    <input name="client_key" autocomplete="off"
+                                           value="{{ $cred['client_key'] ?? '' }}"
+                                           placeholder="Midtrans Client Key"
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                </div>
+
+                                <div class="text-xs text-slate-500">
+                                    Wajib: mode, server_key, client_key
+                                </div>
+                            @endif
+
+                            <input type="hidden" name="enable" value="{{ $isActive ? 0 : 1 }}">
+
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                                    style="background: {{ $isActive ? '#ef4444' : '#16a34a' }};"
+                                    onmouseover="this.style.background='{{ $isActive ? '#dc2626' : '#15803d' }}'"
+                                    onmouseout="this.style.background='{{ $isActive ? '#ef4444' : '#16a34a' }}'">
+                                <i data-lucide="{{ $isActive ? 'x-circle' : 'check-circle' }}" class="w-4 h-4"></i>
+                                {{ $isActive ? 'Nonaktifkan' : 'Aktifkan' }}
+                            </button>
+
+                            <div class="text-xs text-slate-500">
+                                Channels tersimpan: {{ is_array($g->channels) ? count($g->channels) : 0 }}
+                                @if($g->channels_synced_at)
+                                    (sync: {{ $g->channels_synced_at->format('Y-m-d H:i') }})
+                                @endif
+                            </div>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
 
 </div>
 @endsection

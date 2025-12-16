@@ -12,7 +12,16 @@ class Payment extends Model
         'amount',
         'proof_image',
         'gateway_reference',
-        'status'
+        'status',
+        'gateway_name',
+        'channel_code',
+        'payment_url',
+        'gateway_payload',
+    ];
+
+    protected $casts = [
+        'gateway_payload' => 'array',
+        'amount' => 'float',
     ];
 
     public function order()

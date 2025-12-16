@@ -1,21 +1,63 @@
 @extends('layouts.admin')
 
+@section('title', 'Tambah Kategori')
 @section('page-title', 'Tambah Kategori')
 
 @section('content')
+<div class="space-y-5">
 
-<form method="POST" action="{{ route('admin.categories.store') }}" class="bg-white p-5 shadow rounded">
-    @csrf
+    {{-- Errors --}}
+    @if ($errors->any())
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <div class="font-extrabold">Ada error</div>
+            <ul class="mt-2 list-disc pl-5 text-sm space-y-1">
+                @foreach ($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    <label class="block mb-1">Nama Kategori</label>
-    <input type="text" name="name" class="border px-3 py-2 rounded w-full" required>
+    <form method="POST"
+          action="{{ route('admin.categories.store') }}"
+          class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
+        @csrf
 
-    <label class="block mt-4 mb-1">Slug</label>
-    <input type="text" name="slug" class="border px-3 py-2 rounded w-full" required>
+        <div>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Nama Kategori</label>
+            <input type="text"
+                   name="name"
+                   value="{{ old('name') }}"
+                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                   required>
+        </div>
 
-    <div class="mt-4">
-        <button class="px-4 py-2 bg-[#0194F3] text-white rounded">Simpan</button>
-    </div>
-</form>
+        <div>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Slug</label>
+            <input type="text"
+                   name="slug"
+                   value="{{ old('slug') }}"
+                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                   required>
+            <div class="text-xs text-slate-500 mt-1">Contoh: tour-bali, paket-keluarga</div>
+        </div>
 
+        <div class="flex items-center justify-end gap-2 pt-2">
+            <a href="{{ route('admin.categories.index') }}"
+               class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold border border-slate-200 bg-white hover:bg-slate-50 transition">
+                Kembali
+            </a>
+
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold text-white transition"
+                    style="background:#0194F3;"
+                    onmouseover="this.style.background='#0186DB'"
+                    onmouseout="this.style.background='#0194F3'">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Simpan
+            </button>
+        </div>
+    </form>
+
+</div>
 @endsection

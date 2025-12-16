@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
@@ -8,10 +9,15 @@ use App\Models\RentCarPackage;
 use App\Models\Order;
 use App\Models\Promo;
 
+
+
 class RentCarOrderController extends Controller
 {
+
+
     public function draft(Request $request, $slug)
     {
+
         $package = RentCarPackage::where('slug', $slug)->firstOrFail();
 
         $data = $request->validate([
@@ -52,6 +58,8 @@ class RentCarOrderController extends Controller
             'customer_name'  => $data['name'],
             'customer_email' => $data['email'],
             'customer_phone' => $data['phone'],
+            'pickup_date'  => $data['pickup'],
+            'return_date'  => $data['return'],
 
             'departure_date' => null,
             'participants'   => null,

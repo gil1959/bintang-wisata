@@ -34,6 +34,38 @@
       @endif
     </div>
 
+    <hr class="my-8">
+
+<h2 class="text-lg font-semibold mb-4">Footer - Kontak</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-1">Alamat</label>
+        <textarea name="footer_address" class="w-full border rounded-lg px-3 py-2" rows="3">{{ old('footer_address', $settings['footer_address'] ?? '') }}</textarea>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium mb-1">Telepon</label>
+        <input type="text" name="footer_phone" class="w-full border rounded-lg px-3 py-2"
+               value="{{ old('footer_phone', $settings['footer_phone'] ?? '') }}">
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input type="email" name="footer_email" class="w-full border rounded-lg px-3 py-2"
+               value="{{ old('footer_email', $settings['footer_email'] ?? '') }}">
+    </div>
+
+    <div class="md:col-span-2">
+        <label class="block text-sm font-medium mb-1">WhatsApp (format: 628xxxx)</label>
+        <input type="text" name="footer_whatsapp" class="w-full border rounded-lg px-3 py-2"
+               value="{{ old('footer_whatsapp', $settings['footer_whatsapp'] ?? '') }}">
+        <p class="text-xs text-gray-500 mt-1">Tanpa tanda +, tanpa spasi.</p>
+    </div>
+</div>
+
+
+
     <button class="btn btn-primary" type="submit">Simpan</button>
   </form>
 </div>

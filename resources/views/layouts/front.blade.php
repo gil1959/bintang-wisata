@@ -16,33 +16,71 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#0194F3">
+
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0194F3">
+    
 
 </head>
 
-<body class="bg-gray-50 font-[Poppins] text-gray-800">
+<body class="bg-slate-50 font-[Poppins] text-slate-800 antialiased">
+
+    {{-- Decorative global background (subtle, travel vibe) --}}
+    <div class="fixed inset-0 -z-10 pointer-events-none">
+        <div class="absolute inset-0 travel-dots opacity-50"></div>
+
+        {{-- top-right glow --}}
+        <svg class="absolute -top-28 -right-28 w-[560px] h-[560px] opacity-70" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+            <defs>
+                <radialGradient id="globalGlow1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 280) rotate(90) scale(290)">
+                    <stop stop-color="#0194F3" stop-opacity="0.20"/>
+                    <stop offset="1" stop-color="#0194F3" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <circle cx="320" cy="280" r="290" fill="url(#globalGlow1)"/>
+        </svg>
+
+        {{-- bottom-left glow --}}
+        <svg class="absolute -bottom-32 -left-32 w-[620px] h-[620px] opacity-60" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+            <defs>
+                <radialGradient id="globalGlow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(260 340) rotate(90) scale(300)">
+                    <stop stop-color="#0194F3" stop-opacity="0.14"/>
+                    <stop offset="1" stop-color="#0194F3" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <circle cx="260" cy="340" r="300" fill="url(#globalGlow2)"/>
+        </svg>
+    </div>
 
     <div class="min-h-screen flex flex-col">
-
         @include('front.partials.navbar')
-
 
         <main class="flex-1">
             @yield('content')
         </main>
 
+        @include('front.partials.footer')
     </div>
 
     @yield('scripts')
-<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script> AOS.init({ once:true, duration:700, offset:80 }); </script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
-  }
-</script>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script> AOS.init({ once:true, duration:700, offset:80 }); </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+      }
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    
+
 
 </body>
 </html>
