@@ -9,6 +9,8 @@ use App\Services\Payments\TripayService;
 use App\Services\Payments\DokuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\Setting;
+
 
 class PaymentController extends Controller
 {
@@ -19,6 +21,9 @@ class PaymentController extends Controller
             ['name' => 'doku', 'label' => 'DOKU'],
             ['name' => 'tripay', 'label' => 'TriPay'],
             ['name' => 'midtrans', 'label' => 'Midtrans'],
+            ['name' => 'xendit', 'label' => 'Xendit'],
+            ['name' => 'ipaymu', 'label' => 'iPaymu'],
+            ['name' => 'paypal', 'label' => 'PayPal'],
         ];
 
         foreach ($defaults as $d) {
@@ -37,21 +42,41 @@ class PaymentController extends Controller
         $methods = PaymentMethod::orderBy('id', 'desc')->get();
 
         // Tampilkan HANYA 3 gateway
-        $gateways = PaymentGateway::whereIn('name', ['doku', 'tripay', 'midtrans'])
-            ->orderBy('id')
-            ->get();
+        $gateways = PaymentGateway::whereIn('name', [
+            'doku',
+            'tripay',
+            'midtrans',
+            'xendit',
+            'ipaymu',
+            'paypal',
+        ])->orderBy('id')->get();
 
-        return view('admin.payments.index', compact('methods', 'gateways'));
+        $settings = Setting::whereIn('key', ['manual_unique_code_min', 'manual_unique_code_max'])
+            ->pluck('value', 'key')
+            ->toArray();
+
+
+        return view('admin.payments.index', compact('methods', 'gateways', 'settings'));
     }
 
     public function addBank(Request $request)
     {
+        // 1. Normalize input
+        $request->merge([
+            'swift_code' => $request->swift_code
+                ? strtoupper(str_replace(' ', '', $request->swift_code))
+                : null,
+        ]);
+
+        // 2. Validasi
         $request->validate([
             'bank_name'      => 'required|string|max:100',
             'account_number' => 'required|string|max:50',
             'account_holder' => 'required|string|max:100',
+            'swift_code'     => 'nullable|string|min:8|max:11|alpha_num',
         ]);
 
+        // 3. Simpan
         PaymentMethod::create([
             'method_name'     => $request->bank_name,
             'slug'            => 'manual-' . Str::slug($request->bank_name) . '-' . time(),
@@ -59,11 +84,13 @@ class PaymentController extends Controller
             'bank_name'       => $request->bank_name,
             'account_number'  => $request->account_number,
             'account_holder'  => $request->account_holder,
+            'swift_code'      => $request->swift_code,
             'is_active'       => true,
         ]);
 
-        return back()->with('success', 'Bank manual berhasil ditambahkan.');
+        return back()->with('success', 'Rekening berhasil ditambahkan.');
     }
+
     public function deleteBank($bank)
     {
         // $bank itu id dari payment_methods
@@ -85,9 +112,10 @@ class PaymentController extends Controller
     {
         $gateway = PaymentGateway::findOrFail($id);
 
-        if (!in_array($gateway->name, ['doku', 'tripay', 'midtrans'], true)) {
+        if (!in_array($gateway->name, ['doku', 'tripay', 'midtrans', 'xendit', 'ipaymu', 'paypal'], true)) {
             abort(404);
         }
+
 
         $enable = (bool) $request->input('enable');
 
@@ -147,7 +175,52 @@ class PaymentController extends Controller
             }
 
             $channels = $doku->staticChannels();
+        } elseif ($gateway->name === 'xendit') {
+
+            $credentials['secret_key'] = trim((string) $request->input('secret_key', ''));
+            $credentials['callback_token'] = trim((string) $request->input('callback_token', ''));
+
+            foreach (['secret_key', 'callback_token'] as $k) {
+                if ($credentials[$k] === '') {
+                    return back()->with('error', "Xendit: field {$k} wajib.");
+                }
+            }
+
+            $channels = [
+                ['channel_code' => 'invoice', 'name' => 'Xendit Invoice (All Methods)'],
+            ];
+        } elseif ($gateway->name === 'ipaymu') {
+
+            $credentials['va'] = trim((string) $request->input('va', ''));
+            $credentials['api_key'] = trim((string) $request->input('api_key', ''));
+
+            foreach (['va', 'api_key'] as $k) {
+                if ($credentials[$k] === '') {
+                    return back()->with('error', "iPaymu: field {$k} wajib.");
+                }
+            }
+
+            $channels = [
+                ['channel_code' => 'redirect', 'name' => 'iPaymu (All Methods)'],
+            ];
+        } elseif ($gateway->name === 'paypal') {
+            $credentials['client_id'] = trim((string) $request->input('client_id', ''));
+            $credentials['client_secret'] = trim((string) $request->input('client_secret', ''));
+            // optional tapi berguna kalau nanti mau webhook verification
+            $credentials['webhook_id'] = trim((string) $request->input('webhook_id', ''));
+
+            foreach (['client_id', 'client_secret'] as $k) {
+                if ($credentials[$k] === '') {
+                    return back()->with('error', "PayPal: field {$k} wajib.");
+                }
+            }
+
+            // channel statis (biar konsisten dengan konsep “channels tersimpan”)
+            $channels = [
+                ['channel_code' => 'checkout', 'name' => 'PayPal Checkout'],
+            ];
         }
+
 
         // =========================
         // MIDTRANS
@@ -167,6 +240,9 @@ class PaymentController extends Controller
             ];
         }
 
+
+
+
         // SAVE
         $gateway->is_active = true;
         $gateway->credentials = $credentials;
@@ -175,5 +251,25 @@ class PaymentController extends Controller
         $gateway->save();
 
         return back()->with('success', strtoupper($gateway->name) . ' aktif.');
+    }
+    public function updateUniqueCodeSetting(\Illuminate\Http\Request $request)
+    {
+        $data = $request->validate([
+            'manual_unique_code_min' => ['required', 'integer', 'min:1', 'max:999'],
+            'manual_unique_code_max' => ['required', 'integer', 'min:1', 'max:999'],
+        ]);
+
+        $min = (int) $data['manual_unique_code_min'];
+        $max = (int) $data['manual_unique_code_max'];
+
+        // kalau kebalik, swap biar user gak error
+        if ($min > $max) {
+            [$min, $max] = [$max, $min];
+        }
+
+        Setting::updateOrCreate(['key' => 'manual_unique_code_min'], ['value' => (string)$min]);
+        Setting::updateOrCreate(['key' => 'manual_unique_code_max'], ['value' => (string)$max]);
+
+        return back()->with('success', 'Setting kode unik berhasil disimpan.');
     }
 }

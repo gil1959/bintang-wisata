@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
+
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>@yield('title', config('app.name', 'Bintang Wisata'))</title>
+   <title>@yield('title', $siteSettings['seo_site_title'] ?? config('app.name', 'Bintang Wisata'))</title>
+
+<meta name="description" content="@yield('meta_description', $siteSettings['seo_meta_description'] ?? '')">
+<meta name="keywords" content="@yield('meta_keywords', $siteSettings['seo_keywords'] ?? '')">
 
     {{-- FONT --}}
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Poppins:wght@400;500;600;700&display=swap">

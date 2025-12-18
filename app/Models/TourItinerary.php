@@ -10,10 +10,10 @@ class TourItinerary extends Model
 
     protected $fillable = [
         'tour_package_id',
-        'time',
         'title',
         'sort_order',
     ];
+
 
     public function package()
     {

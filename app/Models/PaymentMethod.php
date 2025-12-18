@@ -13,9 +13,12 @@ class PaymentMethod extends Model
         'bank_name',
         'account_number',
         'account_holder',
+        'swift_code',
         'gateway_name',
         'is_active'
     ];
+
+
 
     protected $casts = [
         'is_active' => 'boolean'

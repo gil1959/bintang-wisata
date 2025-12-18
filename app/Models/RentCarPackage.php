@@ -11,12 +11,15 @@ class RentCarPackage extends Model
 
     protected $fillable = [
         'title',
+        'label',
         'slug',
+        'category_id',
         'price_per_day',
         'thumbnail_path',
         'is_active',
         'features',
     ];
+
 
     protected $casts = [
         'price_per_day' => 'float',
@@ -27,5 +30,9 @@ class RentCarPackage extends Model
     public function reviews()
     {
         return $this->morphMany(Review::class, 'reviewable');
+    }
+    public function category()
+    {
+        return $this->belongsTo(RentCarCategory::class, 'category_id');
     }
 }

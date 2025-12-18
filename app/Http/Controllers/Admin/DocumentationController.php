@@ -33,47 +33,75 @@ class DocumentationController extends Controller
         $data = $request->validate([
             'type' => ['required', 'in:photo,video'],
             'title' => ['nullable', 'string', 'max:120'],
-            'files' => ['required', 'array', 'min:1'],
-            'files.*' => [
-                'required',
-                'file',
-                // Foto: jpg/png/webp. Video: mp4/webm/ogg (lu bisa tambah mov kalau perlu)
-                'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg',
-                'max:51200' // 50MB per file
-            ],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+            'source' => ['required', 'in:upload,link'],
 
-        $type = $data['type'];
-        $isActive = $request->boolean('is_active', true);
+            // upload
+            'files' => ['required_if:source,upload', 'array'],
+            'files.*' => ['file', 'max:51200'],
+
+            // link
+            'embed_links' => ['nullable', 'required_if:source,link', 'string'],
+
+
+            'is_active' => ['nullable', 'boolean'],
+            'sort_order' => ['nullable', 'integer'],
+        ]);
 
         $created = 0;
 
-        foreach ($request->file('files') as $file) {
-            $isImage = str_starts_with($file->getMimeType(), 'image/');
-            $isVideo = str_starts_with($file->getMimeType(), 'video/');
+        // UPLOAD MODE
+        if ($data['source'] === 'upload') {
+            foreach ($request->file('files', []) as $file) {
+                $dir = $data['type'] === 'photo'
+                    ? 'documentations/photos'
+                    : 'documentations/videos';
 
-            // Cocokkan file dengan type yang dipilih (biar nggak salah upload)
-            if ($type === 'photo' && !$isImage) continue;
-            if ($type === 'video' && !$isVideo) continue;
+                $path = $file->store($dir, 'public');
 
-            $dir = $type === 'photo' ? 'documentations/photos' : 'documentations/videos';
-            $path = $file->store($dir, 'public');
+                Documentation::create([
+                    'type' => $data['type'],
+                    'title' => $data['title'],
+                    'file_path' => $path,
+                    'is_active' => $request->boolean('is_active', true),
+                    'sort_order' => $data['sort_order'] ?? 0,
+                ]);
 
-            Documentation::create([
-                'type' => $type,
-                'title' => $data['title'] ?? null,
-                'file_path' => $path,
-                'is_active' => $isActive,
-                'sort_order' => 0,
-            ]);
+                $created++;
+            }
+        }
 
-            $created++;
+        // LINK MODE
+        if ($data['source'] === 'link') {
+            $lines = preg_split("/\r\n|\n|\r/", $data['embed_links']);
+
+            foreach ($lines as $link) {
+                $link = trim($link);
+                if (!$link) continue;
+
+                // kalau iframe → ambil src
+                if (stripos($link, '<iframe') !== false) {
+                    preg_match('/src=["\']([^"\']+)/i', $link, $m);
+                    $link = $m[1] ?? '';
+                }
+
+                if (!preg_match('#^https?://#i', $link)) continue;
+
+                Documentation::create([
+                    'type' => $data['type'],
+                    'title' => $data['title'],
+                    'file_path' => $link,
+                    'is_active' => $request->boolean('is_active', true),
+                    'sort_order' => $data['sort_order'] ?? 0,
+                ]);
+
+                $created++;
+            }
         }
 
         return redirect()->route('admin.documentations.index')
-            ->with('success', "Berhasil menambahkan {$created} file dokumentasi.");
+            ->with('success', "Berhasil menambahkan {$created} dokumentasi.");
     }
+
 
     public function edit(Documentation $documentation)
     {
@@ -85,38 +113,62 @@ class DocumentationController extends Controller
         $data = $request->validate([
             'title' => ['nullable', 'string', 'max:120'],
             'is_active' => ['nullable', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999999'],
-            'replace_file' => [
-                'nullable',
-                'file',
-                'max:51200',
-                'mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/webm,video/ogg'
-            ],
+            'sort_order' => ['nullable', 'integer'],
+            'source' => ['nullable', 'in:upload,link'],
+            'replace_file' => ['nullable', 'file', 'max:51200'],
+            'files' => ['nullable', 'required_if:source,upload', 'array'],
+
         ]);
-
-        if ($request->hasFile('replace_file')) {
-            // hapus lama
-            Storage::disk('public')->delete($documentation->file_path);
-
-            $file = $request->file('replace_file');
-            $dir = $documentation->type === 'photo' ? 'documentations/photos' : 'documentations/videos';
-            $path = $file->store($dir, 'public');
-
-            $documentation->file_path = $path;
-        }
 
         $documentation->title = $data['title'] ?? $documentation->title;
         $documentation->is_active = $request->boolean('is_active', $documentation->is_active);
         $documentation->sort_order = $data['sort_order'] ?? $documentation->sort_order;
+
+        // GANTI KE LINK
+        if (($data['source'] ?? null) === 'link' && !empty($data['embed_link'])) {
+            $link = trim($data['embed_link']);
+
+            if (stripos($link, '<iframe') !== false) {
+                preg_match('/src=["\']([^"\']+)/i', $link, $m);
+                $link = $m[1] ?? '';
+            }
+
+            if (preg_match('#^https?://#i', $link)) {
+                if (!$documentation->is_external) {
+                    Storage::disk('public')->delete($documentation->file_path);
+                }
+                $documentation->file_path = $link;
+            }
+        }
+
+        // GANTI KE FILE
+        if (($data['source'] ?? null) === 'upload' && $request->hasFile('replace_file')) {
+            if (!$documentation->is_external) {
+                Storage::disk('public')->delete($documentation->file_path);
+            }
+
+            $dir = $documentation->type === 'photo'
+                ? 'documentations/photos'
+                : 'documentations/videos';
+
+            $path = $request->file('replace_file')->store($dir, 'public');
+            $documentation->file_path = $path;
+        }
+
         $documentation->save();
 
-        return redirect()->route('admin.documentations.index')->with('success', 'Dokumentasi diperbarui.');
+        return redirect()->route('admin.documentations.index')
+            ->with('success', 'Dokumentasi berhasil diperbarui.');
     }
+
 
     public function destroy(Documentation $documentation)
     {
-        Storage::disk('public')->delete($documentation->file_path);
+        if (!$documentation->is_external) {
+            Storage::disk('public')->delete($documentation->file_path);
+        }
         $documentation->delete();
+
 
         return back()->with('success', 'Dokumentasi dihapus.');
     }

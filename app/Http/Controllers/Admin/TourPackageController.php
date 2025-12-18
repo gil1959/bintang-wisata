@@ -32,6 +32,8 @@ class TourPackageController extends Controller
 
             $package = TourPackage::create([
                 'title'            => $request->title,
+                'label' => $request->label,
+
                 'slug'             => $request->slug,
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
@@ -68,8 +70,7 @@ class TourPackageController extends Controller
             if (!empty($request->itineraries)) {
                 foreach ($request->itineraries as $row) {
                     $package->itineraries()->create([
-                        'time'  => $row['time'],
-                        'title' => $row['title'], // FIX: pakai title (sesuai migration)
+                        'title' => $row['title'],
                     ]);
                 }
             }
@@ -97,6 +98,8 @@ class TourPackageController extends Controller
 
             $tour_package->update([
                 'title'            => $request->title,
+                'label' => $request->label,
+
                 'slug'             => $request->slug,
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
@@ -149,12 +152,10 @@ class TourPackageController extends Controller
                 if (!empty($row['id'])) {
                     $submitted[] = (int)$row['id'];
                     $package->itineraries()->where('id', $row['id'])->update([
-                        'time'  => $row['time'],
                         'title' => $row['title'],
                     ]);
                 } else {
                     $new = $package->itineraries()->create([
-                        'time'  => $row['time'],
                         'title' => $row['title'],
                     ]);
                     $submitted[] = $new->id;

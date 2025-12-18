@@ -142,27 +142,26 @@
           @endif
 
           {{-- GATEWAY --}}
-          <div>
-            <div class="mb-2 text-sm font-extrabold text-slate-800">Payment Gateway</div>
+          @if(!empty($gatewayOptions) && count($gatewayOptions) > 0)
+            <div>
+              <div class="mb-2 text-sm font-extrabold text-slate-800">Payment Gateway</div>
 
-            @forelse($gatewayOptions as $opt)
-              <label class="group flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 hover:border-[#0194F3]/50 hover:bg-slate-50">
-                <input class="mt-1 h-4 w-4 accent-[#0194F3]"
-                       type="radio"
-                       name="payment_method"
-                       value="{{ $opt['value'] }}"
-                       required>
-                <div class="min-w-0">
-                  <div class="font-extrabold text-slate-900">{{ $opt['label'] }}</div>
-                  <div class="mt-0.5 text-sm text-slate-500">Pembayaran otomatis via gateway.</div>
-                </div>
-              </label>
-            @empty
-              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                Tidak ada gateway aktif.
-              </div>
-            @endforelse
-          </div>
+              @foreach($gatewayOptions as $opt)
+                <label class="group flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 hover:border-[#0194F3]/50 hover:bg-slate-50">
+                  <input class="mt-1 h-4 w-4 accent-[#0194F3]"
+                        type="radio"
+                        name="payment_method"
+                        value="{{ $opt['value'] }}"
+                        required>
+                  <div class="min-w-0">
+                    <div class="font-extrabold text-slate-900">{{ $opt['label'] }}</div>
+                    <div class="mt-0.5 text-sm text-slate-500">Pembayaran otomatis via gateway.</div>
+                  </div>
+                </label>
+              @endforeach
+            </div>
+          @endif
+
 
         </div>
 

@@ -19,14 +19,14 @@
     {{-- DESKTOP NAV --}}
     <nav class="hidden lg:flex items-center gap-1">
       @php
-        $nav = [
-          ['label'=>'Home', 'route'=>'home', 'icon'=>'home'],
-          ['label'=>'Paket Tour', 'route'=>'tours.index', 'icon'=>'map'],
-          ['label'=>'Rental', 'route'=>'rentcar.index', 'icon'=>'car'],
-          ['label'=>'Dokumentasi', 'route'=>'docs', 'icon'=>'book-open'],
-          ['label'=>'About', 'route'=>'about', 'icon'=>'info'],
-          ['label'=>'Artikel', 'route'=>'articles', 'icon'=>'newspaper'],
-        ];
+       $nav = [
+  ['label' => __('front.nav.home'),     'route' => 'home',         'icon' => 'home'],
+  ['label' => __('front.nav.tours'),    'route' => 'tours.index',  'icon' => 'map'],
+  ['label' => __('front.nav.rental'),   'route' => 'rentcar.index','icon' => 'car'],
+  ['label' => __('front.nav.docs'),     'route' => 'docs',         'icon' => 'book-open'],
+  ['label' => __('front.nav.about'),    'route' => 'about',        'icon' => 'info'],
+  ['label' => __('front.nav.articles'), 'route' => 'articles',     'icon' => 'newspaper'],
+];
       @endphp
 
       @foreach($nav as $n)
@@ -51,15 +51,28 @@
     </nav>
 
     {{-- RIGHT BUTTON (LOGIN ONLY) --}}
-    <div class="hidden lg:flex items-center gap-2">
-      <a
-        href="{{ route('login') }}"
-        class="btn btn-primary px-5 py-2.5"
-      >
-        <i data-lucide="log-in" class="w-4 h-4"></i>
-        Login
-      </a>
+    <div class="hidden lg:flex items-center">
+  <div x-data="{ open:false }" class="relative">
+    <button @click="open = !open"
+      class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition flex items-center gap-2">
+      <span>{{ config('app.available_locales')[app()->getLocale()] ?? strtoupper(app()->getLocale()) }}</span>
+      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+      </svg>
+    </button>
+
+    <div x-show="open" @click.outside="open=false" x-transition
+      class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden z-50">
+      @foreach (config('app.available_locales', []) as $code => $label)
+        <a href="{{ route('lang.switch', $code) }}"
+           class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+          {{ $label }}
+        </a>
+      @endforeach
     </div>
+  </div>
+</div>
+
 
     {{-- MOBILE TOGGLE --}}
     <button
@@ -98,15 +111,25 @@
           </a>
         @endforeach
 
-        <div class="pt-2">
-          <a
-            href="{{ route('login') }}"
-            class="btn btn-primary w-full"
-          >
-            <i data-lucide="log-in" class="w-4 h-4"></i>
-            Login
-          </a>
-        </div>
+        <div x-data="{ open:false }" class="relative">
+    <button @click="open = !open"
+      class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition flex items-center gap-2">
+      <span>{{ config('app.available_locales')[app()->getLocale()] ?? strtoupper(app()->getLocale()) }}</span>
+      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+      </svg>
+    </button>
+
+    <div x-show="open" @click.outside="open=false" x-transition
+      class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden z-50">
+      @foreach (config('app.available_locales', []) as $code => $label)
+        <a href="{{ route('lang.switch', $code) }}"
+           class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+          {{ $label }}
+        </a>
+      @endforeach
+    </div>
+  </div>
 
       </div>
     </div>

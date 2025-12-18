@@ -25,6 +25,8 @@ class UpdateTourPackageRequest extends FormRequest
                 'max:255',
                 Rule::unique('tour_packages', 'slug')->ignore($packageId),
             ],
+            'label' => ['nullable', 'string', 'max:30'],
+
             'duration_text'    => ['required', 'string', 'max:255'],
             'destination'      => ['nullable', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:tour_categories,id'],
@@ -39,10 +41,9 @@ class UpdateTourPackageRequest extends FormRequest
             'excludes.*'       => ['nullable', 'string', 'max:500'],
 
             // ========= ITINERARIES =========
-            'itineraries'               => ['nullable', 'array'],
-            'itineraries.*.id'          => ['nullable', 'integer'],
-            'itineraries.*.time'  => ['nullable', 'date_format:H:i'],
+            'itineraries'         => ['nullable', 'array'],
             'itineraries.*.title' => ['nullable', 'string', 'max:500'],
+
 
 
             // ========= TIERS =========
@@ -96,13 +97,9 @@ class UpdateTourPackageRequest extends FormRequest
             ->filter(function ($row) {
 
                 // Buang baris jika time & title dua-duanya kosong
-                if (
-                    (!isset($row['time']) || trim($row['time']) === '') &&
-                    (!isset($row['title']) || trim($row['title']) === '')
-                ) {
+                if (!isset($row['title']) || trim($row['title']) === '') {
                     return false;
                 }
-
                 return true;
             })
             ->values()

@@ -37,6 +37,8 @@ class Order extends Model
         'billing_state',
         'billing_postal',
         'billing_phone',
+        'unique_code',
+        'payable_amount',
 
         // HARGA
         'subtotal',

@@ -5,18 +5,51 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Models\RentCarPackage;
 use Illuminate\Http\Request;
+use App\Models\RentCarCategory;
+
 
 class RentCarController extends Controller
 {
     /**
      * Menampilkan semua paket rent car
      */
-    public function index()
+    public function index(Request $request)
     {
-        $packages = RentCarPackage::where('is_active', 1)->get();
+        $q = trim((string) $request->query('q', ''));
+        $categoryId = $request->query('category_id');
+        $sort = $request->query('sort', 'latest');
 
-        return view('front.rentcar.index', compact('packages'));
+        $query = RentCarPackage::query()
+            ->where('is_active', 1)
+            ->with('category');
+
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('title', 'like', "%{$q}%")
+                    ->orWhere('slug', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($categoryId)) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($sort === 'price_asc') {
+            $query->orderBy('price_per_day', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price_per_day', 'desc');
+        } elseif ($sort === 'title_asc') {
+            $query->orderBy('title', 'asc');
+        } else {
+            $query->latest();
+        }
+
+        $packages = $query->get();
+        $categories = RentCarCategory::orderBy('name')->get();
+
+        return view('front.rentcar.index', compact('packages', 'categories', 'q', 'categoryId', 'sort'));
     }
+
 
     /**
      * Menampilkan detail satu paket berdasarkan slug

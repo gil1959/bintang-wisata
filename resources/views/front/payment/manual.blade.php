@@ -56,8 +56,14 @@
 
           <div class="text-left sm:text-right">
             <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Total</div>
+            @php
+              $uniqueCode = (int)($order->unique_code ?? 0);
+              $payable = (int)($order->payable_amount ?? ((int)$order->final_price + $uniqueCode));
+            @endphp
             <div class="mt-1 text-2xl font-extrabold" style="color:#0194F3">
-              Rp {{ number_format($order->final_price,0,',','.') }}
+              
+             Rp {{ number_format($payable,0,',','.') }}
+
             </div>
           </div>
         </div>
@@ -91,12 +97,23 @@
               Transfer sesuai nominal <span class="font-extrabold text-slate-900">persis</span> agar mudah diverifikasi.
               Setelah itu upload bukti transfer di bawah.
             </p>
+            <div class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Kode Unik</div>
+            <div class="mt-1 text-lg font-extrabold text-slate-900">
+              {{ str_pad((string)$uniqueCode, 3, '0', STR_PAD_LEFT) }}
+            </div>
+            <div class="mt-1 text-sm text-slate-600">
+              Total transfer yang harus dibayar: <span class="font-extrabold text-slate-900">Rp {{ number_format($payable,0,',','.') }}</span>
+            </div>
+          </div>
+
           </div>
         </div>
 
         {{-- Detail Rekening --}}
         <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
+
             <div>
               <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Bank</div>
               <div class="mt-1 font-extrabold text-slate-900">{{ $manualMethod->bank_name }}</div>
@@ -109,6 +126,13 @@
               <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Atas Nama</div>
               <div class="mt-1 font-extrabold text-slate-900">{{ $manualMethod->account_holder }}</div>
             </div>
+            <div>
+            <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">SWIFT</div>
+            <div class="mt-1 font-extrabold text-slate-900">
+              {{ $manualMethod->swift_code ?: '-' }}
+            </div>
+          </div>
+
           </div>
         </div>
       </section>

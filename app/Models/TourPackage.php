@@ -11,6 +11,7 @@ class TourPackage extends Model
 
     protected $fillable = [
         'title',
+        'label',
         'slug',
         'category_id',
         'destination',

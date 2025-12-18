@@ -12,6 +12,32 @@
                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                    required>
         </div>
+        <div>
+  <label class="block text-sm font-extrabold text-slate-800 mb-1">Label (opsional)</label>
+  <input
+    type="text"
+    name="label"
+    value="{{ old('label', $package->label ?? '') }}"
+    placeholder="Contoh: PROMO, DISKON, TERLARIS"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  <p class="mt-1 text-xs text-slate-500">Maks 30 karakter. Kosongkan jika tidak perlu.</p>
+  @error('label') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+<div>
+    <label class="block text-sm font-extrabold text-slate-800 mb-1">Kategori</label>
+    <select name="category_id"
+            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+        <option value="">- Pilih Kategori -</option>
+        @foreach(($categories ?? []) as $c)
+            <option value="{{ $c->id }}"
+                {{ (string)old('category_id', $package->category_id ?? '') === (string)$c->id ? 'selected' : '' }}>
+                {{ $c->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
         <div>
             <label class="block text-sm font-extrabold text-slate-800 mb-1">Price Per Day</label>

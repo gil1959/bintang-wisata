@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Webhook\TripayWebhookController;
 use App\Http\Controllers\Webhook\DokuWebhookController;
 use App\Http\Controllers\Webhook\MidtransWebhookController;
+use App\Http\Controllers\Webhook\XenditWebhookController;
+use App\Http\Controllers\Webhook\IpaymuWebhookController;
+use App\Http\Controllers\Webhook\PayPalWebhookController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -21,3 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/webhooks/tripay', TripayWebhookController::class);
 Route::post('/webhooks/doku', DokuWebhookController::class);
 Route::post('/webhooks/midtrans', MidtransWebhookController::class);
+Route::post('/webhooks/xendit', [XenditWebhookController::class, 'handle']);
+Route::post('/webhooks/ipaymu', [IpaymuWebhookController::class, 'handle']);
+Route::post('/webhooks/paypal', [\App\Http\Controllers\Webhooks\PayPalWebhookController::class, 'handle'])
+    ->name('webhooks.paypal');

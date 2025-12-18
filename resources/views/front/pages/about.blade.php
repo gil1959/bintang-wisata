@@ -1,5 +1,5 @@
 @extends('layouts.front')
-@section('title','About - Bintang Wisata')
+@section('title', $siteSettings['about_meta_title'] ?? 'About - Bintang Wisata')
 
 @section('content')
 
@@ -26,17 +26,15 @@
         <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
              style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
           <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-          Tentang Bintang Wisata
+          {{ $siteSettings['about_hero_badge'] ?? 'Tentang Bintang Wisata' }}
         </div>
 
         <h1 class="mt-4 text-3xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
-          Mitra perjalanan yang rapi, transparan, dan berorientasi pada kenyamanan Anda
+          {{ $siteSettings['about_hero_title'] ?? 'Mitra perjalanan yang rapi, transparan, dan berorientasi pada kenyamanan Anda' }}
         </h1>
 
         <p class="mt-5 text-slate-600 text-base lg:text-lg leading-relaxed">
-          Bintang Wisata menyediakan layanan perjalanan dan transportasi yang dirancang untuk memudahkan Anda:
-          mulai dari pemilihan paket, penjadwalan, hingga dukungan selama perjalanan. Kami menempatkan transparansi
-          dan ketepatan layanan sebagai standar utama.
+          {!! nl2br(e($siteSettings['about_hero_desc'] ?? 'Bintang Wisata menyediakan layanan perjalanan dan transportasi yang dirancang untuk memudahkan Anda: mulai dari pemilihan paket, penjadwalan, hingga dukungan selama perjalanan. Kami menempatkan transparansi dan ketepatan layanan sebagai standar utama.')) !!}
         </p>
 
         <div class="mt-8 flex flex-col sm:flex-row gap-3">
@@ -128,20 +126,40 @@
 <section class="max-w-7xl mx-auto px-4 pb-14 lg:pb-20">
   <div class="grid gap-8 lg:grid-cols-3 items-start">
     <div data-aos="fade-up">
-      <div class="text-xs font-extrabold" style="color:#055a93;">NILAI KAMI</div>
-      <h2 class="mt-2 text-2xl lg:text-3xl font-extrabold text-slate-900">Prinsip kerja yang kami pegang</h2>
+      <div class="text-xs font-extrabold" style="color:#055a93;">
+        {{ $siteSettings['about_values_label'] ?? 'NILAI KAMI' }}
+      </div>
+      <h2 class="mt-2 text-2xl lg:text-3xl font-extrabold text-slate-900">
+        {{ $siteSettings['about_values_title'] ?? 'Prinsip kerja yang kami pegang' }}
+      </h2>
       <p class="mt-3 text-slate-600">
-        Kami membangun layanan yang rapi dan konsisten. Tujuannya sederhana: pengalaman perjalanan yang nyaman dan dapat diandalkan.
+        {!! nl2br(e($siteSettings['about_values_desc'] ?? 'Kami membangun layanan yang rapi dan konsisten. Tujuannya sederhana: pengalaman perjalanan yang nyaman dan dapat diandalkan.')) !!}
       </p>
     </div>
 
     <div class="lg:col-span-2 grid gap-4 sm:grid-cols-2" data-aos="fade-up" data-aos-delay="100">
       @php
         $values = [
-          ['icon'=>'receipt-text','title'=>'Transparansi','desc'=>'Harga, fasilitas, dan ketentuan disampaikan dengan jelas sejak awal.'],
-          ['icon'=>'clock-4','title'=>'Ketepatan','desc'=>'Jadwal dan rencana perjalanan disusun realistis sesuai kebutuhan Anda.'],
-          ['icon'=>'sparkles','title'=>'Kenyamanan','desc'=>'Kami menjaga detail layanan agar perjalanan terasa lebih ringan.'],
-          ['icon'=>'message-circle','title'=>'Responsif','desc'=>'Tim kami memberikan bantuan cepat untuk pertanyaan dan penyesuaian.'],
+          [
+            'icon' => 'receipt-text',
+            'title' => ($siteSettings['about_value1_title'] ?? 'Transparansi'),
+            'desc'  => ($siteSettings['about_value1_desc'] ?? 'Harga, fasilitas, dan ketentuan disampaikan dengan jelas sejak awal.'),
+          ],
+          [
+            'icon' => 'clock-4',
+            'title' => ($siteSettings['about_value2_title'] ?? 'Ketepatan'),
+            'desc'  => ($siteSettings['about_value2_desc'] ?? 'Jadwal dan rencana perjalanan disusun realistis sesuai kebutuhan Anda.'),
+          ],
+          [
+            'icon' => 'sparkles',
+            'title' => ($siteSettings['about_value3_title'] ?? 'Kenyamanan'),
+            'desc'  => ($siteSettings['about_value3_desc'] ?? 'Kami menjaga detail layanan agar perjalanan terasa lebih ringan.'),
+          ],
+          [
+            'icon' => 'message-circle',
+            'title' => ($siteSettings['about_value4_title'] ?? 'Responsif'),
+            'desc'  => ($siteSettings['about_value4_desc'] ?? 'Tim kami memberikan bantuan cepat untuk pertanyaan dan penyesuaian.'),
+          ],
         ];
       @endphp
 
@@ -167,20 +185,40 @@
   <div class="rounded-3xl bg-white border border-slate-200 shadow-soft p-6 lg:p-10" data-aos="fade-up">
     <div class="grid gap-10 lg:grid-cols-3">
       <div>
-        <div class="text-xs font-extrabold" style="color:#055a93;">ALUR LAYANAN</div>
-        <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Langkah sederhana, hasil yang jelas</h2>
+        <div class="text-xs font-extrabold" style="color:#055a93;">
+          {{ $siteSettings['about_flow_label'] ?? 'ALUR LAYANAN' }}
+        </div>
+        <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+          {{ $siteSettings['about_flow_title'] ?? 'Langkah sederhana, hasil yang jelas' }}
+        </h2>
         <p class="mt-3 text-slate-600 text-sm">
-          Kami menyusun alur layanan agar Anda dapat melakukan pemesanan tanpa kebingungan. Setiap tahap terstruktur dan mudah diikuti.
+          {!! nl2br(e($siteSettings['about_flow_desc'] ?? 'Kami menyusun alur layanan agar Anda dapat melakukan pemesanan tanpa kebingungan. Setiap tahap terstruktur dan mudah diikuti.')) !!}
         </p>
       </div>
 
       <div class="lg:col-span-2 grid gap-4 sm:grid-cols-2">
         @php
           $steps = [
-            ['no'=>'01','icon'=>'map','title'=>'Pilih layanan','desc'=>'Tentukan paket tour atau rental sesuai kebutuhan.'],
-            ['no'=>'02','icon'=>'messages-square','title'=>'Konsultasi singkat','desc'=>'Konfirmasi detail itinerary, durasi, dan ketentuan.'],
-            ['no'=>'03','icon'=>'calendar-check','title'=>'Pemesanan','desc'=>'Lengkapi data dan lakukan proses sesuai instruksi.'],
-            ['no'=>'04','icon'=>'plane','title'=>'Perjalanan dimulai','desc'=>'Nikmati perjalanan, tim kami siap membantu bila diperlukan.'],
+            [
+              'no' => '01', 'icon' => 'map',
+              'title' => ($siteSettings['about_step1_title'] ?? 'Pilih layanan'),
+              'desc'  => ($siteSettings['about_step1_desc'] ?? 'Tentukan paket tour atau rental sesuai kebutuhan.'),
+            ],
+            [
+              'no' => '02', 'icon' => 'messages-square',
+              'title' => ($siteSettings['about_step2_title'] ?? 'Konsultasi singkat'),
+              'desc'  => ($siteSettings['about_step2_desc'] ?? 'Konfirmasi detail itinerary, durasi, dan ketentuan.'),
+            ],
+            [
+              'no' => '03', 'icon' => 'calendar-check',
+              'title' => ($siteSettings['about_step3_title'] ?? 'Pemesanan'),
+              'desc'  => ($siteSettings['about_step3_desc'] ?? 'Lengkapi data dan lakukan proses sesuai instruksi.'),
+            ],
+            [
+              'no' => '04', 'icon' => 'plane',
+              'title' => ($siteSettings['about_step4_title'] ?? 'Perjalanan dimulai'),
+              'desc'  => ($siteSettings['about_step4_desc'] ?? 'Nikmati perjalanan, tim kami siap membantu bila diperlukan.'),
+            ],
           ];
         @endphp
 

@@ -20,7 +20,19 @@ class Documentation extends Model
 
     public function getUrlAttribute(): string
     {
-        // file_path disimpan seperti: documentations/photos/xxx.jpg
-        return asset('storage/' . $this->file_path);
+        $path = (string) $this->file_path;
+
+        // kalau URL external
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+
+        // file lokal
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    public function getIsExternalAttribute(): bool
+    {
+        return preg_match('#^https?://#i', (string) $this->file_path) === 1;
     }
 }

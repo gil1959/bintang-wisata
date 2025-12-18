@@ -21,6 +21,19 @@
                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                        required>
             </div>
+            <div>
+  <label class="block text-sm font-bold text-slate-800 mb-1">Label (opsional)</label>
+  <input
+    type="text"
+    name="label"
+    value="{{ old('label', $pkg?->label) }}"
+    placeholder="Contoh: PROMO, DISKON, TERLARIS"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  <p class="mt-1 text-xs text-slate-500">Maks 30 karakter. Kosongkan jika tidak perlu.</p>
+  @error('label') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
 
             <div class="md:col-span-6">
                 <label class="block text-sm font-bold text-slate-800 mb-1">Slug (URL)</label>
@@ -156,10 +169,10 @@
     $itinerariesForForm = old('itineraries') ?? collect($pkg->itineraries ?? [])
         ->map(function ($i) {
             return [
-                'id'    => $i->id,
-                'time'  => $i->time ? substr((string) $i->time, 0, 5) : '',
-                'title' => $i->title ?? '',
+             'id'    => $i->id,
+             'title' => $i->title ?? '',
             ];
+
         })
         ->values()
         ->toArray();
@@ -181,15 +194,6 @@
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
 
-                        {{-- TIME --}}
-                        <div class="sm:col-span-3">
-                            <label class="block text-sm font-bold text-slate-800 mb-1">Waktu</label>
-                            <input type="time"
-                                   x-model="row.time"
-                                   :name="`itineraries[${index}][time]`"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-                        </div>
-
                         {{-- TITLE --}}
                         <div class="sm:col-span-8">
                             <label class="block text-sm font-bold text-slate-800 mb-1">Judul</label>
@@ -199,6 +203,7 @@
                                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                                    placeholder="Contoh: Check-in hotel, makan malam, dll">
                         </div>
+                        
 
                         {{-- DELETE --}}
                         <div class="sm:col-span-1 flex sm:items-end">

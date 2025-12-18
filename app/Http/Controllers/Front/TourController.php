@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TourPackage;
 use Illuminate\Http\Request;
 use App\Models\TourCategory;
+use App\Models\DestinationInspiration;
+use App\Models\ClientLogo;
 
 class TourController extends Controller
 {
@@ -52,15 +54,26 @@ class TourController extends Controller
             'package' => $tourPackage
         ]);
     }
+
+
     public function home()
     {
         $packages = TourPackage::query()
             ->where('is_active', true)
             ->latest()
-            ->with('category') // supaya home bisa tampil kategori aman
+            ->with('category')
             ->take(6)
             ->get();
 
-        return view('front.home', compact('packages'));
+        $inspirations = DestinationInspiration::query()
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+        $clientLogos = ClientLogo::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('front.home', compact('packages', 'inspirations', 'clientLogos'));
     }
 }

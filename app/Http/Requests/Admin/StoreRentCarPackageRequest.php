@@ -15,6 +15,8 @@ class StoreRentCarPackageRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+            'label' => ['nullable', 'string', 'max:30'],
+
             'price_per_day' => 'required|numeric|min:0',
             'thumbnail' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
@@ -23,6 +25,8 @@ class StoreRentCarPackageRequest extends FormRequest
             'features' => 'nullable|array',
             'features.*.name' => 'required|string|max:255',
             'features.*.available' => 'nullable',
+            'category_id' => 'nullable|exists:rent_car_categories,id',
+
         ];
     }
 }

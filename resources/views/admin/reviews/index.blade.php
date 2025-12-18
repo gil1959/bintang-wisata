@@ -119,6 +119,11 @@
 
                         <td class="px-5 py-4 align-top">
                             <div class="flex flex-wrap gap-2">
+
+                                 <a href="{{ route('admin.reviews.edit', $r->id) }}"
+           class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-extrabold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+            Edit
+        </a>
                                 <form method="POST" action="{{ route('admin.reviews.approve', $r) }}">
                                     @csrf
                                     @method('PATCH')
@@ -129,6 +134,7 @@
                                         Approve
                                     </button>
                                 </form>
+                                
 
                                 <form method="POST" action="{{ route('admin.reviews.reject', $r) }}">
                                     @csrf

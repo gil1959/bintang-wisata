@@ -20,6 +20,9 @@ use App\Http\Controllers\Front\PaymentController as FrontPaymentController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\DocumentationController as AdminDocumentationController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\DestinationInspirationController;
+use App\Http\Controllers\Admin\SeoController;
+
 /*
 |--------------------------------------------------------------------------
 | Front Controllers
@@ -57,6 +60,8 @@ Route::prefix('bw-admin')
         Route::resource('tour-packages', TourPackageController::class);
         Route::delete('tour-packages/photo/{photo}', [TourPackageController::class, 'deletePhoto'])
             ->name('tour-packages.delete-photo');
+        Route::get('seo', [SeoController::class, 'edit'])->name('seo.edit');
+        Route::post('seo', [SeoController::class, 'update'])->name('seo.update');
 
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class);
@@ -67,7 +72,10 @@ Route::prefix('bw-admin')
         Route::delete('/payments/bank/{bank}', [PaymentController::class, 'deleteBank'])->name('bank.delete');
         Route::post('/payments/gateway/{gateway}', [PaymentController::class, 'toggleGateway'])
             ->name('payments.toggleGateway');
+        Route::put('/payments/unique-code-setting', [PaymentController::class, 'updateUniqueCodeSetting'])
+            ->name('payments.unique-code-setting');
 
+        Route::resource('client-logos', \App\Http\Controllers\Admin\ClientLogoController::class);
 
         // Promo Admin
         Route::resource('promos', PromoController::class)->except(['show']);
@@ -94,6 +102,11 @@ Route::prefix('bw-admin')
         // Categories
         Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);
 
+        Route::resource('rent-car-categories', \App\Http\Controllers\Admin\RentCarCategoryController::class);
+        Route::resource(
+            'destination-inspirations',
+            \App\Http\Controllers\Admin\DestinationInspirationController::class
+        );
 
         Route::resource('documentations', AdminDocumentationController::class);
         //review
@@ -101,6 +114,8 @@ Route::prefix('bw-admin')
         Route::patch('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
         Route::patch('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
         Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.delete');
+        Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit');
+        Route::patch('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
     });
 
 
@@ -129,6 +144,13 @@ Route::post('/rent-car/{slug}/draft-booking', [RentCarOrderController::class, 'd
     ->name('rentcar.draft');
 
 
+Route::get('/lang/{locale}', function ($locale) {
+    $available = array_keys(config('app.available_locales', []));
+    abort_unless(in_array($locale, $available, true), 404);
+
+    session(['locale' => $locale]);
+    return back();
+})->name('lang.switch');
 
 
 Route::get('/checkout/{order}', [CheckoutController::class, 'show'])
@@ -159,6 +181,19 @@ Route::get('/payment/{order}/manual', [FrontPaymentController::class, 'manualPag
 
 Route::get('/payment/{order}/gateway', [FrontPaymentController::class, 'gatewayPage'])
     ->name('payment.gateway.page');
+Route::get('/payment/{order}/gateway', [\App\Http\Controllers\Front\PaymentController::class, 'gatewayPage'])
+    ->name('payment.gateway.page');
+
+Route::post('/payment/{order}/gateway', [\App\Http\Controllers\Front\PaymentController::class, 'startGateway'])
+    ->name('payment.gateway.start');
+
+Route::get('/payment/{order}/paypal/return', [\App\Http\Controllers\Front\PaymentController::class, 'paypalReturn'])
+    ->name('paypal.return');
+
+Route::get('/payment/{order}/paypal/cancel', [\App\Http\Controllers\Front\PaymentController::class, 'paypalCancel'])
+    ->name('paypal.cancel');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -210,3 +245,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 require __DIR__ . '/auth.php';
+Route::fallback(function () {
+    if (request()->is('bw-admin/*')) {
+        // kalau admin salah URL, balikin ke dashboard admin
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect()->route('home');
+});

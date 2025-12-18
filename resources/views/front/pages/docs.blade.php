@@ -206,14 +206,46 @@
         @foreach($videos as $v)
           <div class="rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition">
             <div class="relative bg-black">
-              <video
-                controls
-                preload="metadata"
-                class="w-full h-56 object-cover"
-              >
-                <source src="{{ $v->url }}" type="video/mp4">
-                Browser Anda tidak mendukung pemutaran video.
-              </video>
+              @php
+  $u = $v->url;
+
+  // direct file video?
+  $isDirect = preg_match('/\.(mp4|webm|ogg)(\?.*)?$/i', $u);
+
+  // tentuin mime kalau direct file
+  $path = parse_url($u, PHP_URL_PATH) ?? '';
+  $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+  $mime = $ext === 'webm' ? 'video/webm' : ($ext === 'ogg' ? 'video/ogg' : 'video/mp4');
+
+  // ini bukan "sempurna", tapi cukup buat kasus embed umum
+  $isEmbed =
+      str_contains($u, 'youtube.com/embed') ||
+      str_contains($u, 'player.vimeo.com') ||
+      (str_contains($u, 'cloudinary.com') && (str_contains($u, 'player') || str_contains($u, '/video/')));
+@endphp
+
+@if($isDirect)
+  <video controls preload="metadata" class="w-full h-56 object-cover">
+    <source src="{{ $u }}" type="{{ $mime }}">
+    Browser Anda tidak mendukung pemutaran video.
+  </video>
+@elseif($isEmbed)
+  <iframe
+    src="{{ $u }}"
+    class="w-full h-56"
+    frameborder="0"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen
+  ></iframe>
+@else
+  <div class="w-full h-56 grid place-items-center bg-slate-900">
+    <a href="{{ $u }}" target="_blank"
+       class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-xs font-extrabold bg-white text-slate-900 hover:bg-slate-100 transition">
+      Buka Video (Link)
+    </a>
+  </div>
+@endif
+
 
               {{-- top badge --}}
               <div class="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">

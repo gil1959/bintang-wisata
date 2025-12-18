@@ -27,6 +27,47 @@
             <div class="text-sm mt-1">{{ session('error') }}</div>
         </div>
     @endif
+<div class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden mb-6">
+  <div class="px-5 py-4 border-b border-slate-200">
+    <p class="text-sm font-extrabold text-slate-800">Kode Unik Transfer Manual</p>
+    <p class="text-xs text-slate-500 mt-1">Total transfer = total invoice + kode unik (contoh: 1.500.000 → 1.500.198).</p>
+  </div>
+
+  <form action="{{ route('admin.payments.unique-code-setting') }}" method="POST" class="p-5 grid gap-4 md:grid-cols-12">
+    @csrf
+    @method('PUT')
+
+    <div class="md:col-span-3">
+      <label class="block text-sm font-extrabold text-slate-800 mb-1">Min</label>
+      <input type="number" name="manual_unique_code_min" min="1" max="999"
+             value="{{ old('manual_unique_code_min', $settings['manual_unique_code_min'] ?? 1) }}"
+             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+      @error('manual_unique_code_min')
+        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+      @enderror
+    </div>
+
+    <div class="md:col-span-3">
+      <label class="block text-sm font-extrabold text-slate-800 mb-1">Max</label>
+      <input type="number" name="manual_unique_code_max" min="1" max="999"
+             value="{{ old('manual_unique_code_max', $settings['manual_unique_code_max'] ?? 999) }}"
+             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+      @error('manual_unique_code_max')
+        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+      @enderror
+    </div>
+
+    <div class="md:col-span-6 flex items-end justify-end">
+      <button type="submit"
+              class="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+              style="background:#0194F3;"
+              onmouseover="this.style.background='#0186DB'"
+              onmouseout="this.style.background='#0194F3'">
+        Simpan
+      </button>
+    </div>
+  </form>
+</div>
 
     {{-- =======================
         BANK TRANSFER MANUAL
@@ -71,6 +112,14 @@
                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                                placeholder="Contoh: Bintang Wisata">
                     </div>
+                    <div class="md:col-span-4">
+                         <label class="block text-sm font-bold text-slate-800 mb-1">SWIFT Code (Opsional)</label>
+                         <input name="swift_code"
+                          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                             placeholder="Contoh: BMRIIDJA atau BMRIIDJAXXX">
+                            <p class="mt-1 text-xs text-slate-500">Dipakai untuk transfer internasional (wire transfer).</p>
+                    </div>
+
 
                     <div class="md:col-span-12 flex justify-end">
                         <button type="submit"
@@ -99,6 +148,7 @@
                                 <th class="px-5 py-3">Bank</th>
                                 <th class="px-5 py-3">No Rekening</th>
                                 <th class="px-5 py-3">Atas Nama</th>
+                                <th class="px-5 py-3">SWIFT</th>
                                 <th class="px-5 py-3 w-[160px]">Status</th>
                                 <th class="px-5 py-3 w-[130px]">Aksi</th>
                             </tr>
@@ -114,6 +164,14 @@
                                 <td class="px-5 py-4">{{ $m->account_number }}</td>
                                 <td class="px-5 py-4">{{ $m->account_holder }}</td>
                                 <td class="px-5 py-4">
+                                    @if(!empty($m->swift_code))
+                                        <code class="text-xs rounded-lg bg-slate-100 px-2 py-1 text-slate-700">{{ $m->swift_code }}</code>
+                                    @else
+                                        <span class="text-xs text-slate-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4">
+
                                     @if($m->is_active)
                                         <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border border-emerald-200 bg-emerald-50 text-emerald-800">
                                             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -145,7 +203,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-5 py-12 text-center">
+                               <td colspan="7" class="px-5 py-12 text-center">
+
                                     <div class="mx-auto h-12 w-12 rounded-2xl border grid place-items-center"
                                          style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
                                         <i data-lucide="inbox" class="w-6 h-6" style="color:#0194F3;"></i>
@@ -169,7 +228,10 @@
     <section class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200">
             <div class="font-extrabold text-slate-900">Payment Gateway</div>
-            <div class="text-sm text-slate-600 mt-1">Hanya DOKU / TriPay / Midtrans.</div>
+           <div class="text-sm text-slate-600 mt-1">
+    DOKU / TriPay / Midtrans / Xendit / iPaymu.
+</div>
+
         </div>
 
         <div class="p-5">
@@ -298,6 +360,84 @@
                                     Wajib: mode, server_key, client_key
                                 </div>
                             @endif
+
+                            {{-- XENDIT --}}
+                                @if($g->name === 'xendit')
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-800 mb-1">Secret Key</label>
+                                        <input name="secret_key" autocomplete="off"
+                                            value="{{ $cred['secret_key'] ?? '' }}"
+                                            placeholder="Xendit Secret API Key"
+                                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-800 mb-1">Callback Token</label>
+                                        <input name="callback_token" autocomplete="off"
+                                            value="{{ $cred['callback_token'] ?? '' }}"
+                                            placeholder="Xendit Callback Token"
+                                            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                    </div>
+
+                                    <div class="text-xs text-slate-500">
+                                        Wajib: mode, secret_key, callback_token
+                                    </div>
+                                @endif
+                                    {{-- IPAYMU --}}
+                                    @if($g->name === 'ipaymu')
+                                        <div>
+                                            <label class="block text-sm font-bold text-slate-800 mb-1">VA Number</label>
+                                            <input name="va" autocomplete="off"
+                                                value="{{ $cred['va'] ?? '' }}"
+                                                placeholder="iPaymu VA Number"
+                                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-bold text-slate-800 mb-1">API Key</label>
+                                            <input name="api_key" autocomplete="off"
+                                                value="{{ $cred['api_key'] ?? '' }}"
+                                                placeholder="iPaymu API Key"
+                                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                        </div>
+
+                                        <div class="text-xs text-slate-500">
+                                            Wajib: mode, va, api_key
+                                        </div>
+                                    @endif
+
+                                    {{-- PAYPAL --}}
+@if($g->name === 'paypal')
+  <div>
+    <label class="block text-sm font-bold text-slate-800 mb-1">Client ID</label>
+    <input name="client_id" autocomplete="off"
+      value="{{ $cred['client_id'] ?? '' }}"
+      placeholder="PayPal Client ID"
+      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold text-slate-800 mb-1">Client Secret</label>
+    <input name="client_secret" autocomplete="off"
+      value="{{ $cred['client_secret'] ?? '' }}"
+      placeholder="PayPal Client Secret"
+      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold text-slate-800 mb-1">Webhook ID (opsional)</label>
+    <input name="webhook_id" autocomplete="off"
+      value="{{ $cred['webhook_id'] ?? '' }}"
+      placeholder="PayPal Webhook ID"
+      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+  </div>
+
+  <div class="text-xs text-slate-500">
+    Wajib: mode, client_id, client_secret
+  </div>
+@endif
+
+
 
                             <input type="hidden" name="enable" value="{{ $isActive ? 0 : 1 }}">
 

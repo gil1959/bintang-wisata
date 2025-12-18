@@ -223,6 +223,14 @@
                         @else
                             <div class="absolute inset-0 bg-gradient-to-tr from-slate-100 via-white to-white"></div>
                         @endif
+                        @if(!empty($package->label))
+  <div class="absolute top-3 right-3">
+    <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
+      {{ $package->label }}
+    </span>
+  </div>
+@endif
+
 
                         {{-- badge kategori --}}
                         <div class="absolute top-3 left-3">

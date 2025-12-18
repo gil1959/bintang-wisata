@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{{ asset('favicon.ico') }}">
 
     <title>@yield('title', 'Admin Panel') - Bintang Wisata</title>
 
@@ -84,13 +85,18 @@
                     ['label'=>'Pembayaran','route'=>'admin.payments.index','match'=>'admin.payments.*','icon'=>'credit-card'],
                     ['label'=>'Paket Wisata','route'=>'admin.tour-packages.index','match'=>'admin.tour-packages.*','icon'=>'map'],
                     ['label'=>'Kategori Tour','route'=>'admin.categories.index','match'=>'admin.categories.*','icon'=>'tags'],
+                    ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags'],
                     ['label'=>'Rental','route'=>'admin.rent-car-packages.index','match'=>'admin.rent-car-packages.*','icon'=>'car'],
                     ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent'],
                     ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images'],
+                    ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles'],
                     ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper'],
+                    ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
+                     ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
+                     ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
                     ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
-                    ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
-
+                   
+                    
                 ];
             @endphp
 

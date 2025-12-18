@@ -1,5 +1,6 @@
 @extends('layouts.front')
-@section('title', 'Home - Bintang Wisata')
+@section('title', __('front.home.page_title'))
+
 
 @section('content')
 
@@ -45,7 +46,8 @@
     <div class="relative max-w-4xl mx-auto px-4" data-aos="fade-up">
         <div class="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-5 py-2 text-white text-xs tracking-wide">
             <span class="h-2 w-2 rounded-full bg-white/80"></span>
-            Travel • Tour • Rental
+           {{ __('front.home.badge') }}
+
         </div>
 
         <h1 class="mt-6 text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white">
@@ -56,61 +58,22 @@
             {{ $siteSettings['hero_subtitle'] ?? 'Kami membantu Anda merencanakan perjalanan dengan layanan profesional dan harga transparan.' }}
         </p>
 
-        {{-- quick trust strip --}}
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
-            <div class="glass rounded-2xl px-5 py-4 text-left">
-                <div class="flex items-center gap-3">
-                    <div class="icon-badge">
-                        <i data-lucide="shield-check" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <div class="text-white font-extrabold leading-tight">Legal & Terpercaya</div>
-                        <div class="text-white/80 text-xs mt-0.5">Proses aman & jelas</div>
-                    </div>
-                </div>
-            </div>
-            <div class="glass rounded-2xl px-5 py-4 text-left">
-                <div class="flex items-center gap-3">
-                    <div class="icon-badge">
-                        <i data-lucide="clock-4" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <div class="text-white font-extrabold leading-tight">Booking Cepat</div>
-                        <div class="text-white/80 text-xs mt-0.5">Tanpa ribet</div>
-                    </div>
-                </div>
-            </div>
-            <div class="glass rounded-2xl px-5 py-4 text-left">
-                <div class="flex items-center gap-3">
-                    <div class="icon-badge">
-                        <i data-lucide="headphones" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <div class="text-white font-extrabold leading-tight">Support</div>
-                        <div class="text-white/80 text-xs mt-0.5">Sebelum & selama trip</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
 
         <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <a href="{{ route('tours.index') }}" class="btn btn-primary px-8 py-3">
                 <i data-lucide="map" class="w-5 h-5"></i>
-                Lihat Paket Tour
+             {{ __('front.home.cta_view_tours') }}
+
             </a>
             <a href="{{ route('rentcar.index') }}" class="btn btn-ghost px-8 py-3">
                 <i data-lucide="car" class="w-5 h-5"></i>
-                Rental Mobil
+                {{ __('front.home.cta_rental') }}
+
             </a>
         </div>
 
-        {{-- scroll hint --}}
-        <div class="mt-10 text-white/75 text-xs flex items-center justify-center gap-2">
-            <span class="inline-flex items-center gap-2">
-                <i data-lucide="mouse" class="w-4 h-4"></i>
-                Scroll untuk lihat rekomendasi destinasi
-            </span>
-        </div>
+       
     </div>
 </section>
 
@@ -265,83 +228,80 @@
 
 {{-- ================= WHY US ================= --}}
 <section class="bg-slate-50">
-    <div class="max-w-7xl mx-auto px-4 py-14 lg:py-20">
-        <div class="text-center max-w-2xl mx-auto" data-aos="fade-up">
-            <div class="mx-auto w-fit pill pill-azure">
-                <i data-lucide="stars" class="w-4 h-4"></i>
-                Layanan unggulan
+   
+
+        {{-- ================= INSPIRASI DESTINASI ================= --}}
+<div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 travel-grid shadow-soft" data-aos="fade-up" data-aos-delay="140">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div>
+            <div class="pill pill-azure">
+                <i data-lucide="map" class="w-4 h-4"></i>
+                Inspirasi destinasi
             </div>
-            <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                Mengapa Memilih Bintang Wisata
-            </h2>
-            <p class="mt-3 text-slate-600">
-                Kami berkomitmen memberikan layanan perjalanan yang profesional, transparan, dan berorientasi pada kenyamanan pelanggan.
+            <div class="mt-3 text-xl lg:text-2xl font-extrabold text-slate-900">
+                Nuansa wisata yang siap kamu jelajahi
+            </div>
+            <p class="mt-2 text-slate-600">
+                Pilih destinasi favorit, lalu lihat daftar paket tour sesuai kategori.
             </p>
         </div>
 
-        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="hidden lg:block text-sm text-slate-500">
+            Total: <span class="font-extrabold text-slate-900">{{ $inspirations->count() }}</span>
+        </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        @forelse($inspirations as $it)
             @php
-                $reasons = [
-                    ['icon'=>'badge-dollar-sign','title'=>'Harga Transparan', 'desc'=>'Tanpa biaya tersembunyi, semua informasi jelas sejak awal.'],
-                    ['icon'=>'shield-check','title'=>'Legal & Terpercaya', 'desc'=>'Dikelola secara profesional dan berpengalaman.'],
-                    ['icon'=>'zap','title'=>'Proses Booking Cepat', 'desc'=>'Sistem pemesanan ringkas dan mudah digunakan.'],
-                    ['icon'=>'headphones','title'=>'Dukungan Pelanggan', 'desc'=>'Tim siap membantu sebelum dan selama perjalanan.'],
-                ];
+                $href = $it->tour_category_id
+                    ? route('tours.index', ['category' => $it->tour_category_id])
+                    : route('tours.index');
+
+                $img = $it->image_path ? asset('storage/'.$it->image_path) : null;
             @endphp
 
-            @foreach($reasons as $r)
-                <div class="card p-6 text-left relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background: radial-gradient(circle, rgba(1,148,243,0.18), transparent 65%);"></div>
-
-                    <div class="flex items-start gap-4 relative">
-                        <div class="icon-badge">
-                            <i data-lucide="{{ $r['icon'] }}" class="w-5 h-5"></i>
+            <a href="{{ $href }}" class="group block rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition bg-white">
+                <div class="relative aspect-[4/5]">
+                    @if($img)
+                        <img
+                            src="{{ $img }}"
+                            alt="{{ $it->title }}"
+                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition duration-500"
+                        >
+                    @else
+                        <div class="absolute inset-0 bg-slate-200"></div>
+                        <div class="absolute inset-0 grid place-items-center text-slate-500 text-xs">
+                            No Image
                         </div>
-                        <div>
-                            <div class="font-extrabold text-slate-900">{{ $r['title'] }}</div>
-                            <div class="mt-1.5 text-sm text-slate-600">{{ $r['desc'] }}</div>
+                    @endif
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+
+                    <div class="absolute left-3 bottom-10 text-[10px] font-extrabold tracking-wider text-white/90">
+                        PAKET WISATA
+                    </div>
+
+                    <div class="absolute left-3 bottom-3 right-3 text-white">
+                        <div class="text-lg font-black leading-tight uppercase">
+                            {{ $it->title }}
+                        </div>
+
+                        <div class="mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold bg-orange-500 text-white">
+                            Detail
                         </div>
                     </div>
                 </div>
-            @endforeach
-        </div>
-
-        {{-- mini destinations strip (visual, static) --}}
-        <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 travel-grid shadow-soft" data-aos="fade-up" data-aos-delay="140">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div>
-                    <div class="pill pill-azure">
-                        <i data-lucide="map" class="w-4 h-4"></i>
-                        Inspirasi destinasi
-                    </div>
-                    <div class="mt-3 text-xl lg:text-2xl font-extrabold text-slate-900">
-                        Nuansa wisata yang siap kamu jelajahi
-                    </div>
-                    <p class="mt-2 text-slate-600">
-                        Pilih gaya perjalanan: pantai, alam, budaya, atau city tour.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    @php
-                        $chips = [
-                            ['icon'=>'palmtree','name'=>'Pantai'],
-                            ['icon'=>'mountain-snow','name'=>'Alam'],
-                            ['icon'=>'landmark','name'=>'Budaya'],
-                            ['icon'=>'building-2','name'=>'City Tour'],
-                        ];
-                    @endphp
-                    @foreach($chips as $c)
-                        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 flex items-center gap-3">
-                            <div class="h-9 w-9 rounded-xl grid place-items-center" style="background: rgba(1,148,243,0.10);">
-                                <i data-lucide="{{ $c['icon'] }}" class="w-5 h-5" style="color:#0194F3;"></i>
-                            </div>
-                            <div class="font-extrabold text-slate-900 text-sm">{{ $c['name'] }}</div>
-                        </div>
-                    @endforeach
-                </div>
+            </a>
+        @empty
+            <div class="col-span-2 md:col-span-4 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
+                Belum ada inspirasi destinasi. Tambahkan lewat Admin Panel.
             </div>
-        </div>
+        @endforelse
+    </div>
+</div>
+
+
     </div>
 </section>
 
@@ -389,6 +349,7 @@
                                 </div>
                             </div>
                         @endif
+                        
 
                         {{-- Badge destination --}}
                         @if($package->destination)
@@ -441,7 +402,48 @@
             </a>
         </div>
     </div>
+     <div class="max-w-7xl mx-auto px-4 py-14 lg:py-20">
+        <div class="text-center max-w-2xl mx-auto" data-aos="fade-up">
+            <div class="mx-auto w-fit pill pill-azure">
+                <i data-lucide="stars" class="w-4 h-4"></i>
+                Layanan unggulan
+            </div>
+            <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
+                Mengapa Memilih Bintang Wisata
+            </h2>
+            <p class="mt-3 text-slate-600">
+                Kami berkomitmen memberikan layanan perjalanan yang profesional, transparan, dan berorientasi pada kenyamanan pelanggan.
+            </p>
+        </div>
+
+        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="100">
+            @php
+                $reasons = [
+                    ['icon'=>'badge-dollar-sign','title'=>'Harga Transparan', 'desc'=>'Tanpa biaya tersembunyi, semua informasi jelas sejak awal.'],
+                    ['icon'=>'shield-check','title'=>'Legal & Terpercaya', 'desc'=>'Dikelola secara profesional dan berpengalaman.'],
+                    ['icon'=>'zap','title'=>'Proses Booking Cepat', 'desc'=>'Sistem pemesanan ringkas dan mudah digunakan.'],
+                    ['icon'=>'headphones','title'=>'Dukungan Pelanggan', 'desc'=>'Tim siap membantu sebelum dan selama perjalanan.'],
+                ];
+            @endphp
+
+            @foreach($reasons as $r)
+                <div class="card p-6 text-left relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background: radial-gradient(circle, rgba(1,148,243,0.18), transparent 65%);"></div>
+
+                    <div class="flex items-start gap-4 relative">
+                        <div class="icon-badge">
+                            <i data-lucide="{{ $r['icon'] }}" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-slate-900">{{ $r['title'] }}</div>
+                            <div class="mt-1.5 text-sm text-slate-600">{{ $r['desc'] }}</div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
 </section>
+
 
 {{-- ================= HOW IT WORKS ================= --}}
 <section class="bg-slate-50">
@@ -487,6 +489,77 @@
         </div>
     </div>
 </section>
+<section class="bg-white">
+  <div class="max-w-7xl mx-auto px-4 py-16">
+
+    {{-- Header --}}
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold mx-auto"
+           style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
+        <i data-lucide="shield-check" class="w-4 h-4" style="color:#0194F3;"></i>
+        Kepercayaan pelanggan
+      </div>
+
+      <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+        Kepercayaan Pelanggan Bintang Wisata
+      </h2>
+
+      <p class="mt-2 text-slate-600 max-w-2xl mx-auto">
+        Brand dan institusi yang telah mempercayakan perjalanan bersama kami
+      </p>
+    </div>
+
+    {{-- Logo wall --}}
+    <div class="rounded-3xl border border-slate-200 bg-white overflow-hidden">
+      <div class="p-6 lg:p-10">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-8">
+          @forelse($clientLogos as $logo)
+            @php
+              $wrapOpen  = $logo->url ? '<a href="'.$logo->url.'" target="_blank" rel="noopener" class="group block">' : '<div class="group">';
+              $wrapClose = $logo->url ? '</a>' : '</div>';
+            @endphp
+
+            {!! $wrapOpen !!}
+              <div class="flex items-center justify-center">
+                <div class="w-full max-w-[170px] h-14 rounded-2xl border border-slate-200 bg-slate-50/60
+                            flex items-center justify-center px-5
+                            transition group-hover:bg-white group-hover:shadow-sm">
+                  <img
+                    src="{{ asset('storage/'.$logo->image_path) }}"
+                    alt="{{ $logo->name }}"
+                    class="h-9 sm:h-10 object-contain opacity-80 transition
+                           group-hover:opacity-100"
+                    loading="lazy"
+                  >
+                </div>
+              </div>
+
+              <div class="mt-3 text-center text-xs font-semibold text-slate-500 truncate px-2">
+                {{ $logo->name }}
+              </div>
+            {!! $wrapClose !!}
+
+          @empty
+            <div class="col-span-full">
+              <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+                <div class="mx-auto h-12 w-12 rounded-2xl border border-slate-200 bg-white flex items-center justify-center">
+                  <i data-lucide="image" class="w-5 h-5" style="color:#0194F3;"></i>
+                </div>
+                <div class="mt-4 font-extrabold text-slate-900">Belum ada logo pelanggan</div>
+                <p class="mt-1 text-sm text-slate-600">Tambahkan logo dari halaman admin untuk ditampilkan di sini.</p>
+              </div>
+            </div>
+          @endforelse
+        </div>
+      </div>
+
+      {{-- subtle footer strip --}}
+      <div class="h-1 w-full" style="background: linear-gradient(90deg, rgba(1,148,243,.18), rgba(1,148,243,0));"></div>
+    </div>
+
+  </div>
+</section>
+
 
 {{-- ================= CTA ================= --}}
 <section class="max-w-7xl mx-auto px-4 py-16 text-center">

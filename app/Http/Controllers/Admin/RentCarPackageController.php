@@ -7,6 +7,7 @@ use App\Models\RentCarPackage;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Admin\StoreRentCarPackageRequest;
 use App\Http\Requests\Admin\UpdateRentCarPackageRequest;
+use App\Models\RentCarCategory;
 use Illuminate\Support\Str;
 
 class RentCarPackageController extends Controller
@@ -19,8 +20,10 @@ class RentCarPackageController extends Controller
 
     public function create()
     {
-        return view('admin.rentcar.create');
+        $categories = RentCarCategory::orderBy('name')->get();
+        return view('admin.rentcar.create', compact('categories'));
     }
+
 
     public function store(StoreRentCarPackageRequest $request)
     {
@@ -54,8 +57,10 @@ class RentCarPackageController extends Controller
     public function edit(RentCarPackage $rent_car_package)
     {
         $package = $rent_car_package;
-        return view('admin.rentcar.edit', compact('package'));
+        $categories = RentCarCategory::orderBy('name')->get();
+        return view('admin.rentcar.edit', compact('package', 'categories'));
     }
+
 
     public function update(UpdateRentCarPackageRequest $request, RentCarPackage $rent_car_package)
     {

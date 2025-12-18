@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\PaymentGateway;
+use App\Models\Setting;
+
+
 
 class CheckoutController extends Controller
 {
@@ -29,7 +32,7 @@ class CheckoutController extends Controller
 
         // Gateway: batasi cuma 3
         $gateways = PaymentGateway::where('is_active', 1)
-            ->whereIn('name', ['doku', 'tripay', 'midtrans'])
+            ->whereIn('name', ['doku', 'tripay', 'midtrans', 'xendit', 'ipaymu', 'paypal'])
             ->orderBy('id')
             ->get();
 
@@ -90,7 +93,56 @@ class CheckoutController extends Controller
                     'payment_method' => 'Rekening transfer tidak ditemukan / nonaktif.',
                 ])->withInput();
             }
+            if ($order->unique_code === null || $order->payable_amount === null) {
+                $min = (int)(Setting::where('key', 'manual_unique_code_min')->value('value') ?? 1);
+                $max = (int)(Setting::where('key', 'manual_unique_code_max')->value('value') ?? 999);
 
+                if ($min < 1) $min = 1;
+                if ($max > 999) $max = 999;
+                if ($min > $max) {
+                    [$min, $max] = [$max, $min];
+                }
+
+                $code = null;
+
+                // C) anti bentrok: payable_amount unik untuk order yang masih menunggu
+                for ($tries = 0; $tries < 25; $tries++) {
+                    $candidate = random_int($min, $max);
+                    $payable = (int)$order->final_price + $candidate;
+
+                    $exists = Order::whereIn('payment_status', ['waiting_payment', 'waiting_verification'])
+                        ->where('payment_method', 'like', 'manual:%')
+                        ->where('payable_amount', $payable)
+                        ->exists();
+
+                    if (!$exists) {
+                        $code = $candidate;
+                        break;
+                    }
+                }
+
+                // fallback scan kalau range sempit
+                if ($code === null) {
+                    for ($candidate = $min; $candidate <= $max; $candidate++) {
+                        $payable = (int)$order->final_price + $candidate;
+
+                        $exists = Order::whereIn('payment_status', ['waiting_payment', 'waiting_verification'])
+                            ->where('payment_method', 'like', 'manual:%')
+                            ->where('payable_amount', $payable)
+                            ->exists();
+
+                        if (!$exists) {
+                            $code = $candidate;
+                            break;
+                        }
+                    }
+                }
+
+                if ($code === null) $code = $min;
+
+                $order->unique_code = $code;
+                $order->payable_amount = (int)$order->final_price + $code;
+            }
             // Update order tetap sama seperti flow lama
             $order->update([
                 'billing_first_name' => $data['billing_first_name'],
@@ -103,6 +155,8 @@ class CheckoutController extends Controller
                 'billing_phone'      => $data['billing_phone'],
                 'payment_method'     => $raw,
                 'payment_status'     => 'waiting_payment',
+                'unique_code'       => $order->unique_code,
+                'payable_amount'    => $order->payable_amount,
             ]);
 
             return redirect()->route('payment.manual.page', $order->id);
@@ -120,11 +174,12 @@ class CheckoutController extends Controller
             [, $gatewayName, $channelCode] = $parts;
 
             // Batasi gateway hanya 3
-            if (!in_array($gatewayName, ['doku', 'tripay', 'midtrans'], true)) {
+            if (!in_array($gatewayName, ['doku', 'tripay', 'midtrans', 'xendit', 'ipaymu', 'paypal'], true)) {
                 return back()->withErrors([
                     'payment_method' => 'Payment gateway tidak didukung.',
                 ])->withInput();
             }
+
 
             $gateway = PaymentGateway::where('name', $gatewayName)
                 ->where('is_active', 1)

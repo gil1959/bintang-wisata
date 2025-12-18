@@ -16,6 +16,28 @@
             Admin akan memverifikasi pembayaran kamu. Status pesanan saat ini:
             <b>{{ $order->payment_status }}</b>.
         </p>
+                    @php
+                $msg = "Halo admin, saya mau konfirmasi pembayaran.\n"
+                    . "Invoice: {$order->invoice_number}\n"
+                    . "Status: {$order->payment_status}\n"
+                    . "Terima kasih.";
+                $waLink = (!empty($wa)) ? ("https://wa.me/" . $wa . "?text=" . urlencode($msg)) : null;
+            @endphp
+
+            @if($waLink)
+                <a href="{{ $waLink }}" target="_blank"
+                class="inline-flex items-center justify-center w-full rounded-xl px-4 py-3 font-extrabold text-white transition"
+                style="background:#0194F3;"
+                onmouseover="this.style.background='#47a4e2'"
+                onmouseout="this.style.background='#1476b8'">
+                    Konfirmasi via WhatsApp
+                </a>
+            @else
+                <p class="text-xs text-gray-400">
+                    Nomor WhatsApp admin belum diset di Pengaturan (Settings).
+                </p>
+            @endif
+
     </div>
 </div>
 @endsection

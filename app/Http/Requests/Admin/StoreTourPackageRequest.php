@@ -17,6 +17,8 @@ class StoreTourPackageRequest extends FormRequest
         return [
             // ========= BASIC INFO =========
             'title'            => ['required', 'string', 'max:255'],
+            'label' => ['nullable', 'string', 'max:30'],
+
             'slug'             => ['required', 'string', 'max:255', 'unique:tour_packages,slug'],
             'duration_text'    => ['required', 'string', 'max:255'],
             'destination'      => ['nullable', 'string', 'max:255'],
@@ -32,8 +34,7 @@ class StoreTourPackageRequest extends FormRequest
             'excludes.*'       => ['nullable', 'string', 'max:500'],
 
             // ========= ITINERARIES =========
-            'itineraries'               => ['nullable', 'array'],
-            'itineraries.*.time'  => ['nullable', 'date_format:H:i'],
+            'itineraries'         => ['nullable', 'array'],
             'itineraries.*.title' => ['nullable', 'string', 'max:500'],
 
 
@@ -74,12 +75,10 @@ class StoreTourPackageRequest extends FormRequest
 
         // Bersihkan itineraries yang kosong
         $itineraries = collect($this->itineraries ?? [])
-            ->filter(
-                fn($row) =>
-                isset($row['time'], $row['title']) &&
-                    trim($row['time']) !== '' &&
-                    trim($row['title']) !== ''
-            )->values()->all();
+            ->filter(fn($row) => isset($row['title']) && trim($row['title']) !== '')
+            ->values()
+            ->all();
+
 
         $this->merge([
             'includes'    => $includes,
@@ -92,7 +91,6 @@ class StoreTourPackageRequest extends FormRequest
     {
         return [
             'slug.unique' => 'Slug sudah digunakan paket lain.',
-            'itineraries.*.time.date_format' => 'Format jam itinerary harus HH:MM',
         ];
     }
 }

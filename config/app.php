@@ -234,4 +234,13 @@ return [
 
     ],
 
+    'available_locales' => [
+        'id' => 'Indonesia',
+        'en' => 'English',
+        'zh' => '中文',
+        'ja' => '日本語',
+        'fr' => 'Français',
+    ],
+
+
 ];

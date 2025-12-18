@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\TourPackage;
 use App\Models\Order;
 use App\Models\Promo;
+use App\Models\Setting;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class TourOrderController extends Controller
 {
@@ -71,6 +75,21 @@ class TourOrderController extends Controller
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);
+        try {
+            if (!empty($order->customer_email)) {
+                Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));
+            }
+
+            $adminEmail = Setting::invoiceAdminEmail();
+            if (!empty($adminEmail) && $adminEmail !== $order->customer_email) {
+                Mail::to($adminEmail)->send(new OrderInvoiceMail($order, true));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Invoice email gagal dikirim', [
+                'invoice' => $order->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'redirect' => route('checkout.show', $order->id)

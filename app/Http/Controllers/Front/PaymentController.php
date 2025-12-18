@@ -9,7 +9,11 @@ use App\Models\PaymentMethod;
 use App\Services\Payments\TripayService;
 use App\Services\Payments\DokuService;
 use App\Services\Payments\MidtransService;
+use App\Services\Payments\PayPalService;
 use Illuminate\Http\Request;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -119,13 +123,21 @@ class PaymentController extends Controller
 
     public function waiting(Order $order)
     {
-        return view('front.payment.waiting', compact('order'));
+        $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
+        $wa = preg_replace('/\D+/', '', $rawWa);
+
+        if (str_starts_with($wa, '0')) {
+            $wa = '62' . substr($wa, 1);
+        }
+
+        return view('front.payment.waiting', compact('order', 'wa'));
     }
 
     // ✅ START GATEWAY (beneran call API + redirect)
     public function startGateway(
         Request $request,
         Order $order,
+        PayPalService $paypal,
         TripayService $tripay,
         DokuService $doku,
         MidtransService $midtrans
@@ -139,7 +151,7 @@ class PaymentController extends Controller
 
         [, $gatewayName, $channelCode] = $parts;
 
-        if (!in_array($gatewayName, ['doku', 'tripay', 'midtrans'], true)) {
+        if (!in_array($gatewayName, ['doku', 'tripay', 'midtrans', 'xendit', 'ipaymu', 'paypal'], true)) {
             abort(400, 'Gateway tidak didukung');
         }
 
@@ -158,17 +170,22 @@ class PaymentController extends Controller
         }
         if (!$valid) abort(400, 'Channel gateway tidak valid');
 
-        // prevent double click
+        // ✅ Amount konsisten buat semua gateway
+        $amount = $order->payable_amount ?? $order->final_price;
+
+        // ✅ prevent double click + jangan reuse payment gateway lain
         $payment = $order->payments()
             ->where('method', 'gateway')
             ->where('status', 'waiting_payment')
+            ->where('gateway_name', $gatewayName)
+            ->where('channel_code', $channelCode)
             ->latest()
             ->first();
 
         if (!$payment) {
             $payment = $order->payments()->create([
                 'method'            => 'gateway',
-                'amount'            => $order->final_price,
+                'amount'            => $amount,
                 'proof_image'       => null,
                 'gateway_name'      => $gatewayName,
                 'channel_code'      => $channelCode,
@@ -186,21 +203,19 @@ class PaymentController extends Controller
             $payload = [
                 'method'       => $channelCode,
                 'merchant_ref' => $order->invoice_number,
-                'amount'       => (int)$order->final_price,
+                'amount'       => (int)$amount,
 
                 'customer_name'  => $order->customer_name,
                 'customer_email' => $order->customer_email,
                 'customer_phone' => $order->customer_phone,
 
-                'order_items' => [
-                    [
-                        'sku'      => 'ORDER',
-                        'name'     => $order->product_name,
-                        'price'    => (int)$order->final_price,
-                        'quantity' => 1,
-                        'subtotal' => (int)$order->final_price,
-                    ],
-                ],
+                'order_items' => [[
+                    'sku'      => 'ORDER',
+                    'name'     => $order->product_name,
+                    'price'    => (int)$amount,
+                    'quantity' => 1,
+                    'subtotal' => (int)$amount,
+                ]],
 
                 'return_url'   => route('payment.page', $order->id),
                 'callback_url' => url('/api/webhooks/tripay'),
@@ -210,14 +225,15 @@ class PaymentController extends Controller
             try {
                 $resp = $tripay->createTransaction($cred, $payload);
             } catch (\Throwable $e) {
-                return back()->with('error', 'Tripay error: ' . $e->getMessage());
+                Log::error('Tripay error', ['err' => $e->getMessage()]);
+                return back()->with('error', 'Tripay sedang bermasalah. Coba lagi.');
             }
 
             $data = $resp['data'] ?? null;
             if (!$data) {
                 $payment->gateway_payload = $resp;
                 $payment->save();
-                return back()->with('error', 'Tripay response tidak punya data.');
+                return back()->with('error', 'Tripay response tidak valid.');
             }
 
             $reference = $data['reference'] ?? null;
@@ -229,7 +245,7 @@ class PaymentController extends Controller
             $payment->save();
 
             if (!$checkoutUrl) {
-                return back()->with('error', 'Tripay tidak mengembalikan checkout_url/pay_url.');
+                return back()->with('error', 'Tripay tidak mengembalikan checkout url.');
             }
 
             return redirect()->away($checkoutUrl);
@@ -242,7 +258,7 @@ class PaymentController extends Controller
             $payload = [
                 'order' => [
                     'invoice_number' => $order->invoice_number,
-                    'amount'         => (int)$order->final_price,
+                    'amount'         => (int)$amount,
                 ],
                 'customer' => [
                     'name'  => $order->customer_name,
@@ -259,7 +275,8 @@ class PaymentController extends Controller
             try {
                 $resp = $doku->createPayment($cred, $payload);
             } catch (\Throwable $e) {
-                return back()->with('error', 'DOKU error: ' . $e->getMessage());
+                Log::error('DOKU error', ['err' => $e->getMessage()]);
+                return back()->with('error', 'DOKU sedang bermasalah. Coba lagi.');
             }
 
             $paymentUrl = data_get($resp, 'payment.paymentUrl')
@@ -272,11 +289,186 @@ class PaymentController extends Controller
             $payment->save();
 
             if (!$paymentUrl) {
-                return back()->with('error', 'DOKU tidak mengembalikan paymentUrl/redirect_url.');
+                return back()->with('error', 'DOKU tidak mengembalikan payment url.');
             }
 
             return redirect()->away($paymentUrl);
         }
+
+        // ========= XENDIT =========
+        if ($gatewayName === 'xendit') {
+            $cred = $gateway->credentials ?? [];
+
+            $payload = [
+                'external_id' => $order->invoice_number,
+                'amount' => (int)$amount,
+                'payer_email' => $order->customer_email,
+                'description' => 'Order ' . $order->invoice_number,
+                'success_redirect_url' => route('payment.page', $order->id),
+                'failure_redirect_url' => route('payment.page', $order->id),
+            ];
+
+            $http = Http::withBasicAuth($cred['secret_key'] ?? '', '')
+                ->post('https://api.xendit.co/v2/invoices', $payload);
+
+            if ($http->failed()) {
+                Log::error('Xendit create invoice failed', ['body' => $http->body()]);
+                return back()->with('error', 'Xendit sedang bermasalah. Coba lagi.');
+            }
+
+            $resp = $http->json();
+
+            $payment->gateway_reference = $resp['id'] ?? null;
+            $payment->payment_url = $resp['invoice_url'] ?? null;
+            $payment->gateway_payload = $resp;
+            $payment->save();
+
+            if (!$payment->payment_url) {
+                Log::error('Xendit missing invoice_url', ['resp' => $resp]);
+                return back()->with('error', 'Xendit response invalid.');
+            }
+
+            return redirect()->away($payment->payment_url);
+        }
+
+        // ========= IPAYMU =========
+        if ($gatewayName === 'ipaymu') {
+            $cred = $gateway->credentials ?? [];
+
+            $url = ($cred['mode'] ?? 'sandbox') === 'production'
+                ? 'https://my.ipaymu.com/api/v2/payment'
+                : 'https://sandbox.ipaymu.com/api/v2/payment';
+
+            $body = [
+                'product' => [$order->product_name],
+                'qty' => [1],
+                'price' => [(int)$amount],
+                'returnUrl' => route('payment.page', $order->id),
+                'notifyUrl' => url('/api/webhooks/ipaymu'),
+                'cancelUrl' => route('payment.page', $order->id),
+            ];
+
+            $json = json_encode($body);
+            $hash = strtolower(hash('sha256', $json));
+            $string = "POST:{$cred['va']}:{$hash}:{$cred['api_key']}";
+            $signature = hash_hmac('sha256', $string, $cred['api_key']);
+
+            $http = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'va' => $cred['va'] ?? '',
+                'signature' => $signature,
+                'timestamp' => now()->format('YmdHis'),
+            ])->post($url, $body);
+
+            if ($http->failed()) {
+                Log::error('iPaymu create payment failed', ['body' => $http->body()]);
+                return back()->with('error', 'iPaymu sedang bermasalah. Coba lagi.');
+            }
+
+            $resp = $http->json();
+
+            $payment->gateway_reference = data_get($resp, 'Data.SessionID');
+            $payment->payment_url = data_get($resp, 'Data.Url');
+            $payment->gateway_payload = $resp;
+            $payment->save();
+
+            if (!$payment->payment_url) {
+                Log::error('iPaymu missing Url', ['resp' => $resp]);
+                return back()->with('error', 'iPaymu response invalid.');
+            }
+
+            return redirect()->away($payment->payment_url);
+        }
+
+        // ========= PAYPAL =========
+        // ========= PAYPAL =========
+        if ($gatewayName === 'paypal') {
+            $cred = $gateway->credentials ?? [];
+
+            // amount dalam IDR (sudah konsisten dari atas)
+            $amountIdr = (float) $amount;
+
+            // PayPal WAJIB USD (IDR tidak disupport)
+            $currency = 'USD';
+
+            // Ambil kurs dari settings (format angka US: 16698.39)
+            $rate = (float) Setting::where('key', 'paypal_usd_rate')->value('value');
+
+            // fallback keras kalau setting kosong / rusak
+            if ($rate <= 0) {
+                $rate = 16698.39;
+            }
+
+            // Konversi IDR -> USD
+            $amountUsd = round($amountIdr / $rate, 2);
+
+            // PayPal minimal 0.01 USD
+            if ($amountUsd < 0.01) {
+                $amountUsd = 0.01;
+            }
+
+            $payload = [
+                'intent' => 'CAPTURE',
+                'purchase_units' => [[
+                    'reference_id' => $order->invoice_number,
+                    'description'  => 'Order ' . $order->invoice_number,
+                    'amount' => [
+                        'currency_code' => $currency,
+                        'value' => number_format($amountUsd, 2, '.', ''),
+                    ],
+                ]],
+                'application_context' => [
+                    'brand_name' => config('app.name'),
+                    'landing_page' => 'LOGIN',
+                    'user_action' => 'PAY_NOW',
+                    'return_url' => route('paypal.return', $order->id),
+                    'cancel_url' => route('paypal.cancel', $order->id),
+                ],
+            ];
+
+            try {
+                $pp = $paypal->createOrder($cred, $payload);
+            } catch (\Throwable $e) {
+                \Log::error('PayPal createOrder failed', [
+                    'order_id' => $order->id,
+                    'amount_idr' => $amountIdr,
+                    'rate' => $rate,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return back()->with(
+                    'error',
+                    'PayPal sedang tidak tersedia. Silakan coba lagi.'
+                );
+            }
+
+            $paypalOrderId = $pp['id'] ?? null;
+            $approveUrl = $paypal->findApproveUrl($pp);
+
+            $payment->gateway_reference = $paypalOrderId;
+            $payment->payment_url = $approveUrl;
+            $payment->gateway_payload = array_merge(
+                (array) $payment->gateway_payload,
+                [
+                    'paypal_amount_usd' => $amountUsd,
+                    'paypal_rate' => $rate,
+                    'paypal_amount_idr' => $amountIdr,
+                ]
+            );
+            $payment->save();
+
+            if (!$paypalOrderId || !$approveUrl) {
+                \Log::error('PayPal missing approveUrl/orderId', ['resp' => $pp]);
+                return back()->with(
+                    'error',
+                    'PayPal sedang bermasalah. Silakan coba lagi.'
+                );
+            }
+
+            return redirect()->away($approveUrl);
+        }
+
+
 
         // ========= MIDTRANS =========
         if ($gatewayName === 'midtrans') {
@@ -285,7 +477,7 @@ class PaymentController extends Controller
             $payload = [
                 'transaction_details' => [
                     'order_id'     => $order->invoice_number,
-                    'gross_amount' => (int)$order->final_price,
+                    'gross_amount' => (int)$amount,
                 ],
                 'customer_details' => [
                     'first_name' => $order->billing_first_name ?: $order->customer_name,
@@ -293,14 +485,12 @@ class PaymentController extends Controller
                     'email'      => $order->customer_email,
                     'phone'      => $order->customer_phone,
                 ],
-                'item_details' => [
-                    [
-                        'id'       => 'ORDER',
-                        'price'    => (int)$order->final_price,
-                        'quantity' => 1,
-                        'name'     => $order->product_name,
-                    ],
-                ],
+                'item_details' => [[
+                    'id'       => 'ORDER',
+                    'price'    => (int)$amount,
+                    'quantity' => 1,
+                    'name'     => $order->product_name,
+                ]],
                 'callbacks' => [
                     'finish' => route('payment.page', $order->id),
                 ],
@@ -309,7 +499,8 @@ class PaymentController extends Controller
             try {
                 $snap = $midtrans->createSnapTransaction($cred, $payload);
             } catch (\Throwable $e) {
-                return back()->with('error', 'Midtrans error: ' . $e->getMessage());
+                Log::error('Midtrans error', ['err' => $e->getMessage()]);
+                return back()->with('error', 'Midtrans sedang bermasalah. Coba lagi.');
             }
 
             $redirectUrl = $snap['redirect_url'] ?? null;
@@ -327,5 +518,63 @@ class PaymentController extends Controller
         }
 
         return back()->with('error', 'Gateway tidak dikenal.');
+    }
+
+    public function paypalReturn(Request $request, Order $order, PayPalService $paypal)
+    {
+        $paypalOrderId = (string) $request->query('token', '');
+        if ($paypalOrderId === '') {
+            return redirect()->route('payment.page', $order->id)->with('error', 'PayPal return tanpa token.');
+        }
+
+        $gateway = PaymentGateway::where('name', 'paypal')->where('is_active', 1)->first();
+        if (!$gateway) {
+            return redirect()->route('payment.page', $order->id)->with('error', 'PayPal gateway tidak aktif.');
+        }
+
+        $payment = $order->payments()
+            ->where('method', 'gateway')
+            ->where('gateway_name', 'paypal')
+            ->where('status', 'waiting_payment')
+            ->latest()
+            ->first();
+
+        if (!$payment) {
+            return redirect()->route('payment.page', $order->id)->with('error', 'Payment PayPal tidak ditemukan.');
+        }
+
+        if (($payment->gateway_reference ?? '') !== $paypalOrderId) {
+            return redirect()->route('payment.page', $order->id)->with('error', 'Token PayPal tidak cocok.');
+        }
+
+        try {
+            $cap = $paypal->captureOrder($gateway->credentials ?? [], $paypalOrderId);
+        } catch (\Throwable $e) {
+            Log::error('PayPal capture failed', ['err' => $e->getMessage()]);
+            $payment->gateway_payload = array_merge((array)$payment->gateway_payload, ['capture_error' => $e->getMessage()]);
+            $payment->save();
+            return redirect()->route('payment.page', $order->id)->with('error', 'PayPal capture gagal. Coba lagi.');
+        }
+
+        $status = strtoupper((string)($cap['status'] ?? ''));
+        $payment->gateway_payload = array_merge((array)$payment->gateway_payload, ['capture' => $cap]);
+
+        if ($status === 'COMPLETED') {
+            $payment->status = 'paid';
+            $payment->save();
+
+            $order->payment_status = 'paid';
+            $order->save();
+
+            return redirect()->route('payment.page', $order->id)->with('success', 'Pembayaran PayPal berhasil.');
+        }
+
+        $payment->save();
+        return redirect()->route('payment.page', $order->id)->with('error', 'PayPal status: ' . ($cap['status'] ?? 'UNKNOWN'));
+    }
+
+    public function paypalCancel(Order $order)
+    {
+        return redirect()->route('payment.page', $order->id)->with('error', 'Pembayaran PayPal dibatalkan.');
     }
 }
