@@ -137,13 +137,16 @@
           </div>
 
           <button type="button"
-                  class="w-full sm:w-auto rounded-xl px-5 py-2.5 text-sm font-extrabold text-white shadow-sm"
-                  style="background:#0194F3"
-                  onmouseover="this.style.background='#0186DB'"
-                  onmouseout="this.style.background='#0194F3'"
-                  @click="submitBooking()">
-            Bayar Sekarang
-          </button>
+        class="w-full sm:w-auto rounded-xl px-5 py-2.5 text-sm font-extrabold text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+        style="background:#0194F3"
+        onmouseover="if(!this.disabled) this.style.background='#0186DB'"
+        onmouseout="this.style.background='#0194F3'"
+        :disabled="loading"
+        @click="submitBooking()">
+  <span x-show="!loading">Bayar Sekarang</span>
+  <span x-show="loading">Memproses...</span>
+</button>
+
         </div>
 
       </div>
@@ -154,17 +157,20 @@
 <script>
 function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, productId) {
   return {
-    isOpen: false,
-    tier: null,
-    count: 1,
-    total: 0,
+  isOpen: false,
+  loading: false,
 
-    flightInfo,
-    flightOption: 'no_ticket',
+  tier: null,
+  count: 1,
+  total: 0,
 
-    form: { name:'', email:'', phone:'', departure_date:'' },
+  flightInfo,
+  flightOption: 'no_ticket',
 
-    promo: { code:'', id:null, ok:false, message:'' },
+  form: { name:'', email:'', phone:'', departure_date:'' },
+
+  promo: { code:'', id:null, ok:false, message:'' },
+
 
     open(e) {
       this.tier = e.detail.tier;
@@ -221,39 +227,57 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, productId) 
     },
 
     async submitBooking() {
-      const payload = {
-        type: "tour",
-        product_id: productId,
-        name: this.form.name,
-        email: this.form.email,
-        phone: this.form.phone,
-        departure_date: this.form.departure_date,
-        participants: this.count,
-        promo_id: this.promo.id ? Number(this.promo.id) : null,
-        frontend_total: this.total,
-        flight_option: this.flightOption,
-      };
+  if (this.loading) return; // kunci: biar gak bisa submit berkali-kali
+  this.loading = true;
 
-      const r = await fetch(`/tours/${packageSlug}/draft-booking`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(payload)
-      });
+  try {
+    const payload = {
+      type: "tour",
+      product_id: productId,
+      name: this.form.name,
+      email: this.form.email,
+      phone: this.form.phone,
+      departure_date: this.form.departure_date,
+      participants: this.count,
+      promo_id: this.promo.id ? Number(this.promo.id) : null,
+      frontend_total: this.total,
+      flight_option: this.flightOption,
+    };
 
-      if (!r.ok) {
-        const text = await r.text();
-        console.error('Draft booking failed', r.status, text);
-        alert('Booking gagal. Cek lagi data yang diisi / hubungi admin.');
-        return;
-      }
+    const r = await fetch(`/tours/${packageSlug}/draft-booking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify(payload)
+    });
 
-      const res = await r.json();
-      if (res?.redirect) window.location.href = res.redirect;
-    },
+    if (!r.ok) {
+      const text = await r.text();
+      console.error('Draft booking failed', r.status, text);
+      alert('Booking gagal. Cek lagi data yang diisi / hubungi admin.');
+      this.loading = false;
+      return;
+    }
+
+    const res = await r.json();
+    if (res?.redirect) {
+      window.location.href = res.redirect;
+      return;
+    }
+
+    // kalau gak redirect, unlock lagi
+    this.loading = false;
+
+  } catch (err) {
+    console.error(err);
+    alert('Terjadi kesalahan jaringan.');
+    this.loading = false;
+  }
+},
+
   }
 }
 </script>

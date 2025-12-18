@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\DocumentationController as AdminDocumentationCont
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\DestinationInspirationController;
 use App\Http\Controllers\Admin\SeoController;
+use App\Http\Controllers\Admin\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,7 +56,9 @@ Route::prefix('bw-admin')
     ->group(function () {
 
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         // Tour
         Route::resource('tour-packages', TourPackageController::class);
         Route::delete('tour-packages/photo/{photo}', [TourPackageController::class, 'deletePhoto'])

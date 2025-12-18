@@ -84,13 +84,15 @@
             <div class="lg:col-span-5">
                 <div class="pill pill-azure">
                     <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    Kenapa layanan kami beda
+                    {{ $siteSettings['home_highlight_label'] ?? 'Kenapa layanan kami beda' }}
                 </div>
+
                 <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                    Detail, rapi, dan fokus ke pengalaman perjalanan.
+                    {{ $siteSettings['home_highlight_title'] ?? 'Detail, rapi, dan fokus ke pengalaman perjalanan.' }}
                 </h2>
+
                 <p class="mt-3 text-slate-600">
-                    Kami bikin trip terasa “beres” dari awal: informasi jelas, itinerary enak diikuti, dan tim responsif.
+                    {{ $siteSettings['home_highlight_desc'] ?? 'Kami bikin trip terasa “beres” dari awal: informasi jelas, itinerary enak diikuti, dan tim responsif.' }}
                 </p>
 
                 <div class="mt-6 grid grid-cols-2 gap-4">
@@ -100,41 +102,60 @@
                                 <i data-lucide="badge-check" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="text-slate-900 font-extrabold">Harga Transparan</div>
-                                <div class="text-slate-600 text-xs mt-0.5">Tanpa biaya tersembunyi</div>
+                                <div class="text-slate-900 font-extrabold">
+                                    {{ $siteSettings['home_highlight_left1_title'] ?? 'Harga Transparan' }}
+                                </div>
+                                <div class="text-slate-600 text-xs mt-0.5">
+                                    {{ $siteSettings['home_highlight_left1_desc'] ?? 'Tanpa biaya tersembunyi' }}
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="card p-5">
                         <div class="flex items-center gap-3">
                             <div class="icon-badge">
                                 <i data-lucide="route" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="text-slate-900 font-extrabold">Itinerary Jelas</div>
-                                <div class="text-slate-600 text-xs mt-0.5">Rute & waktu terstruktur</div>
+                                <div class="text-slate-900 font-extrabold">
+                                    {{ $siteSettings['home_highlight_left2_title'] ?? 'Itinerary Jelas' }}
+                                </div>
+                                <div class="text-slate-600 text-xs mt-0.5">
+                                    {{ $siteSettings['home_highlight_left2_desc'] ?? 'Rute & waktu terstruktur' }}
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="card p-5">
                         <div class="flex items-center gap-3">
                             <div class="icon-badge">
                                 <i data-lucide="calendar-check" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="text-slate-900 font-extrabold">Booking Cepat</div>
-                                <div class="text-slate-600 text-xs mt-0.5">Form ringkas & jelas</div>
+                                <div class="text-slate-900 font-extrabold">
+                                    {{ $siteSettings['home_highlight_left3_title'] ?? 'Booking Cepat' }}
+                                </div>
+                                <div class="text-slate-600 text-xs mt-0.5">
+                                    {{ $siteSettings['home_highlight_left3_desc'] ?? 'Form ringkas & jelas' }}
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="card p-5">
                         <div class="flex items-center gap-3">
                             <div class="icon-badge">
                                 <i data-lucide="messages-square" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="text-slate-900 font-extrabold">Support Aktif</div>
-                                <div class="text-slate-600 text-xs mt-0.5">Bisa konsultasi trip</div>
+                                <div class="text-slate-900 font-extrabold">
+                                    {{ $siteSettings['home_highlight_left4_title'] ?? 'Support Aktif' }}
+                                </div>
+                                <div class="text-slate-600 text-xs mt-0.5">
+                                    {{ $siteSettings['home_highlight_left4_desc'] ?? 'Bisa konsultasi trip' }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -159,9 +180,11 @@
                                     <i data-lucide="map-pin" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="font-extrabold text-slate-900">Destinasi Favorit</div>
+                                    <div class="font-extrabold text-slate-900">
+                                        {{ $siteSettings['home_highlight_right1_title'] ?? 'Destinasi Favorit' }}
+                                    </div>
                                     <div class="text-sm text-slate-600 mt-1">
-                                        Bali, Lombok, Jogja, Bandung, sampai destinasi luar negeri (tergantung paket).
+                                        {{ $siteSettings['home_highlight_right1_desc'] ?? 'Bali, Lombok, Jogja, Bandung, sampai destinasi luar negeri (tergantung paket).' }}
                                     </div>
                                 </div>
                             </div>
@@ -173,9 +196,11 @@
                                     <i data-lucide="users" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="font-extrabold text-slate-900">Cocok untuk Grup</div>
+                                    <div class="font-extrabold text-slate-900">
+                                        {{ $siteSettings['home_highlight_right2_title'] ?? 'Cocok untuk Grup' }}
+                                    </div>
                                     <div class="text-sm text-slate-600 mt-1">
-                                        Trip keluarga, kantor, komunitas — tinggal sesuaikan kebutuhan.
+                                        {{ $siteSettings['home_highlight_right2_desc'] ?? 'Trip keluarga, kantor, komunitas — tinggal sesuaikan kebutuhan.' }}
                                     </div>
                                 </div>
                             </div>
@@ -187,9 +212,11 @@
                                     <i data-lucide="wallet" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="font-extrabold text-slate-900">Budget Friendly</div>
+                                    <div class="font-extrabold text-slate-900">
+                                        {{ $siteSettings['home_highlight_right3_title'] ?? 'Budget Friendly' }}
+                                    </div>
                                     <div class="text-sm text-slate-600 mt-1">
-                                        Paket fleksibel dengan informasi harga jelas sejak awal.
+                                        {{ $siteSettings['home_highlight_right3_desc'] ?? 'Paket fleksibel dengan informasi harga jelas sejak awal.' }}
                                     </div>
                                 </div>
                             </div>
@@ -201,9 +228,11 @@
                                     <i data-lucide="camera" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="font-extrabold text-slate-900">Spot Wisata Terbaik</div>
+                                    <div class="font-extrabold text-slate-900">
+                                        {{ $siteSettings['home_highlight_right4_title'] ?? 'Spot Wisata Terbaik' }}
+                                    </div>
                                     <div class="text-sm text-slate-600 mt-1">
-                                        Fokus pengalaman: view bagus, tempat ikonik, dan alur perjalanan nyaman.
+                                        {{ $siteSettings['home_highlight_right4_desc'] ?? 'Fokus pengalaman: view bagus, tempat ikonik, dan alur perjalanan nyaman.' }}
                                     </div>
                                 </div>
                             </div>
@@ -213,11 +242,11 @@
                     <div class="mt-6 flex flex-col sm:flex-row gap-3">
                         <a href="{{ route('tours.index') }}" class="btn btn-primary">
                             <i data-lucide="compass" class="w-5 h-5"></i>
-                            Mulai Jelajah Paket
+                            {{ $siteSettings['home_highlight_cta_primary_text'] ?? 'Mulai Jelajah Paket' }}
                         </a>
                         <a href="{{ route('rentcar.index') }}" class="btn btn-ghost">
                             <i data-lucide="car-front" class="w-5 h-5"></i>
-                            Cek Armada Rental
+                            {{ $siteSettings['home_highlight_cta_secondary_text'] ?? 'Cek Armada Rental' }}
                         </a>
                     </div>
                 </div>
@@ -225,6 +254,7 @@
         </div>
     </div>
 </section>
+
 
 {{-- ================= WHY US ================= --}}
 <section class="bg-slate-50">
@@ -403,45 +433,49 @@
         </div>
     </div>
      <div class="max-w-7xl mx-auto px-4 py-14 lg:py-20">
-        <div class="text-center max-w-2xl mx-auto" data-aos="fade-up">
-            <div class="mx-auto w-fit pill pill-azure">
-                <i data-lucide="stars" class="w-4 h-4"></i>
-                Layanan unggulan
-            </div>
-            <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                Mengapa Memilih Bintang Wisata
-            </h2>
-            <p class="mt-3 text-slate-600">
-                Kami berkomitmen memberikan layanan perjalanan yang profesional, transparan, dan berorientasi pada kenyamanan pelanggan.
-            </p>
+    <div class="text-center max-w-2xl mx-auto" data-aos="fade-up">
+        <div class="mx-auto w-fit pill pill-azure">
+            <i data-lucide="stars" class="w-4 h-4"></i>
+            {{ $siteSettings['home_why_label'] ?? 'Layanan unggulan' }}
         </div>
 
-        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="100">
-            @php
-                $reasons = [
-                    ['icon'=>'badge-dollar-sign','title'=>'Harga Transparan', 'desc'=>'Tanpa biaya tersembunyi, semua informasi jelas sejak awal.'],
-                    ['icon'=>'shield-check','title'=>'Legal & Terpercaya', 'desc'=>'Dikelola secara profesional dan berpengalaman.'],
-                    ['icon'=>'zap','title'=>'Proses Booking Cepat', 'desc'=>'Sistem pemesanan ringkas dan mudah digunakan.'],
-                    ['icon'=>'headphones','title'=>'Dukungan Pelanggan', 'desc'=>'Tim siap membantu sebelum dan selama perjalanan.'],
-                ];
-            @endphp
+        <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
+            {{ $siteSettings['home_why_title'] ?? 'Mengapa Memilih Bintang Wisata' }}
+        </h2>
 
-            @foreach($reasons as $r)
-                <div class="card p-6 text-left relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background: radial-gradient(circle, rgba(1,148,243,0.18), transparent 65%);"></div>
+        <p class="mt-3 text-slate-600">
+            {{ $siteSettings['home_why_desc'] ?? 'Kami berkomitmen memberikan layanan perjalanan yang profesional, transparan, dan berorientasi pada kenyamanan pelanggan.' }}
+        </p>
+    </div>
 
-                    <div class="flex items-start gap-4 relative">
-                        <div class="icon-badge">
-                            <i data-lucide="{{ $r['icon'] }}" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <div class="font-extrabold text-slate-900">{{ $r['title'] }}</div>
-                            <div class="mt-1.5 text-sm text-slate-600">{{ $r['desc'] }}</div>
-                        </div>
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="100">
+        @php
+            $reasons = [
+                ['icon'=>'badge-dollar-sign','title'=>($siteSettings['home_why1_title'] ?? 'Harga Transparan'), 'desc'=>($siteSettings['home_why1_desc'] ?? 'Tanpa biaya tersembunyi, semua informasi jelas sejak awal.')],
+                ['icon'=>'shield-check','title'=>($siteSettings['home_why2_title'] ?? 'Legal & Terpercaya'), 'desc'=>($siteSettings['home_why2_desc'] ?? 'Dikelola secara profesional dan berpengalaman.')],
+                ['icon'=>'zap','title'=>($siteSettings['home_why3_title'] ?? 'Proses Booking Cepat'), 'desc'=>($siteSettings['home_why3_desc'] ?? 'Sistem pemesanan ringkas dan mudah digunakan.')],
+                ['icon'=>'headphones','title'=>($siteSettings['home_why4_title'] ?? 'Dukungan Pelanggan'), 'desc'=>($siteSettings['home_why4_desc'] ?? 'Tim siap membantu sebelum dan selama perjalanan.')],
+            ];
+        @endphp
+
+        @foreach($reasons as $r)
+            <div class="card p-6 text-left relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background: radial-gradient(circle, rgba(1,148,243,0.18), transparent 65%);"></div>
+
+                <div class="flex items-start gap-4 relative">
+                    <div class="icon-badge">
+                        <i data-lucide="{{ $r['icon'] }}" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-slate-900">{{ $r['title'] }}</div>
+                        <div class="mt-1.5 text-sm text-slate-600">{{ $r['desc'] }}</div>
                     </div>
                 </div>
-            @endforeach
-        </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+
 </section>
 
 
@@ -451,22 +485,24 @@
         <div class="text-center max-w-2xl mx-auto" data-aos="fade-up">
             <div class="mx-auto w-fit pill pill-azure">
                 <i data-lucide="route" class="w-4 h-4"></i>
-                Alur mudah
+                {{ $siteSettings['home_flow_label'] ?? 'Alur mudah' }}
             </div>
+
             <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                Cara Booking yang Rapi & Cepat
+                {{ $siteSettings['home_flow_title'] ?? 'Cara Booking yang Rapi & Cepat' }}
             </h2>
+
             <p class="mt-3 text-slate-600">
-                Biar gak buang waktu, alurnya dibuat simple tapi tetap jelas.
+                {{ $siteSettings['home_flow_desc'] ?? 'Biar gak buang waktu, alurnya dibuat simple tapi tetap jelas.' }}
             </p>
         </div>
 
         @php
             $steps = [
-                ['no'=>'01','icon'=>'search','title'=>'Pilih Paket','desc'=>'Cari destinasi, cek detail itinerary, dan sesuaikan kebutuhan.'],
-                ['no'=>'02','icon'=>'message-circle','title'=>'Konsultasi','desc'=>'Tanya jadwal, meeting point, atau request khusus untuk grup.'],
-                ['no'=>'03','icon'=>'calendar-check','title'=>'Konfirmasi','desc'=>'Finalisasi tanggal & data peserta, lalu booking dikunci.'],
-                ['no'=>'04','icon'=>'plane','title'=>'Berangkat','desc'=>'Nikmati perjalanan. Tim support siap bantu selama trip.'],
+                ['no'=>'01','icon'=>'search','title'=>($siteSettings['home_flow1_title'] ?? 'Pilih Paket'),'desc'=>($siteSettings['home_flow1_desc'] ?? 'Cari destinasi, cek detail itinerary, dan sesuaikan kebutuhan.')],
+                ['no'=>'02','icon'=>'message-circle','title'=>($siteSettings['home_flow2_title'] ?? 'Konsultasi'),'desc'=>($siteSettings['home_flow2_desc'] ?? 'Tanya jadwal, meeting point, atau request khusus untuk grup.')],
+                ['no'=>'03','icon'=>'calendar-check','title'=>($siteSettings['home_flow3_title'] ?? 'Konfirmasi'),'desc'=>($siteSettings['home_flow3_desc'] ?? 'Finalisasi tanggal & data peserta, lalu booking dikunci.')],
+                ['no'=>'04','icon'=>'plane','title'=>($siteSettings['home_flow4_title'] ?? 'Berangkat'),'desc'=>($siteSettings['home_flow4_desc'] ?? 'Nikmati perjalanan. Tim support siap bantu selama trip.')],
             ];
         @endphp
 
@@ -489,6 +525,7 @@
         </div>
     </div>
 </section>
+
 <section class="bg-white">
   <div class="max-w-7xl mx-auto px-4 py-16">
 

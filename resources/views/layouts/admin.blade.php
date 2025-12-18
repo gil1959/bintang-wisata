@@ -95,6 +95,8 @@
                      ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
                      ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
                     ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
+                    ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user'],
+
                    
                     
                 ];

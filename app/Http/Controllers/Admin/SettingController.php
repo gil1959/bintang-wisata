@@ -64,6 +64,59 @@ class SettingController extends Controller
             'about_step3_desc'  => ['nullable', 'string', 'max:200'],
             'about_step4_title' => ['nullable', 'string', 'max:80'],
             'about_step4_desc'  => ['nullable', 'string', 'max:200'],
+
+            'home_highlight_label' => ['nullable', 'string', 'max:60'],
+            'home_highlight_title' => ['nullable', 'string', 'max:140'],
+            'home_highlight_desc'  => ['nullable', 'string', 'max:300'],
+
+            'home_highlight_left1_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_left1_desc'  => ['nullable', 'string', 'max:120'],
+            'home_highlight_left2_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_left2_desc'  => ['nullable', 'string', 'max:120'],
+            'home_highlight_left3_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_left3_desc'  => ['nullable', 'string', 'max:120'],
+            'home_highlight_left4_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_left4_desc'  => ['nullable', 'string', 'max:120'],
+
+            'home_highlight_right1_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_right1_desc'  => ['nullable', 'string', 'max:180'],
+            'home_highlight_right2_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_right2_desc'  => ['nullable', 'string', 'max:180'],
+            'home_highlight_right3_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_right3_desc'  => ['nullable', 'string', 'max:180'],
+            'home_highlight_right4_title' => ['nullable', 'string', 'max:80'],
+            'home_highlight_right4_desc'  => ['nullable', 'string', 'max:180'],
+
+            'home_highlight_cta_primary_text' => ['nullable', 'string', 'max:40'],
+            'home_highlight_cta_secondary_text' => ['nullable', 'string', 'max:40'],
+
+            // Section: Mengapa Memilih (why)
+            'home_why_label' => ['nullable', 'string', 'max:60'],
+            'home_why_title' => ['nullable', 'string', 'max:140'],
+            'home_why_desc'  => ['nullable', 'string', 'max:240'],
+
+            'home_why1_title' => ['nullable', 'string', 'max:80'],
+            'home_why1_desc'  => ['nullable', 'string', 'max:160'],
+            'home_why2_title' => ['nullable', 'string', 'max:80'],
+            'home_why2_desc'  => ['nullable', 'string', 'max:160'],
+            'home_why3_title' => ['nullable', 'string', 'max:80'],
+            'home_why3_desc'  => ['nullable', 'string', 'max:160'],
+            'home_why4_title' => ['nullable', 'string', 'max:80'],
+            'home_why4_desc'  => ['nullable', 'string', 'max:160'],
+
+            // Section: Cara Booking (flow)
+            'home_flow_label' => ['nullable', 'string', 'max:60'],
+            'home_flow_title' => ['nullable', 'string', 'max:140'],
+            'home_flow_desc'  => ['nullable', 'string', 'max:240'],
+
+            'home_flow1_title' => ['nullable', 'string', 'max:80'],
+            'home_flow1_desc'  => ['nullable', 'string', 'max:180'],
+            'home_flow2_title' => ['nullable', 'string', 'max:80'],
+            'home_flow2_desc'  => ['nullable', 'string', 'max:180'],
+            'home_flow3_title' => ['nullable', 'string', 'max:80'],
+            'home_flow3_desc'  => ['nullable', 'string', 'max:180'],
+            'home_flow4_title' => ['nullable', 'string', 'max:80'],
+            'home_flow4_desc'  => ['nullable', 'string', 'max:180'],
         ]);
 
         // HERO
@@ -115,6 +168,43 @@ class SettingController extends Controller
         for ($i = 1; $i <= 4; $i++) {
             Setting::updateOrCreate(['key' => "about_step{$i}_title"], ['value' => $data["about_step{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "about_step{$i}_desc"],  ['value' => $data["about_step{$i}_desc"] ?? '']);
+        }
+
+        foreach (
+            [
+                'home_highlight_label',
+                'home_highlight_title',
+                'home_highlight_desc',
+                'home_highlight_cta_primary_text',
+                'home_highlight_cta_secondary_text',
+            ] as $k
+        ) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
+
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "home_highlight_left{$i}_title"],  ['value' => $data["home_highlight_left{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "home_highlight_left{$i}_desc"],   ['value' => $data["home_highlight_left{$i}_desc"] ?? '']);
+            Setting::updateOrCreate(['key' => "home_highlight_right{$i}_title"], ['value' => $data["home_highlight_right{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "home_highlight_right{$i}_desc"],  ['value' => $data["home_highlight_right{$i}_desc"] ?? '']);
+        }
+
+        // why
+        foreach (['home_why_label', 'home_why_title', 'home_why_desc'] as $k) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "home_why{$i}_title"], ['value' => $data["home_why{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "home_why{$i}_desc"],  ['value' => $data["home_why{$i}_desc"] ?? '']);
+        }
+
+        // flow
+        foreach (['home_flow_label', 'home_flow_title', 'home_flow_desc'] as $k) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "home_flow{$i}_title"], ['value' => $data["home_flow{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "home_flow{$i}_desc"],  ['value' => $data["home_flow{$i}_desc"] ?? '']);
         }
 
         return back()->with('success', 'Settings berhasil disimpan.');

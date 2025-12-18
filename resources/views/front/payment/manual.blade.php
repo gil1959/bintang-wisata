@@ -111,30 +111,40 @@
         </div>
 
         {{-- Detail Rekening --}}
-        <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
+<div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+  <dl class="grid grid-cols-1 divide-y divide-slate-200 sm:grid-cols-4 sm:divide-y-0 sm:divide-x">
 
-            <div>
-              <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Bank</div>
-              <div class="mt-1 font-extrabold text-slate-900">{{ $manualMethod->bank_name }}</div>
-            </div>
-            <div>
-              <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">No. Rekening</div>
-              <div class="mt-1 font-extrabold text-slate-900">{{ $manualMethod->account_number }}</div>
-            </div>
-            <div>
-              <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Atas Nama</div>
-              <div class="mt-1 font-extrabold text-slate-900">{{ $manualMethod->account_holder }}</div>
-            </div>
-            <div>
-            <div class="text-xs font-extrabold uppercase tracking-wide text-slate-500">SWIFT</div>
-            <div class="mt-1 font-extrabold text-slate-900">
-              {{ $manualMethod->swift_code ?: '-' }}
-            </div>
-          </div>
+    <div class="p-4">
+      <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Bank</dt>
+      <dd class="mt-1 text-sm font-extrabold text-slate-900 break-words">
+        {{ $manualMethod->bank_name }}
+      </dd>
+    </div>
 
-          </div>
-        </div>
+    <div class="p-4">
+      <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">No. Rekening</dt>
+      <dd class="mt-1 text-sm font-extrabold text-slate-900 font-mono tracking-wide break-all">
+        {{ $manualMethod->account_number }}
+      </dd>
+    </div>
+
+    <div class="p-4 sm:col-span-2">
+      <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Atas Nama</dt>
+      <dd class="mt-1 text-sm font-extrabold text-slate-900 break-words">
+        {{ $manualMethod->account_holder }}
+      </dd>
+    </div>
+
+    <div class="p-4">
+      <dt class="text-xs font-extrabold uppercase tracking-wide text-slate-500">SWIFT</dt>
+      <dd class="mt-1 text-sm font-extrabold text-slate-900 font-mono tracking-wide break-all">
+        {{ $manualMethod->swift_code ?: '-' }}
+      </dd>
+    </div>
+
+  </dl>
+</div>
+
       </section>
 
     </div>
