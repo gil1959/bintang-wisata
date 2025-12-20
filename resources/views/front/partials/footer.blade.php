@@ -23,15 +23,17 @@
             {{-- Brand --}}
             <div class="lg:col-span-5">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo.png') }}"
-                         alt="Bintang Wisata"
-                         class="h-11 w-auto object-contain">
+                    <img src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
+     alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
+     class="h-11 w-auto object-contain">
+
                 </div>
 
                 <p class="mt-5 text-slate-300 leading-relaxed max-w-md">
-                    Partner perjalanan terpercaya untuk menjelajahi keindahan Indonesia.
-                    Paket wisata premium dengan harga bersahabat.
-                </p>
+    {{ $siteSettings['footer_tagline'] ?? 'Partner perjalanan terpercaya untuk menjelajahi keindahan Indonesia. Paket wisata premium dengan harga bersahabat.' }}
+</p>
+
+
 
                 
             </div>
@@ -39,14 +41,30 @@
             {{-- Quick Links --}}
             <div class="lg:col-span-3">
                 <h3 class="text-sm font-semibold tracking-wider text-white/90 mb-4">
-                    Tautan Cepat
-                </h3>
-                <ul class="space-y-3 text-slate-300">
-                    <li><a class="hover:text-white hover:underline decoration-[#0194F3]" href="{{ route('home') }}">Beranda</a></li>
-                    <li><a class="hover:text-white hover:underline decoration-[#0194F3]" href="{{ route('tours.index') }}">Paket Tour</a></li>
-                    <li><a class="hover:text-white hover:underline decoration-[#0194F3]" href="{{ route('articles') }}">Artikel</a></li>
-                    <li><a class="hover:text-white hover:underline decoration-[#0194F3]" href="{{ route('about') }}">Tentang</a></li>
-                </ul>
+    {{ $siteSettings['footer_quick_links_title'] ?? 'Tautan Cepat' }}
+</h3>
+
+               <ul class="space-y-3 text-slate-300">
+    @php
+        $links = [
+            ['label' => $siteSettings['footer_link1_label'] ?? 'Beranda',    'url' => $siteSettings['footer_link1_url'] ?? route('home')],
+            ['label' => $siteSettings['footer_link2_label'] ?? 'Paket Tour', 'url' => $siteSettings['footer_link2_url'] ?? route('tours.index')],
+            ['label' => $siteSettings['footer_link3_label'] ?? 'Artikel',    'url' => $siteSettings['footer_link3_url'] ?? route('articles')],
+            ['label' => $siteSettings['footer_link4_label'] ?? 'Tentang',    'url' => $siteSettings['footer_link4_url'] ?? route('about')],
+        ];
+    @endphp
+
+    @foreach($links as $l)
+        @if(!empty($l['label']) && !empty($l['url']))
+            <li>
+                <a class="hover:text-white hover:underline decoration-[#0194F3]" href="{{ $l['url'] }}">
+                    {{ $l['label'] }}
+                </a>
+            </li>
+        @endif
+    @endforeach
+</ul>
+
             </div>
 
             {{-- Contact --}}
@@ -98,8 +116,9 @@
         </div>
 
         <div class="mt-12 border-t border-white/10 pt-6 text-center text-sm text-slate-400">
-            © {{ date('Y') }} Bintang Wisata Indonesia. All rights reserved.
-        </div>
+    {{ $siteSettings['footer_copyright'] ?? ('© ' . date('Y') . ' Bintang Wisata Indonesia. All rights reserved.') }}
+</div>
+
     </div>
 
     {{-- Floating WhatsApp --}}

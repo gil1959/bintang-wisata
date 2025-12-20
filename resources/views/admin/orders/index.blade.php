@@ -8,13 +8,23 @@
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-        <div>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Orders</h2>
-            <p class="mt-1 text-sm text-slate-600">
-                Kelola dan pantau pesanan yang masuk.
-            </p>
-        </div>
+    <div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Orders</h2>
+        <p class="mt-1 text-sm text-slate-600">
+            Kelola dan pantau pesanan yang masuk.
+        </p>
     </div>
+
+    <a href="{{ route('admin.orders.rekap') }}"
+       class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+       style="background:#0194F3;"
+       onmouseover="this.style.background='#0186DB'"
+       onmouseout="this.style.background='#0194F3'">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        Rekap & Print
+    </a>
+</div>
+
 
     {{-- Alerts --}}
     @if(session('success'))

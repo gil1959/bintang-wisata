@@ -9,10 +9,11 @@
     {{-- BRAND --}}
     <a href="{{ route('home') }}" class="flex items-center gap-3">
       <img
-        src="{{ asset('images/logo.png') }}"
-        alt="Bintang Wisata"
-        class="h-10 w-auto object-contain"
-      />
+  src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
+  alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
+  class="h-10 w-auto object-contain"
+/>
+
       
     </a>
 

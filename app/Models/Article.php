@@ -15,14 +15,18 @@ class Article extends Model
         'cover_image',
         'is_published',
         'published_at',
-        'seo_title',
         'seo_description',
         'user_id',
+        'seo_title',
+        'seo_keywords',
+        'ads_code',
+        'tags',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'tags' => 'array',
     ];
 
     protected static function booted()

@@ -28,6 +28,17 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#0194F3">
     
+<style>
+  /* Quill alignment classes (for rendered content) */
+  .ql-align-center { text-align: center; }
+  .ql-align-right { text-align: right; }
+  .ql-align-justify { text-align: justify; }
+
+  /* optional: keep lists nicer from Quill */
+  .prose .ql-indent-1 { padding-left: 2em; }
+  .prose .ql-indent-2 { padding-left: 4em; }
+  .prose .ql-indent-3 { padding-left: 6em; }
+</style>
 
 </head>
 

@@ -1,6 +1,16 @@
 @extends('layouts.front')
 
-@section('title', $package->title)
+@php
+    $metaDesc = $package->seo_description
+        ?: \Illuminate\Support\Str::limit(trim(strip_tags($package->long_description ?? '')), 160);
+
+    $metaKeys = $package->seo_keywords ?? '';
+@endphp
+
+@section('title', $package->seo_title ?? $package->title)
+@section('meta_description', $metaDesc)
+@section('meta_keywords', $metaKeys)
+
 
 @section('content')
 
@@ -17,7 +27,7 @@
     class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8"
 >
 
-    {{-- =============== LEFT CONTENT =============== --}}
+    {{-- =============== LEFT CONTENT (TANPA REVIEWS) =============== --}}
     <div class="md:col-span-2 space-y-8">
 
         {{-- THUMBNAIL --}}
@@ -73,7 +83,8 @@
             <section class="bg-white rounded-xl shadow-sm p-5">
                 <h2 class="text-lg font-semibold mb-3 text-[#0194F3]">Tentang Paket</h2>
                 <div class="text-sm leading-relaxed text-gray-700">
-                    {!! nl2br(e($package->long_description)) !!}
+                    {!! $package->long_description !!}
+
                 </div>
             </section>
         @endif
@@ -133,17 +144,17 @@
             @endif
         </div>
 
-        {{-- REVIEWS MOVED HERE --}}
-        <section class="bg-white rounded-xl shadow-sm p-5">
-            @include('front.partials.reviews', ['item' => $package, 'type' => 'tour'])
-        </section>
-
     </div>
 
     {{-- =============== SIDEBAR RESERVATION ONLY =============== --}}
     <aside class="md:col-span-1 space-y-6">
         @include('front.tours.partials.reservation')
     </aside>
+
+    {{-- =============== REVIEWS (PINDAH KE PALING BAWAH; DI MOBILE JADI SETELAH SIDEBAR) =============== --}}
+    <section class="md:col-span-2 bg-white rounded-xl shadow-sm p-5">
+        @include('front.partials.reviews', ['item' => $package, 'type' => 'tour'])
+    </section>
 
     {{-- =============== POPUP BOOKING =============== --}}
     @include('front.tours.partials.booking-popup')

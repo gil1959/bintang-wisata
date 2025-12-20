@@ -24,73 +24,101 @@
                 <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
                      style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
                     <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-                    Paket Tour
+                  {{ $siteSettings['tour_hero_badge'] ?? 'Paket Tour' }}
+
                 </div>
 
-                <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-                    Temukan Paket Tour yang Sesuai Kebutuhan Anda
-                </h1>
+               <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+    {{ $siteSettings['tour_hero_title'] ?? 'Temukan Paket Tour yang Sesuai Kebutuhan Anda' }}
+</h1>
+
 
                 <p class="mt-3 text-slate-600 max-w-2xl">
-                    Gunakan pencarian dan filter untuk menyaring paket berdasarkan destinasi maupun kategori.
-                </p>
+    {{ $siteSettings['tour_hero_desc'] ?? 'Gunakan pencarian dan filter untuk menyaring paket berdasarkan destinasi maupun kategori.' }}
+</p>
+
 
                 <div class="mt-6 flex flex-wrap gap-2">
-                    <span class="pill pill-azure"><i data-lucide="map-pin" class="w-4 h-4"></i> Destinasi</span>
-                    <span class="pill pill-azure"><i data-lucide="tag" class="w-4 h-4"></i> Kategori</span>
-                    <span class="pill pill-azure"><i data-lucide="clock" class="w-4 h-4"></i> Durasi</span>
-                    <span class="pill pill-azure"><i data-lucide="shield-check" class="w-4 h-4"></i> Transparan</span>
-                </div>
+    <span class="pill pill-azure"><i data-lucide="map-pin" class="w-4 h-4"></i> {{ $siteSettings['tour_filter_dest_label'] ?? 'Destinasi' }}</span>
+    <span class="pill pill-azure"><i data-lucide="tag" class="w-4 h-4"></i> {{ $siteSettings['tour_filter_cat_label'] ?? 'Kategori' }}</span>
+    <span class="pill pill-azure"><i data-lucide="clock" class="w-4 h-4"></i> {{ $siteSettings['tour_filter_dur_label'] ?? 'Durasi' }}</span>
+    <span class="pill pill-azure"><i data-lucide="shield-check" class="w-4 h-4"></i> {{ $siteSettings['tour_filter_trans_label'] ?? 'Transparan' }}</span>
+</div>
+
             </div>
 
             {{-- right illustration --}}
             <div class="lg:col-span-5" data-aos="fade-up" data-aos-delay="80">
-                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft relative overflow-hidden">
-                    <div class="absolute inset-0 travel-dots opacity-60 pointer-events-none"></div>
-                    <div class="relative">
-                        <div class="flex items-center gap-3">
-                            <div class="icon-badge">
-                                <i data-lucide="compass" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <div class="font-extrabold text-slate-900">Tips Cepat</div>
-                                <div class="text-sm text-slate-600 mt-0.5">Gunakan kata kunci destinasi untuk hasil lebih akurat.</div>
-                            </div>
-                        </div>
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft relative overflow-hidden">
+        <div class="absolute inset-0 travel-dots opacity-60 pointer-events-none"></div>
 
-                        <div class="mt-5 grid grid-cols-2 gap-3">
-                            <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                                    <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Rekomendasi
-                                </div>
-                                <div class="text-xs text-slate-600 mt-1">Paket favorit pelanggan</div>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                                    <i data-lucide="route" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Itinerary
-                                </div>
-                                <div class="text-xs text-slate-600 mt-1">Alur perjalanan jelas</div>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                                    <i data-lucide="users" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Grup
-                                </div>
-                                <div class="text-xs text-slate-600 mt-1">Cocok untuk rombongan</div>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                                    <i data-lucide="headphones" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Support
-                                </div>
-                                <div class="text-xs text-slate-600 mt-1">Bisa konsultasi trip</div>
-                            </div>
-                        </div>
+        <div class="relative">
+            {{-- Header --}}
+            <div class="flex items-start gap-3">
+                <div class="icon-badge shrink-0">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                </div>
+
+                <div>
+                    <div class="font-extrabold text-slate-900">
+                        {{ $siteSettings['tour_tips_title'] ?? 'Tips Cepat' }}
+                    </div>
+                    <div class="text-sm text-slate-600 mt-0.5">
+                        {{ $siteSettings['tour_tips_desc'] ?? 'Gunakan kata kunci destinasi untuk hasil lebih akurat.' }}
                     </div>
                 </div>
             </div>
+
+            {{-- Cards --}}
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {{-- Card 1 --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
+                    <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                        <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
+                        {{ $siteSettings['tour_tip1_title'] ?? 'Rekomendasi' }}
+                    </div>
+                    <div class="mt-1 text-xs text-slate-600 leading-relaxed">
+                        {{ $siteSettings['tour_tip1_desc'] ?? 'Paket favorit pelanggan' }}
+                    </div>
+                </div>
+
+                {{-- Card 2 --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
+                    <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                        <i data-lucide="route" class="w-4 h-4" style="color:#0194F3;"></i>
+                        {{ $siteSettings['tour_tip2_title'] ?? 'Itinerary' }}
+                    </div>
+                    <div class="mt-1 text-xs text-slate-600 leading-relaxed">
+                        {{ $siteSettings['tour_tip2_desc'] ?? 'Alur perjalanan jelas' }}
+                    </div>
+                </div>
+
+                {{-- Card 3 --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
+                    <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                        <i data-lucide="users" class="w-4 h-4" style="color:#0194F3;"></i>
+                        {{ $siteSettings['tour_tip3_title'] ?? 'Grup' }}
+                    </div>
+                    <div class="mt-1 text-xs text-slate-600 leading-relaxed">
+                        {{ $siteSettings['tour_tip3_desc'] ?? 'Cocok untuk rombongan' }}
+                    </div>
+                </div>
+
+                {{-- Card 4 --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
+                    <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                        <i data-lucide="headphones" class="w-4 h-4" style="color:#0194F3;"></i>
+                        {{ $siteSettings['tour_tip4_title'] ?? 'Support' }}
+                    </div>
+                    <div class="mt-1 text-xs text-slate-600 leading-relaxed">
+                        {{ $siteSettings['tour_tip4_desc'] ?? 'Bisa konsultasi trip' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 
@@ -319,21 +347,29 @@
         </div>
 
         <div class="max-w-2xl relative">
-            <h2 class="text-2xl font-extrabold">Membutuhkan Rekomendasi Paket yang Tepat?</h2>
-            <p class="mt-2 text-white/90">
-                Tim kami siap membantu memilih itinerary yang sesuai dengan waktu, preferensi, dan anggaran Anda.
-            </p>
-        </div>
-        <div class="flex flex-col sm:flex-row gap-3 relative">
-            <a href="#" class="btn bg-white text-slate-900 hover:bg-white/90">
-                <i data-lucide="messages-square" class="w-4 h-4"></i>
-                Konsultasi
-            </a>
-            <a href="{{ route('rentcar.index') }}" class="btn btn-ghost border-white/30 text-white hover:bg-white/10">
-                <i data-lucide="car" class="w-4 h-4"></i>
-                Lihat Rental
-            </a>
-        </div>
+    <h2 class="text-2xl font-extrabold">
+        {{ $siteSettings['tour_cta_title'] ?? 'Membutuhkan Rekomendasi Paket yang Tepat?' }}
+    </h2>
+    <p class="mt-2 text-white/90">
+        {{ $siteSettings['tour_cta_desc'] ?? 'Tim kami siap membantu memilih itinerary yang sesuai dengan waktu, preferensi, dan anggaran Anda.' }}
+    </p>
+</div>
+
+<div class="flex flex-col sm:flex-row gap-3 relative">
+    <a href="{{ $siteSettings['tour_cta_link'] ?? '#' }}"
+       class="btn bg-white text-slate-900 hover:bg-white/90">
+        <i data-lucide="messages-square" class="w-4 h-4"></i>
+        {{ $siteSettings['tour_cta_button'] ?? 'Konsultasi' }}
+    </a>
+
+    <a href="{{ $siteSettings['tour_cta_secondary_link'] ?? route('rentcar.index') }}"
+   class="btn btn-ghost border-white/30 text-white hover:bg-white/10">
+    <i data-lucide="car" class="w-4 h-4"></i>
+    {{ $siteSettings['tour_cta_secondary_button'] ?? 'Lihat Rental' }}
+</a>
+
+</div>
+
     </div>
 </section>
 

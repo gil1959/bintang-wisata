@@ -32,6 +32,13 @@ class ArticleController extends Controller
             'is_published' => 'boolean',
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:255',
+            'seo_keywords' => 'nullable|string|max:500',
+
+            // adsense code bisa panjang
+            'ads_code' => 'nullable|string',
+
+            // input tags dari form: string CSV (nanti diolah)
+            'tags' => 'nullable|string|max:2000',
         ]);
 
         if ($request->hasFile('cover_image')) {
@@ -41,6 +48,8 @@ class ArticleController extends Controller
 
         $data['slug'] = Str::slug($data['title']);
         $data['user_id'] = Auth::id();
+        $data['tags'] = $this->normalizeTags($request->input('tags'));
+
 
         Article::create($data);
 
@@ -60,10 +69,21 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required',
             'cover_image' => 'nullable|image|max:2048',
-            'is_published' => 'boolean',
+            'is_published' => 'nullable|boolean',
+
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:255',
+            'seo_keywords' => 'nullable|string|max:500',
+
+            'ads_code' => 'nullable|string',
+            'tags' => 'nullable|string|max:2000',
         ]);
+
+        // penting: paksa boolean biar gak jadi NULL
+        $data['is_published'] = $request->boolean('is_published');
+
+        // penting: normalisasi tags harus SELALU jalan
+        $data['tags'] = $this->normalizeTags($request->input('tags'));
 
         if ($request->hasFile('cover_image')) {
             if ($article->cover_image) {
@@ -80,6 +100,7 @@ class ArticleController extends Controller
             ->with('success', 'Artikel diperbarui');
     }
 
+
     public function destroy(Article $article)
     {
         if ($article->cover_image) {
@@ -89,5 +110,24 @@ class ArticleController extends Controller
         $article->delete();
 
         return back()->with('success', 'Artikel dihapus');
+    }
+    private function normalizeTags(?string $raw): ?array
+    {
+        if (!$raw) return null;
+
+        $tags = collect(explode(',', $raw))
+            ->map(fn($t) => trim($t))
+            ->filter()
+            ->map(function ($t) {
+                // rapihin spasi dobel di tengah
+                $t = preg_replace('/\s+/', ' ', $t);
+                return $t;
+            })
+            ->unique()
+            ->take(20)
+            ->values()
+            ->all();
+
+        return count($tags) ? $tags : null;
     }
 }

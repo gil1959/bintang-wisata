@@ -26,23 +26,28 @@
                 <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
                      style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
                     <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-                    Rental Mobil
+                  {{ $siteSettings['rentcar_hero_badge'] ?? 'Rental Mobil' }}
+
                 </div>
 
                 <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight">
-                    Pilihan Mobil Terbaik untuk Perjalanan Anda
-                </h1>
+    {{ $siteSettings['rentcar_hero_title'] ?? 'Pilihan Mobil Terbaik untuk Perjalanan Anda' }}
+</h1>
 
-                <p class="mt-3 max-w-2xl text-slate-600">
-                    Armada terawat, harga transparan, dan proses booking cepat tanpa ribet.
-                </p>
+
+               <p class="mt-3 max-w-2xl text-slate-600">
+    {{ $siteSettings['rentcar_hero_desc'] ?? 'Armada terawat, harga transparan, dan proses booking cepat tanpa ribet.' }}
+</p>
+
+
 
                 <div class="mt-6 flex flex-wrap gap-2">
-                    <span class="pill pill-azure"><i data-lucide="shield-check" class="w-4 h-4"></i> Terawat</span>
-                    <span class="pill pill-azure"><i data-lucide="wallet" class="w-4 h-4"></i> Transparan</span>
-                    <span class="pill pill-azure"><i data-lucide="clock" class="w-4 h-4"></i> Cepat</span>
-                    <span class="pill pill-azure"><i data-lucide="map" class="w-4 h-4"></i> Travel Ready</span>
-                </div>
+    <span class="pill pill-azure"><i data-lucide="shield-check" class="w-4 h-4"></i> {{ $siteSettings['rentcar_chip1'] ?? 'Terawat' }}</span>
+    <span class="pill pill-azure"><i data-lucide="wallet" class="w-4 h-4"></i> {{ $siteSettings['rentcar_chip2'] ?? 'Transparan' }}</span>
+    <span class="pill pill-azure"><i data-lucide="clock" class="w-4 h-4"></i> {{ $siteSettings['rentcar_chip3'] ?? 'Cepat' }}</span>
+    <span class="pill pill-azure"><i data-lucide="map" class="w-4 h-4"></i> {{ $siteSettings['rentcar_chip4'] ?? 'Travel Ready' }}</span>
+</div>
+
             </div>
 
             {{-- Right --}}
@@ -56,10 +61,11 @@
                                 <i data-lucide="info" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="font-extrabold text-slate-900">Catatan</div>
-                                <div class="text-sm text-slate-600 mt-1">
-                                    Klik “Booking Sekarang” untuk lihat detail unit.
-                                </div>
+                                <div class="font-extrabold text-slate-900">{{ $siteSettings['rentcar_note_title'] ?? 'Catatan' }}</div>
+<div class="text-sm text-slate-600 mt-1">
+    {{ $siteSettings['rentcar_note_desc'] ?? 'Klik “Booking Sekarang” untuk lihat detail unit.' }}
+</div>
+
                             </div>
                         </div>
 
@@ -67,33 +73,41 @@
                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                                     <i data-lucide="fuel" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Hemat
+                                   {{ $siteSettings['rentcar_note1_title'] ?? 'Hemat' }}
+
                                 </div>
-                                <div class="text-xs text-slate-600 mt-1">Nyaman untuk perjalanan</div>
+                                <div class="text-xs text-slate-600 mt-1">{{ $siteSettings['rentcar_note1_desc'] ?? 'Nyaman untuk perjalanan' }}
+</div>
                             </div>
 
                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                                     <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Bersih
+                                   {{ $siteSettings['rentcar_note2_title'] ?? 'Bersih' }}
+
                                 </div>
-                                <div class="text-xs text-slate-600 mt-1">Unit terawat</div>
+                                <div class="text-xs text-slate-600 mt-1">{{ $siteSettings['rentcar_note2_desc'] ?? 'Unit terawat' }}
+</div>
                             </div>
 
                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                                     <i data-lucide="users" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Kapasitas
+                                   {{ $siteSettings['rentcar_note3_title'] ?? 'Kapasitas' }}
+
                                 </div>
-                                <div class="text-xs text-slate-600 mt-1">Cocok keluarga/grup</div>
+                                <div class="text-xs text-slate-600 mt-1">{{ $siteSettings['rentcar_note3_desc'] ?? 'Cocok keluarga/grup' }}
+</div>
                             </div>
 
                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                                     <i data-lucide="route" class="w-4 h-4" style="color:#0194F3;"></i>
-                                    Fleksibel
+                                   {{ $siteSettings['rentcar_note4_title'] ?? 'Fleksibel' }}
+
                                 </div>
-                                <div class="text-xs text-slate-600 mt-1">Untuk wisata & kerja</div>
+                                <div class="text-xs text-slate-600 mt-1">{{ $siteSettings['rentcar_note4_desc'] ?? 'Untuk wisata & kerja' }}
+</div>
                             </div>
                         </div>
                     </div>

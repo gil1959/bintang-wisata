@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentProofSubmittedMail;
 
 class PaymentController extends Controller
 {
@@ -115,6 +117,25 @@ class PaymentController extends Controller
         $order->update([
             'payment_status' => 'waiting_verification',
         ]);
+
+        // ✅ EMAIL: proof uploaded (admin + buyer)
+        try {
+            // ke buyer
+            if (!empty($order->customer_email)) {
+                Mail::to($order->customer_email)->send(new PaymentProofSubmittedMail($order, false));
+            }
+
+            // ke admin
+            $adminEmail = Setting::invoiceAdminEmail();
+            if (!empty($adminEmail)) {
+                Mail::to($adminEmail)->send(new PaymentProofSubmittedMail($order, true));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Email bukti pembayaran gagal dikirim', [
+                'invoice' => $order->invoice_number,
+                'err' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('payment.waiting', $order)

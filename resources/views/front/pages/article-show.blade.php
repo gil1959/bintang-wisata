@@ -1,11 +1,8 @@
 @extends('layouts.front')
 
 @section('title', $article->seo_title ?? $article->title)
-
-@section('meta')
-<meta name="description" content="{{ $article->seo_description ?? $article->excerpt }}">
-@endsection
-
+@section('meta_description', $article->seo_description ?? $article->excerpt)
+@section('meta_keywords', $article->seo_keywords ?? (is_array($article->tags) ? implode(', ', $article->tags) : ''))
 @section('content')
 <article class="bg-white">
 
@@ -63,10 +60,27 @@
                 </div>
             </div>
 
-            {{-- Body --}}
-            <div class="prose prose-lg max-w-none">
-                {!! $article->content !!}
-            </div>
+            @if (!empty($article->ads_code))
+    <div class="my-8">
+        {!! $article->ads_code !!}
+    </div>
+@endif
+
+<div class="prose prose-lg max-w-none break-words overflow-hidden">
+    {!! $article->content !!}
+</div>
+
+@if (is_array($article->tags) && count($article->tags))
+    <div class="mt-10 flex flex-wrap gap-2">
+        @foreach ($article->tags as $tag)
+            <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-extrabold text-slate-700">
+                #{{ $tag }}
+            </span>
+        @endforeach
+    </div>
+@endif
+
+            
 
             {{-- Back --}}
             <div class="mt-12">

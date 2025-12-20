@@ -29,13 +29,18 @@
         <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
              style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
           <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-          Dokumentasi Perjalanan
+         {{ $siteSettings['docs_hero_badge'] ?? 'Dokumentasi Perjalanan' }}
+
         </div>
 
-        <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold text-slate-900">Dokumentasi</h1>
+        <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold text-slate-900">
+  {{ $siteSettings['docs_hero_title'] ?? 'Dokumentasi' }}
+</h1>
+
         <p class="mt-3 text-slate-600">
-          Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.
-        </p>
+  {{ $siteSettings['docs_hero_desc'] ?? 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.' }}
+</p>
+
       </div>
 
       {{-- Quick stats (display only, no logic changes) --}}
@@ -45,7 +50,9 @@
             <div class="flex items-center gap-3">
               <div class="icon-badge"><i data-lucide="image" class="w-5 h-5"></i></div>
               <div>
-                <div class="text-xs text-slate-500 font-semibold">Total Foto</div>
+                <div class="text-xs text-slate-500 font-semibold">
+  {{ $siteSettings['docs_stat_photos'] ?? 'Total Foto' }}
+</div>
                 <div class="text-lg font-extrabold text-slate-900">{{ $photos->count() }}</div>
               </div>
             </div>
@@ -54,7 +61,9 @@
             <div class="flex items-center gap-3">
               <div class="icon-badge"><i data-lucide="video" class="w-5 h-5"></i></div>
               <div>
-                <div class="text-xs text-slate-500 font-semibold">Total Video</div>
+                <div class="text-xs text-slate-500 font-semibold">
+  {{ $siteSettings['docs_stat_videos'] ?? 'Total Video' }}
+</div>
                 <div class="text-lg font-extrabold text-slate-900">{{ $videos->count() }}</div>
               </div>
             </div>
@@ -73,7 +82,8 @@
                 @click="tab='photos'"
                 :style="tab==='photos' ? 'background:rgba(1,148,243,0.10); border:1px solid rgba(1,148,243,0.20);' : ''">
           <i data-lucide="image" class="w-4 h-4" :style="tab==='photos' ? 'color:#0194F3;' : ''"></i>
-          Foto
+          {{ $siteSettings['docs_tab_photos'] ?? 'Foto' }}
+
         </button>
         <button type="button"
                 class="px-4 py-2 rounded-xl text-sm font-extrabold transition inline-flex items-center gap-2"
@@ -81,13 +91,15 @@
                 @click="tab='videos'"
                 :style="tab==='videos' ? 'background:rgba(1,148,243,0.10); border:1px solid rgba(1,148,243,0.20);' : ''">
           <i data-lucide="video" class="w-4 h-4" :style="tab==='videos' ? 'color:#0194F3;' : ''"></i>
-          Video
+          {{ $siteSettings['docs_tab_videos'] ?? 'Video' }}
+
         </button>
       </div>
 
       <p class="mt-3 text-sm text-slate-500">
-        Gunakan tab untuk menavigasi dokumentasi. Konten tetap dimuat lengkap.
-      </p>
+  {{ $siteSettings['docs_hint'] ?? 'Gunakan tab untuk menavigasi dokumentasi. Konten tetap dimuat lengkap.' }}
+</p>
+
     </div>
 
   </div>

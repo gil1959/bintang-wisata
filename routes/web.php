@@ -23,7 +23,7 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\DestinationInspirationController;
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Admin\ProfileController;
-
+use App\Http\Controllers\Admin\SystemController;
 /*
 |--------------------------------------------------------------------------
 | Front Controllers
@@ -68,7 +68,8 @@ Route::prefix('bw-admin')
 
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class);
-
+        Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
+            ->name('system.clear-cache');
         // Payments
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/bank', [PaymentController::class, 'addBank'])->name('bank.add');
@@ -99,8 +100,19 @@ Route::prefix('bw-admin')
         Route::get('orders/rejected', [AdminOrderController::class, 'rejected'])
             ->name('orders.rejected');
 
+        // ✅ taruh rekap dulu
+        Route::get('orders/rekap', [AdminOrderController::class, 'rekap'])
+            ->name('orders.rekap');
+
+        Route::get('orders/rekap/print', [AdminOrderController::class, 'printRekap'])
+            ->name('orders.rekap.print');
+
+        // ✅ resource terakhir, hanya sekali
         Route::resource('orders', AdminOrderController::class)
             ->only(['index', 'show', 'update', 'destroy']);
+
+
+
 
         // Categories
         Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);

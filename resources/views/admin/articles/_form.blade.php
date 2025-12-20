@@ -32,11 +32,64 @@
 
     <div>
         <label class="block text-sm font-extrabold text-slate-800 mb-1">Konten</label>
-        <textarea name="content"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                  rows="10"
-                  required>{{ old('content', $article->content ?? '') }}</textarea>
+<textarea name="content"
+          class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+          rows="10">{{ old('content', $article->content ?? '') }}</textarea>
+
+
     </div>
+{{-- SEO --}}
+<div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+    <div class="sm:col-span-6">
+        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Title</label>
+        <input type="text"
+               name="seo_title"
+               value="{{ old('seo_title', $article->seo_title ?? '') }}"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+               placeholder="Judul untuk meta title (opsional)">
+    </div>
+
+    <div class="sm:col-span-6">
+        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Keywords</label>
+        <input type="text"
+               name="seo_keywords"
+               value="{{ old('seo_keywords', $article->seo_keywords ?? '') }}"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+               placeholder="contoh: paket wisata, bali, liburan keluarga">
+        <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma kalau banyak.</div>
+    </div>
+
+    <div class="sm:col-span-12">
+        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Description</label>
+        <textarea name="seo_description"
+                  rows="3"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                  placeholder="Meta description (opsional)">{{ old('seo_description', $article->seo_description ?? '') }}</textarea>
+    </div>
+</div>
+
+{{-- Tags --}}
+<div>
+    <label class="block text-sm font-extrabold text-slate-800 mb-1">Tags</label>
+    <input type="text"
+           name="tags"
+           value="{{ old('tags', isset($article) && is_array($article->tags) ? implode(', ', $article->tags) : '') }}"
+           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+           placeholder="contoh: bali, pantai, keluarga">
+    <div class="mt-1 text-xs text-slate-500">Format: pisahkan dengan koma. Maks 20 tag.</div>
+</div>
+
+{{-- Ads Code (Adsense) --}}
+<div>
+    <label class="block text-sm font-extrabold text-slate-800 mb-1">Ads Code (Adsense)</label>
+    <textarea name="ads_code"
+              rows="6"
+              class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-mono"
+              placeholder="Tempel kode iklan adsense di sini (opsional)">{{ old('ads_code', $article->ads_code ?? '') }}</textarea>
+    <div class="mt-1 text-xs text-slate-500">
+        Hati-hati: ini akan dirender sebagai HTML di halaman artikel.
+    </div>
+</div>
 
     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
         <div class="sm:col-span-7">

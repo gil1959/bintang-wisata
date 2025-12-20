@@ -22,6 +22,9 @@ class TourPackage extends Model
         'flight_info',
         'thumbnail_path',
         'is_active',
+        'seo_title',
+        'seo_description',
+        'seo_keywords',
     ];
 
     protected $casts = [

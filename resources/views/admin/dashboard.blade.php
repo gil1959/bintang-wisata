@@ -4,6 +4,32 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
+<div class="flex items-center justify-between mb-6">
+    
+    <h1 class="text-2xl font-extrabold">Dashboard</h1>
+ @if(session('success'))
+    <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div class="font-extrabold text-emerald-700">Sukses</div>
+        <div class="text-sm mt-1 text-emerald-700">
+            {{ session('success') }}
+        </div>
+    </div>
+@endif
+    <form method="POST"
+          action="{{ route('admin.system.clear-cache') }}"
+          onsubmit="return confirm('Bersihkan cache sekarang?')">
+        @csrf
+
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-extrabold text-white transition"
+                style="background:#ef4444"
+                onmouseover="this.style.background='#dc2626'"
+                onmouseout="this.style.background='#ef4444'">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Clear Cache
+        </button>
+    </form>
+</div>
 
     {{-- TOP STATS --}}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
@@ -202,6 +228,8 @@
             </span>
         </div>
     </div>
+   
+
 
 </div>
 

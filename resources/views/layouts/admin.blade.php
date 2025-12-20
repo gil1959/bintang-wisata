@@ -12,6 +12,7 @@
 
     {{-- App CSS (Tailwind) --}}
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+    @stack('styles')
 
     {{-- Alpine --}}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -191,7 +192,7 @@
         </div>
     </div>
 </div>
-
+@stack('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons();

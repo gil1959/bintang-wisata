@@ -42,6 +42,9 @@ class TourPackageController extends Controller
                 'includes'         => $request->includes ?? [],
                 'excludes'         => $request->excludes ?? [],
                 'flight_info'      => $request->flight_info,
+                'seo_title'        => $request->seo_title,
+                'seo_description'  => $request->seo_description,
+                'seo_keywords'     => $request->seo_keywords,
             ]);
 
             // =====================
@@ -108,6 +111,9 @@ class TourPackageController extends Controller
                 'includes'         => $request->includes ?? [],
                 'excludes'         => $request->excludes ?? [],
                 'flight_info'      => $request->flight_info,
+                'seo_title'        => $request->seo_title,
+                'seo_description'  => $request->seo_description,
+                'seo_keywords'     => $request->seo_keywords,
             ]);
 
             // UPDATE THUMBNAIL

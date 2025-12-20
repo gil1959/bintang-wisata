@@ -4,7 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Setting;
+use App\Mail\OrderVerificationMail;
+
 use Illuminate\Http\Request;
+
 
 class OrderController extends Controller
 {
@@ -89,6 +96,10 @@ class OrderController extends Controller
 
         $payment = $order->payments()->latest()->first();
 
+        // simpan status lama (anti resend kalau admin klik approve berulang)
+        $prevPaymentStatus = $order->payment_status;
+        $prevOrderStatus   = $order->order_status;
+
         if ($data['action'] === 'approve') {
             $order->update([
                 'payment_status' => 'paid',
@@ -98,6 +109,25 @@ class OrderController extends Controller
             if ($payment && $payment->status === 'waiting_verification') {
                 $payment->update(['status' => 'paid']);
             }
+
+            // ✅ EMAIL: verified/approved (admin + buyer), hanya kalau status berubah
+            if ($prevPaymentStatus !== 'paid' || $prevOrderStatus !== 'approved') {
+                try {
+                    if (!empty($order->customer_email)) {
+                        Mail::to($order->customer_email)->send(new OrderVerificationMail($order, 'approved', false));
+                    }
+
+                    $adminEmail = Setting::invoiceAdminEmail();
+                    if (!empty($adminEmail)) {
+                        Mail::to($adminEmail)->send(new OrderVerificationMail($order, 'approved', true));
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Email verifikasi (approved) gagal dikirim', [
+                        'invoice' => $order->invoice_number,
+                        'err' => $e->getMessage(),
+                    ]);
+                }
+            }
         } else {
             $order->update([
                 'payment_status' => 'failed',
@@ -106,6 +136,25 @@ class OrderController extends Controller
 
             if ($payment && $payment->status === 'waiting_verification') {
                 $payment->update(['status' => 'failed']);
+            }
+
+            // ✅ EMAIL: verified/rejected (admin + buyer), hanya kalau status berubah
+            if ($prevPaymentStatus !== 'failed' || $prevOrderStatus !== 'rejected') {
+                try {
+                    if (!empty($order->customer_email)) {
+                        Mail::to($order->customer_email)->send(new OrderVerificationMail($order, 'rejected', false));
+                    }
+
+                    $adminEmail = Setting::invoiceAdminEmail();
+                    if (!empty($adminEmail)) {
+                        Mail::to($adminEmail)->send(new OrderVerificationMail($order, 'rejected', true));
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Email verifikasi (rejected) gagal dikirim', [
+                        'invoice' => $order->invoice_number,
+                        'err' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
@@ -126,5 +175,59 @@ class OrderController extends Controller
         return redirect()
             ->route('admin.orders.index')
             ->with('success', 'Order berhasil dihapus.');
+    }
+
+    public function rekap(Request $request)
+    {
+        $from = $request->query('from');
+        $to   = $request->query('to');
+
+        $orders = collect();
+        $summary = [
+            'total_orders' => 0,
+            'total_amount' => 0,
+        ];
+
+        if ($from && $to) {
+            // inclusive range (full day)
+            $orders = Order::query()
+                ->whereBetween('created_at', [
+                    $from . ' 00:00:00',
+                    $to . ' 23:59:59',
+                ])
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $summary['total_orders'] = $orders->count();
+            $summary['total_amount'] = $orders->sum('final_price');
+        }
+
+        return view('admin.orders.rekap', compact('orders', 'from', 'to', 'summary'));
+    }
+
+    public function printRekap(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
+        ]);
+
+        $from = $request->from;
+        $to   = $request->to;
+
+        $orders = Order::query()
+            ->whereBetween('created_at', [
+                $from . ' 00:00:00',
+                $to . ' 23:59:59',
+            ])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $summary = [
+            'total_orders' => $orders->count(),
+            'total_amount' => $orders->sum('final_price'),
+        ];
+
+        return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
     }
 }

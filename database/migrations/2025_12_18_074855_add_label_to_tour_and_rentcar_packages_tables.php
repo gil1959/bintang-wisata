@@ -4,29 +4,27 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddLabelToTourAndRentcarPackagesTables extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+    public function up(): void
     {
-        Schema::table('tour_and_rentcar_packages_tables', function (Blueprint $table) {
-            //
+        Schema::table('tour_packages', function (Blueprint $table) {
+            $table->string('label', 30)->nullable()->after('title');
+        });
+
+        Schema::table('rent_car_packages', function (Blueprint $table) {
+            $table->string('label', 30)->nullable()->after('title');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
-        Schema::table('tour_and_rentcar_packages_tables', function (Blueprint $table) {
-            //
+        Schema::table('tour_packages', function (Blueprint $table) {
+            $table->dropColumn('label');
+        });
+
+        Schema::table('rent_car_packages', function (Blueprint $table) {
+            $table->dropColumn('label');
         });
     }
-}
+};

@@ -61,6 +61,9 @@ class StoreTourPackageRequest extends FormRequest
             'flight_info' => ['required', Rule::in(['included', 'not_included'])],
             'thumbnail' => 'nullable|image|max:2048',
             'gallery.*' => 'nullable|image|max:2048',
+            'seo_title' => ['nullable', 'string', 'max:255'],
+            'seo_description' => ['nullable', 'string', 'max:500'],
+            'seo_keywords' => ['nullable', 'string', 'max:500'],
 
 
 
