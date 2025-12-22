@@ -1,5 +1,12 @@
-<div x-data="tourBooking(@js($package->flight_info), @js(preg_replace('/\D+/', '', $siteSettings['footer_whatsapp'] ?? '6281234567890'))
-, @js($package->title), @js($package->slug), {{ $package->id }})"
+<div x-data="tourBooking(
+  @js($package->flight_info),
+  @js(preg_replace('/\D+/', '', $siteSettings['footer_whatsapp'] ?? '6281234567890')),
+  @js($package->title),
+  @js($package->slug),
+  @js(route('tour.show', $package->slug)),
+  {{ $package->id }}
+)"
+
      x-on:open-booking.window="open($event)"
      x-cloak>
 
@@ -155,7 +162,8 @@
 </div>
 
 <script>
-function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, productId) {
+function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl, productId) {
+
   return {
   isOpen: false,
   loading: false,
@@ -194,10 +202,15 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, productId) 
 
     get totalFormatted() { return (this.total || 0).toLocaleString('id-ID'); },
 
-    openTicketWA() {
-      const text = `Halo, saya ingin cek harga paket ${packageTitle} dengan tiket`;
-      window.open(`https://wa.me/${waAdmin}?text=${encodeURIComponent(text)}`, '_blank');
-    },
+   openTicketWA() {
+  const text =
+`Halo, saya mau cek harga paket ${packageTitle} dengan tiket pesawat.
+
+${packageUrl}`;
+
+  window.open(`https://wa.me/${waAdmin}?text=${encodeURIComponent(text)}`, '_blank');
+},
+
 
     async applyPromo() {
       const code = (this.promo.code || '').trim();

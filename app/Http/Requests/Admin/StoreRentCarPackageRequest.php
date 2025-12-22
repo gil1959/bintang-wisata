@@ -26,6 +26,10 @@ class StoreRentCarPackageRequest extends FormRequest
             'features.*.name' => 'required|string|max:255',
             'features.*.available' => 'nullable',
             'category_id' => 'nullable|exists:rent_car_categories,id',
+            'long_description' => 'nullable|string',
+            'seo_title'        => 'nullable|string|max:255',
+            'seo_keywords'     => 'nullable|string|max:500',
+            'seo_description'  => 'nullable|string|max:300',
 
         ];
     }

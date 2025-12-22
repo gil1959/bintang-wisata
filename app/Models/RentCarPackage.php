@@ -18,7 +18,13 @@ class RentCarPackage extends Model
         'thumbnail_path',
         'is_active',
         'features',
+
+        'long_description',
+        'seo_title',
+        'seo_keywords',
+        'seo_description',
     ];
+
 
 
     protected $casts = [

@@ -151,6 +151,51 @@
         </div>
     </div>
 
+    {{-- Deskripsi --}}
+<div class="rounded-2xl border border-slate-200 bg-white p-5">
+    <div class="text-sm font-extrabold text-slate-900 mb-3">Deskripsi Paket Rental</div>
+    <textarea name="long_description"
+        class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+        rows="12">{{ old('long_description', $package->long_description ?? '') }}</textarea>
+
+    @error('long_description')
+      <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+    @enderror
+</div>
+{{-- SEO --}}
+<div class="rounded-2xl border border-slate-200 bg-white p-5">
+    <div class="text-sm font-extrabold text-slate-900 mb-3">SEO (Opsional)</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-6">
+            <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
+            <input type="text"
+                name="seo_title"
+                value="{{ old('seo_title', $package->seo_title ?? '') }}"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                placeholder="Judul meta (opsional)">
+        </div>
+
+        <div class="md:col-span-6">
+            <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
+            <input type="text"
+                name="seo_keywords"
+                value="{{ old('seo_keywords', $package->seo_keywords ?? '') }}"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                placeholder="contoh: sewa mobil, rental avanza, jogja">
+            <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma.</div>
+        </div>
+
+        <div class="md:col-span-12">
+            <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
+            <textarea name="seo_description" rows="3"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                placeholder="Deskripsi meta (opsional)">{{ old('seo_description', $package->seo_description ?? '') }}</textarea>
+        </div>
+    </div>
+</div>
+
+
     {{-- Actions --}}
     <div class="flex items-center justify-end gap-2 pt-2">
         <a href="{{ route('admin.rent-car-packages.index') }}"

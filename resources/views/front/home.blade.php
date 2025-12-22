@@ -256,9 +256,10 @@
 </section>
 
 
+
 {{-- ================= WHY US ================= --}}
 <section class="bg-slate-50">
-   
+   @include('front.partials.home-promo-tours')
 
         {{-- ================= INSPIRASI DESTINASI ================= --}}
 <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 travel-grid shadow-soft" data-aos="fade-up" data-aos-delay="140">
@@ -410,6 +411,22 @@
                                 Durasi: {{ $package->duration_text }}
                             </div>
                         @endif
+<div class="mt-3 flex items-center gap-2 text-sm text-slate-700">
+    {{-- 1 bintang full kuning --}}
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 24 24"
+         fill="#FBBF24"
+         class="w-4 h-4">
+        <path d="M12 17.27L18.18 21l-1.64-7.03
+                 L22 9.24l-7.19-.61L12 2
+                 9.19 8.63 2 9.24l5.46 4.73
+                 L5.82 21z"/>
+    </svg>
+
+    <span class="font-semibold">
+        {{ $package->rating_value ?? 5 }} Rating
+    </span>
+</div>
 
                         <div class="mt-4 inline-flex items-center gap-2 text-sm font-extrabold" style="color:#0194F3;">
                             Lihat Detail

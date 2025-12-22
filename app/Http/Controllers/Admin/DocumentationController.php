@@ -116,7 +116,7 @@ class DocumentationController extends Controller
             'sort_order' => ['nullable', 'integer'],
             'source' => ['nullable', 'in:upload,link'],
             'replace_file' => ['nullable', 'file', 'max:51200'],
-            'files' => ['nullable', 'required_if:source,upload', 'array'],
+            'embed_link' => ['nullable', 'string', 'max:5000'],
 
         ]);
 

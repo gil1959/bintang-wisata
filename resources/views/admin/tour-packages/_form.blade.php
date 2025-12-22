@@ -34,6 +34,32 @@
   @error('label') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
 </div>
 
+<div class="md:col-span-3">
+  <label class="block text-sm font-bold text-slate-800 mb-1">Rating (1 - 5)</label>
+  <input
+    type="number"
+    name="rating_value"
+    min="1"
+    max="5"
+    value="{{ old('rating_value', $pkg?->rating_value ?? 5) }}"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  @error('rating_value') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-3">
+  <label class="block text-sm font-bold text-slate-800 mb-1">Jumlah Rating</label>
+  <input
+    type="number"
+    name="rating_count"
+    min="0"
+    value="{{ old('rating_count', $pkg?->rating_count ?? 0) }}"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  @error('rating_count') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+
 
             <div class="md:col-span-6">
                 <label class="block text-sm font-bold text-slate-800 mb-1">Slug (URL)</label>

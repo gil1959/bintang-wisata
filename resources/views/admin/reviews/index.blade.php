@@ -12,6 +12,8 @@
             <div class="text-sm font-extrabold text-slate-900">Komentar Paket (Reviews)</div>
             <div class="mt-1 text-xs text-slate-500">Moderasi komentar: approve / reject / hapus.</div>
         </div>
+        
+
 
         @php
             $current = $status ?? request('status', 'pending');
@@ -20,8 +22,12 @@
                 'approved' => 'Approved',
                 'rejected' => 'Rejected',
             ];
+            
         @endphp
-
+<a href="{{ route('admin.reviews.create') }}"
+   class="inline-flex items-center justify-center rounded-xl bg-[#0194F3] px-4 py-2 text-sm font-bold text-white hover:opacity-95">
+    + Tambah Review
+</a>
         <div class="inline-flex w-full sm:w-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
             @foreach($tabs as $k => $label)
                 <a href="{{ route('admin.reviews.index', ['status' => $k]) }}"

@@ -185,6 +185,14 @@ class AppServiceProvider extends ServiceProvider
                 'site_logo',
                 'tour_cta_secondary_button',
                 'tour_cta_secondary_link',
+                // HOME: promo tours
+                'home_promo_enabled' => $settings['home_promo_enabled'] ?? '1',
+                'home_promo_badge'   => $settings['home_promo_badge'] ?? 'PROMO',
+                'home_promo_title'   => $settings['home_promo_title'] ?? 'Paket Tour Promo',
+                'home_promo_desc'    => $settings['home_promo_desc'] ?? '',
+                'home_promo_mode'    => $settings['home_promo_mode'] ?? 'auto',
+                'home_promo_custom_ids' => $settings['home_promo_custom_ids'] ?? '[]',
+
 
             ];
 

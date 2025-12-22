@@ -34,6 +34,8 @@ class TourPackageController extends Controller
                 'title'            => $request->title,
                 'label' => $request->label,
 
+                'rating_value' => $request->rating_value ?? 5,
+                'rating_count' => $request->rating_count ?? 0,
                 'slug'             => $request->slug,
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
@@ -103,6 +105,8 @@ class TourPackageController extends Controller
                 'title'            => $request->title,
                 'label' => $request->label,
 
+                'rating_value' => $request->rating_value ?? $tour_package->rating_value ?? 5,
+                'rating_count' => $request->rating_count ?? $tour_package->rating_count ?? 0,
                 'slug'             => $request->slug,
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,

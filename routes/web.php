@@ -65,6 +65,11 @@ Route::prefix('bw-admin')
             ->name('tour-packages.delete-photo');
         Route::get('seo', [SeoController::class, 'edit'])->name('seo.edit');
         Route::post('seo', [SeoController::class, 'update'])->name('seo.update');
+        Route::get('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'edit'])
+            ->name('legal-pages.edit');
+
+        Route::post('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'update'])
+            ->name('legal-pages.update');
 
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class);
@@ -88,7 +93,11 @@ Route::prefix('bw-admin')
         Route::resource('bank-accounts', BankAccountController::class)->except(['show']);
 
         Route::resource('articles', ArticleController::class);
+        Route::get('home-sections/promo-tours', [\App\Http\Controllers\Admin\HomePromoToursController::class, 'edit'])
+            ->name('home-sections.promo-tours.edit');
 
+        Route::post('home-sections/promo-tours', [\App\Http\Controllers\Admin\HomePromoToursController::class, 'update'])
+            ->name('home-sections.promo-tours.update');
         // Settings
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save');
@@ -112,6 +121,8 @@ Route::prefix('bw-admin')
             ->only(['index', 'show', 'update', 'destroy']);
 
 
+        Route::get('/reviews/create', [AdminReviewController::class, 'create'])->name('reviews.create');
+        Route::post('/reviews', [AdminReviewController::class, 'store'])->name('reviews.store');
 
 
         // Categories
@@ -236,6 +247,14 @@ Route::get('/paket-tour', [TourController::class, 'index'])->name('tours.index')
 // Tour detail
 Route::get('/paket/{tourPackage:slug}', [TourController::class, 'show'])
     ->name('tour.show');
+Route::get('/privacy-policy', [\App\Http\Controllers\Front\LegalController::class, 'privacy'])
+    ->name('privacy-policy');
+
+Route::get('/terms-conditions', [\App\Http\Controllers\Front\LegalController::class, 'terms'])
+    ->name('terms-conditions');
+
+Route::get('/contact', [\App\Http\Controllers\Front\LegalController::class, 'contact'])
+    ->name('contact');
 
 // Rent Car listing + detail
 Route::prefix('rent-car')->name('rentcar.')->group(function () {

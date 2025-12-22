@@ -74,11 +74,15 @@
     <div class="min-h-screen flex flex-col">
         @include('front.partials.navbar')
 
-        <main class="flex-1">
-            @yield('content')
-        </main>
+        <main class="flex-1 pb-24 lg:pb-0">
+    @yield('content')
+</main>
 
-        @include('front.partials.footer')
+@include('front.partials.footer')
+
+{{-- ✅ Mobile Bottom Nav --}}
+@include('front.partials.mobile-bottom-nav')
+
     </div>
 
     @yield('scripts')

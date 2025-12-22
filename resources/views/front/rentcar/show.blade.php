@@ -1,6 +1,16 @@
 @extends('layouts.front')
 
-@section('title', $package->title)
+@php
+    $metaDesc = $package->seo_description
+        ?: \Illuminate\Support\Str::limit(trim(strip_tags($package->long_description ?? '')), 160);
+
+    $metaKeys = $package->seo_keywords ?? '';
+@endphp
+
+@section('title', $package->seo_title ?? $package->title)
+@section('meta_description', $metaDesc)
+@section('meta_keywords', $metaKeys)
+
 
 @section('content')
 <section class="max-w-7xl mx-auto px-4 py-10">
@@ -105,6 +115,16 @@
     </aside>
 
   </div>
+{{-- DESKRIPSI --}}
+@if(!empty($package->long_description))
+  <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="text-lg font-extrabold text-slate-900 mb-4">Deskripsi</div>
+    <div class="prose max-w-none break-all overflow-hidden">
+  {!! $package->long_description !!}
+</div>
+
+  </div>
+@endif
 
   {{-- REVIEWS --}}
   <div class="mt-14">

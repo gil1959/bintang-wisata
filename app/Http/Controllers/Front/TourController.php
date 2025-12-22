@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\TourCategory;
 use App\Models\DestinationInspiration;
 use App\Models\ClientLogo;
+use App\Models\Setting;
+use Illuminate\Support\Facades\DB;
 
 class TourController extends Controller
 {
@@ -70,10 +72,40 @@ class TourController extends Controller
             ->orderBy('sort_order')
             ->orderBy('title')
             ->get();
+
         $clientLogos = ClientLogo::where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
-        return view('front.home', compact('packages', 'inspirations', 'clientLogos'));
+        // ===================== PROMO TOURS (Home Section) =====================
+        $promoEnabled = filter_var(Setting::getValue('home_promo_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
+        $promoMode = Setting::getValue('home_promo_mode', 'auto'); // auto | custom
+
+        $promoTours = collect();
+
+        if ($promoEnabled) {
+            $customIds = json_decode(Setting::getValue('home_promo_custom_ids', '[]'), true);
+            $customIds = is_array($customIds) ? array_values(array_unique(array_map('intval', $customIds))) : [];
+
+            if ($promoMode === 'custom' && count($customIds) > 0) {
+                // Ambil sesuai urutan admin (FIELD untuk MySQL)
+                $idsCsv = implode(',', $customIds);
+
+                $promoTours = TourPackage::query()
+                    ->where('is_active', true)
+                    ->whereIn('id', $customIds)
+                    ->orderByRaw(DB::raw("FIELD(id, {$idsCsv})"))
+                    ->get();
+            } else {
+                // AUTO: label PROMO
+                $promoTours = TourPackage::query()
+                    ->where('is_active', true)
+                    ->where('label', 'PROMO')
+                    ->latest()
+                    ->get();
+            }
+        }
+
+        return view('front.home', compact('packages', 'inspirations', 'clientLogos', 'promoTours'));
     }
 }

@@ -25,7 +25,8 @@ class StoreTourPackageRequest extends FormRequest
             'category_id'      => ['required', 'exists:tour_categories,id'],
             'long_description' => ['nullable', 'string'],
 
-
+            'rating_value' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'rating_count' => ['nullable', 'integer', 'min:0'],
             // ========= INCLUDES / EXCLUDES =========
             'includes'         => ['nullable', 'array'],
             'includes.*'       => ['nullable', 'string', 'max:500'],

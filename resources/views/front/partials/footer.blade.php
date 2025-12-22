@@ -51,6 +51,9 @@
             ['label' => $siteSettings['footer_link2_label'] ?? 'Paket Tour', 'url' => $siteSettings['footer_link2_url'] ?? route('tours.index')],
             ['label' => $siteSettings['footer_link3_label'] ?? 'Artikel',    'url' => $siteSettings['footer_link3_url'] ?? route('articles')],
             ['label' => $siteSettings['footer_link4_label'] ?? 'Tentang',    'url' => $siteSettings['footer_link4_url'] ?? route('about')],
+              ['label' => 'Privacy Policy', 'url' => route('privacy-policy')],
+    ['label' => 'Terms & Conditions', 'url' => route('terms-conditions')],
+    ['label' => 'Contact', 'url' => route('contact')],
         ];
     @endphp
 

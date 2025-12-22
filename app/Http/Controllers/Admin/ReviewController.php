@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\TourPackage;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
@@ -29,6 +30,45 @@ class ReviewController extends Controller
 
         return view('admin.reviews.index', compact('reviews', 'status'));
     }
+
+    public function create()
+    {
+        // khusus paket tour (sesuai request lu)
+        $packages = TourPackage::query()
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        return view('admin.reviews.create', compact('packages'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'tour_package_id' => ['required', 'exists:tour_packages,id'],
+            'name'            => ['required', 'string', 'max:120'],
+            'email'           => ['required', 'email', 'max:190'],
+            'rating'          => ['required', 'integer', 'min:1', 'max:5'],
+            'comment'         => ['required', 'string', 'max:2000'],
+        ]);
+
+        $package = TourPackage::findOrFail($data['tour_package_id']);
+
+        // admin bikin review → langsung approved
+        $package->reviews()->create([
+            'name'       => $data['name'],
+            'email'      => $data['email'],
+            'rating'     => $data['rating'],
+            'comment'    => $data['comment'],
+            'status'     => 'approved',
+            'ip_address' => $request->ip(),
+            'user_agent' => substr((string) $request->userAgent(), 0, 512),
+        ]);
+
+        return redirect()
+            ->route('admin.reviews.index', ['status' => 'approved'])
+            ->with('success', 'Review admin berhasil ditambahkan dan langsung tampil.');
+    }
+
 
     public function approve(Review $review)
     {

@@ -12,6 +12,8 @@ class TourPackage extends Model
     protected $fillable = [
         'title',
         'label',
+        'rating_value',
+        'rating_count',
         'slug',
         'category_id',
         'destination',
@@ -26,6 +28,7 @@ class TourPackage extends Model
         'seo_description',
         'seo_keywords',
     ];
+
 
     protected $casts = [
         'includes' => 'array',

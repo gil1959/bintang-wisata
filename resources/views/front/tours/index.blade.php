@@ -295,7 +295,26 @@
                                     {{ $package->duration_text }}
                                 </span>
                             @endif
+                            <div class=" flex items-center gap-2 text-sm text-slate-700">
+    {{-- 1 bintang full kuning --}}
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 24 24"
+         fill="#FBBF24"
+         class="w-4 h-4">
+        <path d="M12 17.27L18.18 21l-1.64-7.03
+                 L22 9.24l-7.19-.61L12 2
+                 9.19 8.63 2 9.24l5.46 4.73
+                 L5.82 21z"/>
+    </svg>
+
+    <span class="font-semibold">
+        {{ $package->rating_value ?? 5 }} Rating
+    </span>
+</div>
+
                         </div>
+
+                        
 
                         @if(!empty($package->long_description))
                             <p class="mt-3 text-sm text-slate-600 line-clamp-2">
