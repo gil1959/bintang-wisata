@@ -8,7 +8,8 @@ class TripayService
 {
     public function fetchChannels(array $credentials): array
     {
-        $mode = $credentials['mode'] ?? 'sandbox';
+        $mode = strtolower(trim((string)($credentials['mode'] ?? 'sandbox')));
+
         $apiKey = $credentials['api_key'] ?? null;
 
         if (!$apiKey) {
@@ -19,19 +20,51 @@ class TripayService
             ? 'https://tripay.co.id/api'
             : 'https://tripay.co.id/api-sandbox';
 
-        $resp = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
-        ])->get($base . '/merchant/payment-channel');
+        $resp = Http::timeout(20)
+            ->acceptJson()
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+            ])
+            ->get($base . '/merchant/payment-channel');
+
 
         if (!$resp->ok()) {
             throw new \RuntimeException('Gagal ambil channel TriPay: ' . $resp->body());
         }
 
         $json = $resp->json();
+
+        // ✅ kalau TriPay balikin success=false tapi HTTP 200
+        if (isset($json['success']) && $json['success'] === false) {
+            $msg = $json['message'] ?? 'Unknown error';
+            throw new \RuntimeException("TriPay response gagal: {$msg}");
+        }
+
+        // ✅ fallback kalau struktur beda
         $data = $json['data'] ?? [];
+        if (is_array($data) && isset($data['data']) && is_array($data['data'])) {
+            $data = $data['data'];
+        }
+        // fallback kalau ternyata list-nya ada di key lain
+        if (is_array($data) && isset($data['payment_channels']) && is_array($data['payment_channels'])) {
+            $data = $data['payment_channels'];
+        }
+
+        // fallback kalau json langsung list (jarang tapi possible)
+        if ($data === [] && is_array($json) && isset($json[0])) {
+            $data = $json;
+        }
+
+
+        // ✅ kalau masih kosong, lempar error dengan konteks message
+        if (!is_array($data) || count($data) === 0) {
+            $msg = $json['message'] ?? 'data kosong';
+            $snippet = substr($resp->body(), 0, 800); // ambil 800 char pertama
+            throw new \RuntimeException("TriPay channel kosong ({$msg}). Response: {$snippet}");
+        }
+
 
         // Normalisasi agar frontend gampang render
-        // channel_code = $item['code']
         return array_values(array_map(function ($item) {
             return [
                 'channel_code' => $item['code'] ?? null,
@@ -46,7 +79,8 @@ class TripayService
 
     public function createTransaction(array $credentials, array $payload): array
     {
-        $mode = $credentials['mode'] ?? 'sandbox';
+        $mode = strtolower(trim((string)($credentials['mode'] ?? 'sandbox')));
+
         $apiKey = $credentials['api_key'] ?? null;
         $privateKey = $credentials['private_key'] ?? null;
         $merchantCode = $credentials['merchant_code'] ?? null;

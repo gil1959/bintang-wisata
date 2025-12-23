@@ -8,12 +8,14 @@ use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\PaymentGateway;
 use App\Models\Setting;
-
+use App\Services\Payments\TripayService;
+use Illuminate\Support\Facades\Log;
 
 
 class CheckoutController extends Controller
 {
-    public function show($orderId)
+    public function show($orderId, TripayService $tripay)
+
     {
         $order = Order::findOrFail($orderId);
 
@@ -41,9 +43,42 @@ class CheckoutController extends Controller
         $gatewayOptions = [];
         foreach ($gateways as $g) {
             $channels = is_array($g->channels) ? $g->channels : [];
+
+            // ✅ Fallback: kalau TriPay aktif tapi channels kosong, sync ulang di checkout
+            if ($g->name === 'tripay' && count($channels) === 0) {
+                try {
+                    $creds = is_array($g->credentials) ? $g->credentials : [];
+                    $fresh = $tripay->fetchChannels($creds);
+
+                    // ambil yang active saja
+                    $fresh = array_values(array_filter($fresh, function ($c) {
+                        return (bool)($c['active'] ?? true);
+                    }));
+
+                    // simpan hasilnya biar next load gak fetch lagi
+                    if (count($fresh) > 0) {
+                        $g->channels = $fresh;
+                        $g->channels_synced_at = now();
+                        $g->save();
+                        $channels = $fresh;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Tripay channels empty on checkout and sync failed', [
+                        'gateway_id' => $g->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $channels = []; // biar aman, gak bikin checkout error
+                }
+            }
+
             foreach ($channels as $ch) {
                 $code = $ch['channel_code'] ?? null;
                 if (!$code) continue;
+
+                // ✅ safety: skip yang nonaktif
+                if (isset($ch['active']) && !(bool)$ch['active']) {
+                    continue;
+                }
 
                 $gatewayOptions[] = [
                     'value' => "gateway:{$g->name}:{$code}",
@@ -51,6 +86,7 @@ class CheckoutController extends Controller
                 ];
             }
         }
+
 
         return view('front.checkout.index', [
             'order'          => $order,

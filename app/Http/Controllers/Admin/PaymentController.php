@@ -154,8 +154,17 @@ class PaymentController extends Controller
 
                 // simpan hanya active (biar list checkout clean)
                 $channels = array_values(array_filter($channels, function ($c) {
-                    return ($c['active'] ?? true) === true;
+                    return (bool)($c['active'] ?? true);
                 }));
+
+
+                // ✅ PENTING: kalau kosong, jangan dianggap sukses
+                if (count($channels) === 0) {
+                    return back()->with(
+                        'error',
+                        'TriPay: channel kosong. Pastikan API Key sesuai MODE (sandbox/production) dan merchant sudah approved di TriPay.'
+                    );
+                }
             } catch (\Throwable $e) {
                 return back()->with('error', 'Gagal sync channel TriPay: ' . $e->getMessage());
             }
