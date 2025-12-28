@@ -20,8 +20,72 @@ use App\Mail\PaymentProofSubmittedMail;
 class PaymentController extends Controller
 {
     // Router lama biar gak ngerusak link existing
-    public function show(Order $order)
+    
+    public function show(Order $order, TripayService $tripay)
 {
+    // ✅ Sync status Tripay kalau user balik dari gateway tapi webhook belum update
+    $gatewayName = null;
+
+    if ($order->payment_method && str_starts_with($order->payment_method, 'gateway:')) {
+        $parts = explode(':', $order->payment_method, 3);
+        $gatewayName = $parts[1] ?? null;
+    }
+
+    if ($gatewayName === 'tripay' && $order->payment_status !== 'paid') {
+       $channelCode = null;
+if ($order->payment_method && str_starts_with($order->payment_method, 'gateway:')) {
+    $parts = explode(':', $order->payment_method, 3);
+    $channelCode = $parts[2] ?? null; // contoh: QRIS
+}
+
+$paymentQuery = $order->payments()
+    ->where('method', 'gateway')
+    ->where('gateway_name', 'tripay')
+    ->where('status', 'waiting_payment');
+
+if (!empty($channelCode)) {
+    $paymentQuery->where('channel_code', $channelCode);
+}
+
+$payment = $paymentQuery->latest()->first();
+
+
+        if ($payment && !empty($payment->gateway_reference)) {
+            $gw = PaymentGateway::where('name', 'tripay')->first();
+            $cred = $gw?->credentials ?? [];
+
+            try {
+                $detail = $tripay->getTransactionDetail($cred, $payment->gateway_reference);
+
+                $status = strtoupper((string) data_get($detail, 'data.status', ''));
+
+                if (in_array($status, ['PAID', 'SUCCESS'], true)) {
+                    $payment->status = 'paid';
+                    $payment->gateway_payload = $detail;
+                    $payment->save();
+
+                    $order->payment_status = 'paid';
+                    $order->order_status = 'approved';
+                    $order->save();
+                } elseif (in_array($status, ['FAILED', 'EXPIRED'], true)) {
+                    $payment->status = 'failed';
+                    $payment->gateway_payload = $detail;
+                    $payment->save();
+
+                    $order->payment_status = 'failed';
+                    $order->order_status = 'rejected';
+                    $order->save();
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Tripay sync on return_url failed', [
+                    'invoice' => $order->invoice_number,
+                    'ref' => $payment->gateway_reference,
+                    'err' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
     // ✅ Kalau pembayaran gateway SUDAH PAID, langsung redirect ke WhatsApp admin
     if (
         $order->payment_status === 'paid'
@@ -31,26 +95,42 @@ class PaymentController extends Controller
         $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
         $wa = preg_replace('/\D+/', '', $rawWa);
 
-        // normalisasi 0xxx -> 62xxx
         if (str_starts_with($wa, '0')) {
             $wa = '62' . substr($wa, 1);
         }
 
-        // kalau WA belum diset, jangan paksa redirect (balik ke flow lama)
         if (!empty($wa)) {
             $total = $order->payable_amount ?? $order->final_price;
 
-            $msg = "Halo Admin,\n"
-                . "Pembayaran berhasil.\n"
+            // ✅ pesan WA detail
+            $dates = [];
+            if (!empty($order->departure_date)) {
+                $dates[] = 'Tanggal: ' . date('d-m-Y', strtotime($order->departure_date));
+            }
+            if (!empty($order->pickup_date) || !empty($order->return_date)) {
+                $p = $order->pickup_date ? date('d-m-Y', strtotime($order->pickup_date)) : '-';
+                $r = $order->return_date ? date('d-m-Y', strtotime($order->return_date)) : '-';
+                $dates[] = "Pickup/Return: {$p} s/d {$r}";
+            }
+
+            $days = $order->total_days ? "Durasi: {$order->total_days} hari\n" : '';
+            $participants = $order->participants ? "Peserta/QTY: {$order->participants}\n" : '';
+
+            $msg =
+                "Halo Admin,\n"
+                . "Pembayaran *BERHASIL* ✅\n\n"
                 . "Invoice: {$order->invoice_number}\n"
                 . "Nama: {$order->customer_name}\n"
+                . "Email: {$order->customer_email}\n"
+                . "WA Customer: {$order->customer_phone}\n"
                 . "Produk: {$order->product_name}\n"
-                . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n"
-                . "Terima kasih.";
+                . $participants
+                . $days
+                . (count($dates) ? implode("\n", $dates) . "\n" : '')
+                . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
+                . "Mohon diproses. Terima kasih.";
 
-            $waUrl = "https://wa.me/{$wa}?text=" . urlencode($msg);
-
-            return redirect()->away($waUrl);
+            return redirect()->away("https://wa.me/{$wa}?text=" . urlencode($msg));
         }
     }
 
@@ -69,6 +149,7 @@ class PaymentController extends Controller
 
     abort(400, 'Metode pembayaran tidak dikenal.');
 }
+
 
 
     // ===== PAGE MANUAL =====
@@ -253,7 +334,14 @@ class PaymentController extends Controller
                 'status'            => 'waiting_payment',
             ]);
         }
-
+if (
+    $gatewayName === 'tripay'
+    && $payment->status === 'waiting_payment'
+    && !empty($payment->gateway_reference)
+    && !empty($payment->payment_url)
+) {
+    return redirect()->away($payment->payment_url);
+}
         // ========= TRIPAY =========
         if ($gatewayName === 'tripay') {
             $cred = $gateway->credentials ?? [];
@@ -598,12 +686,25 @@ class PaymentController extends Controller
             return redirect()->route('payment.page', $order->id)->with('error', 'PayPal gateway tidak aktif.');
         }
 
-        $payment = $order->payments()
-            ->where('method', 'gateway')
-            ->where('gateway_name', 'paypal')
-            ->where('status', 'waiting_payment')
-            ->latest()
-            ->first();
+        $channelCode = null;
+
+if ($order->payment_method && str_starts_with($order->payment_method, 'gateway:')) {
+    $parts = explode(':', $order->payment_method, 3);
+    $channelCode = $parts[2] ?? null; // contoh: QRIS
+}
+
+$paymentQuery = $order->payments()
+    ->where('method', 'gateway')
+    ->where('gateway_name', 'paypal')
+    ->where('status', 'waiting_payment');
+
+
+if (!empty($channelCode)) {
+    $paymentQuery->where('channel_code', $channelCode);
+}
+
+$payment = $paymentQuery->latest()->first();
+
 
         if (!$payment) {
             return redirect()->route('payment.page', $order->id)->with('error', 'Payment PayPal tidak ditemukan.');

@@ -80,63 +80,171 @@
 
             {{-- NAV --}}
             @php
-                $nav = [
-                    ['label'=>'Dashboard','route'=>'admin.dashboard','match'=>'admin.dashboard','icon'=>'layout-dashboard'],
-                    ['label'=>'Orders','route'=>'admin.orders.index','match'=>'admin.orders.*','icon'=>'shopping-bag'],
-                    ['label'=>'Pembayaran','route'=>'admin.payments.index','match'=>'admin.payments.*','icon'=>'credit-card'],
-                    ['label'=>'Paket Wisata','route'=>'admin.tour-packages.index','match'=>'admin.tour-packages.*','icon'=>'map'],
-                    ['label'=>'Kategori Tour','route'=>'admin.categories.index','match'=>'admin.categories.*','icon'=>'tags'],
-                    ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags'],
-                    ['label'=>'Rental','route'=>'admin.rent-car-packages.index','match'=>'admin.rent-car-packages.*','icon'=>'car'],
-                    ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent'],
-                    ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images'],
-                    ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles'],
-                    ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper'],
-                    ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles'],
-['label'=>'Halaman Legal','route'=>'admin.legal-pages.edit','match'=>'admin.legal-pages.*','icon'=>'file-text'],
-['label'=>'Sewa Kapal','route'=>'admin.ship-packages.index','match'=>'admin.ship-packages.*','icon'=>'ship'],
-['label'=>'Kategori Sewa Kapal','route'=>'admin.ship-categories.index','match'=>'admin.ship-categories.*','icon'=>'tags'],
-['label'=>'Paket Umrah','route'=>'admin.umrah-packages.index','match'=>'admin.umrah-packages.*','icon'=>'landmark'],
-        ['label'=>'Kategori Umrah','route'=>'admin.umrah-categories.index','match'=>'admin.umrah-categories.*','icon'=>'tags'],
+    $nav = [
+        ['label'=>'Dashboard','route'=>'admin.dashboard','match'=>'admin.dashboard','icon'=>'layout-dashboard'],
+        ['label'=>'Orders','route'=>'admin.orders.index','match'=>'admin.orders.*','icon'=>'shopping-bag'],
+        ['label'=>'Pembayaran','route'=>'admin.payments.index','match'=>'admin.payments.*','icon'=>'credit-card'],
 
-                    ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
-                     ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
-                     ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
-                    ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
-                    ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user'],
+        // GROUP: Paket Wisata
+        [
+            'label' => 'Paket Wisata',
+            'icon'  => 'map',
+            'children' => [
+                ['label'=>'Paket Wisata','route'=>'admin.tour-packages.index','match'=>'admin.tour-packages.*','icon'=>'map'],
+                ['label'=>'Kategori Tour','route'=>'admin.categories.index','match'=>'admin.categories.*','icon'=>'tags'],
+            ],
+        ],
 
-                   
-                    
-                ];
-            @endphp
+        // GROUP: Rental
+        [
+            'label' => 'Rental',
+            'icon'  => 'car',
+            'children' => [
+                ['label'=>'Rental','route'=>'admin.rent-car-packages.index','match'=>'admin.rent-car-packages.*','icon'=>'car'],
+                ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags'],
+            ],
+        ],
+
+        ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent'],
+        ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images'],
+        ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles'],
+        ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper'],
+        ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles'],
+        ['label'=>'Halaman Legal','route'=>'admin.legal-pages.edit','match'=>'admin.legal-pages.*','icon'=>'file-text'],
+
+        // GROUP: Sewa Kapal
+        [
+            'label' => 'Sewa Kapal',
+            'icon'  => 'ship',
+            'children' => [
+                ['label'=>'Paket Sewa Kapal','route'=>'admin.ship-packages.index','match'=>'admin.ship-packages.*','icon'=>'ship'],
+                ['label'=>'Kategori Sewa Kapal','route'=>'admin.ship-categories.index','match'=>'admin.ship-categories.*','icon'=>'tags'],
+            ],
+        ],
+
+        // GROUP: Umrah
+        [
+            'label' => 'Umrah',
+            'icon'  => 'landmark',
+            'children' => [
+                ['label'=>'Paket Umrah','route'=>'admin.umrah-packages.index','match'=>'admin.umrah-packages.*','icon'=>'landmark'],
+                ['label'=>'Kategori Umrah','route'=>'admin.umrah-categories.index','match'=>'admin.umrah-categories.*','icon'=>'tags'],
+            ],
+        ],
+
+        ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
+        ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
+        ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
+        ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
+        ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user'],
+    ];
+@endphp
+
 
             <nav class="px-3 py-3 space-y-1 overflow-y-auto" style="max-height:calc(100vh - 4rem)">
-                @foreach($nav as $n)
-                    @php $active = request()->routeIs($n['match']); @endphp
+    @foreach($nav as $n)
 
-                    <a href="{{ route($n['route']) }}"
-                       @click="sidebarOpen=false"
-                       class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition
-                              {{ $active ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
-                       style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
-                    >
-                        <span class="flex items-center gap-3 min-w-0">
-                            <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
-                                  style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.10);border-color:rgba(148,163,184,0.20);' }}">
-                                <i data-lucide="{{ $n['icon'] }}" class="w-5 h-5"
-                                   style="{{ $active ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
-                            </span>
+        {{-- CASE 1: GROUP / HAS CHILDREN --}}
+        @if(isset($n['children']) && is_array($n['children']))
+            @php
+                $childActive = false;
+                foreach($n['children'] as $c){
+                    if(request()->routeIs($c['match'])){
+                        $childActive = true;
+                        break;
+                    }
+                }
+            @endphp
 
-                            <span class="font-bold text-sm truncate">{{ $n['label'] }}</span>
+            <div x-data="{ open: {{ $childActive ? 'true' : 'false' }} }" class="space-y-1">
+                {{-- Parent button --}}
+                <button type="button"
+                    @click="open = !open"
+                    class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition
+                           {{ $childActive ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
+                    style="{{ $childActive ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
+                >
+                    <span class="flex items-center gap-3 min-w-0">
+                        <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
+                              style="{{ $childActive ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.10);border-color:rgba(148,163,184,0.20);' }}">
+                            <i data-lucide="{{ $n['icon'] }}" class="w-5 h-5"
+                               style="{{ $childActive ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
                         </span>
 
-                        <span class="text-xs font-extrabold shrink-0"
-                              style="{{ $active ? 'color:#0194F3;' : 'color:#94a3b8;' }}">
-                            →
-                        </span>
-                    </a>
-                @endforeach
-            </nav>
+                        <span class="font-bold text-sm truncate">{{ $n['label'] }}</span>
+                    </span>
+
+                    <span class="shrink-0">
+                        <i data-lucide="chevron-down"
+                           class="w-4 h-4 transition-transform"
+                           :class="open ? 'rotate-180' : ''"
+                           style="{{ $childActive ? 'color:#0194F3;' : 'color:#94a3b8;' }}"
+                        ></i>
+                    </span>
+                </button>
+
+                {{-- Children --}}
+                <div x-show="open" x-collapse class="pl-3">
+                    <div class="space-y-1 border-l border-slate-200 ml-3 pl-3">
+                        @foreach($n['children'] as $c)
+                            @php $active = request()->routeIs($c['match']); @endphp
+
+                            <a href="{{ route($c['route']) }}"
+                               @click="sidebarOpen=false"
+                               class="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border transition
+                                      {{ $active ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
+                               style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
+                            >
+                                <span class="flex items-center gap-3 min-w-0">
+                                    <span class="h-8 w-8 rounded-xl grid place-items-center border shrink-0"
+                                          style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.08);border-color:rgba(148,163,184,0.16);' }}">
+                                        <i data-lucide="{{ $c['icon'] ?? 'dot' }}" class="w-4 h-4"
+                                           style="{{ $active ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
+                                    </span>
+
+                                    <span class="font-bold text-sm truncate">{{ $c['label'] }}</span>
+                                </span>
+
+                                <span class="text-xs font-extrabold shrink-0"
+                                      style="{{ $active ? 'color:#0194F3;' : 'color:#94a3b8;' }}">
+                                    →
+                                </span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+        {{-- CASE 2: NORMAL ITEM --}}
+        @else
+            @php $active = request()->routeIs($n['match']); @endphp
+
+            <a href="{{ route($n['route']) }}"
+               @click="sidebarOpen=false"
+               class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition
+                      {{ $active ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
+               style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
+            >
+                <span class="flex items-center gap-3 min-w-0">
+                    <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
+                          style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.10);border-color:rgba(148,163,184,0.20);' }}">
+                        <i data-lucide="{{ $n['icon'] }}" class="w-5 h-5"
+                           style="{{ $active ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
+                    </span>
+
+                    <span class="font-bold text-sm truncate">{{ $n['label'] }}</span>
+                </span>
+
+                <span class="text-xs font-extrabold shrink-0"
+                      style="{{ $active ? 'color:#0194F3;' : 'color:#94a3b8;' }}">
+                    →
+                </span>
+            </a>
+        @endif
+
+    @endforeach
+</nav>
+
         </aside>
 
         {{-- MAIN --}}

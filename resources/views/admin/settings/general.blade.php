@@ -1052,6 +1052,385 @@
 
 
 <hr class="my-12">
+{{-- =========================
+     HALAMAN SEWA KAPAL
+========================= --}}
+<div class="bg-white border border-slate-200 rounded-xl p-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-slate-900">Halaman Sewa Kapal</h3>
+      <p class="text-sm text-slate-500 mt-1">Edit isi hero tanpa mengubah layout/design.</p>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Hero Badge</label>
+      <input
+        type="text"
+        name="ship_hero_badge"
+        value="{{ old('ship_hero_badge', $settings['ship_hero_badge'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Sewa Kapal"
+      />
+      @error('ship_hero_badge') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Hero Title</label>
+      <input
+        type="text"
+        name="ship_hero_title"
+        value="{{ old('ship_hero_title', $settings['ship_hero_title'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda"
+      />
+      @error('ship_hero_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class="block text-sm font-medium text-slate-700">Hero Description</label>
+      <textarea
+        name="ship_hero_desc"
+        rows="3"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia."
+      >{{ old('ship_hero_desc', $settings['ship_hero_desc'] ?? '') }}</textarea>
+      @error('ship_hero_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+  </div>
+
+  <hr class="my-6 border-slate-200">
+
+  <div>
+    <h4 class="text-base font-semibold text-slate-900">Tips Box (Hero Kanan)</h4>
+    <p class="text-sm text-slate-500 mt-1">Judul, deskripsi, dan 4 kartu tips.</p>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tips Title</label>
+      <input
+        type="text"
+        name="ship_tips_title"
+        value="{{ old('ship_tips_title', $settings['ship_tips_title'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Tips Cepat"
+      />
+      @error('ship_tips_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tips Description</label>
+      <input
+        type="text"
+        name="ship_tips_desc"
+        value="{{ old('ship_tips_desc', $settings['ship_tips_desc'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Cek detail paket untuk harga weekday/weekend & fitur yang tersedia."
+      />
+      @error('ship_tips_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+  </div>
+
+  {{-- Tips Cards --}}
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    @for($i = 1; $i <= 4; $i++)
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <h5 class="text-sm font-semibold text-slate-900">Tip {{ $i }}</h5>
+          <span class="text-xs text-slate-500">ship_tip{{ $i }}_*</span>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-slate-700">Title</label>
+          <input
+            type="text"
+            name="ship_tip{{ $i }}_title"
+            value="{{ old("ship_tip{$i}_title", $settings["ship_tip{$i}_title"] ?? '') }}"
+            class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+            placeholder="Judul tip {{ $i }}"
+          />
+          @error("ship_tip{$i}_title") <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-slate-700">Description</label>
+          <input
+            type="text"
+            name="ship_tip{{ $i }}_desc"
+            value="{{ old("ship_tip{$i}_desc", $settings["ship_tip{$i}_desc"] ?? '') }}"
+            class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+            placeholder="Deskripsi tip {{ $i }}"
+          />
+          @error("ship_tip{$i}_desc") <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+      </div>
+    @endfor
+  </div>
+</div>
+{{-- =========================
+     HALAMAN UMRAH
+========================= --}}
+<div class="bg-white border border-slate-200 rounded-xl p-6 mt-6">
+  <div>
+    <h3 class="text-lg font-semibold text-slate-900">Halaman Umrah</h3>
+    <p class="text-sm text-slate-500 mt-1">Edit isi hero, label filter, dan tips tanpa mengubah desain.</p>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Hero Badge</label>
+      <input
+        type="text"
+        name="umrah_hero_badge"
+        value="{{ old('umrah_hero_badge', $settings['umrah_hero_badge'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Paket Umrah"
+      />
+      @error('umrah_hero_badge') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Hero Title</label>
+      <input
+        type="text"
+        name="umrah_hero_title"
+        value="{{ old('umrah_hero_title', $settings['umrah_hero_title'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Temukan Paket Umrah yang Sesuai Kebutuhan Anda"
+      />
+      @error('umrah_hero_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class="block text-sm font-medium text-slate-700">Hero Description</label>
+      <textarea
+        name="umrah_hero_desc"
+        rows="3"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Gunakan pencarian dan filter untuk menyaring paket berdasarkan destinasi maupun kategori."
+      >{{ old('umrah_hero_desc', $settings['umrah_hero_desc'] ?? '') }}</textarea>
+      @error('umrah_hero_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+  </div>
+
+  <hr class="my-6 border-slate-200">
+
+  <div>
+    <h4 class="text-base font-semibold text-slate-900">Label Filter</h4>
+    <p class="text-sm text-slate-500 mt-1">Label tombol filter di hero Umrah.</p>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Label Destinasi</label>
+      <input
+        type="text"
+        name="umrah_filter_dest_label"
+        value="{{ old('umrah_filter_dest_label', $settings['umrah_filter_dest_label'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Destinasi"
+      />
+      @error('umrah_filter_dest_label') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Label Kategori</label>
+      <input
+        type="text"
+        name="umrah_filter_cat_label"
+        value="{{ old('umrah_filter_cat_label', $settings['umrah_filter_cat_label'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Kategori"
+      />
+      @error('umrah_filter_cat_label') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Label Durasi</label>
+      <input
+        type="text"
+        name="umrah_filter_dur_label"
+        value="{{ old('umrah_filter_dur_label', $settings['umrah_filter_dur_label'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Durasi"
+      />
+      @error('umrah_filter_dur_label') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Label Transparan</label>
+      <input
+        type="text"
+        name="umrah_filter_trans_label"
+        value="{{ old('umrah_filter_trans_label', $settings['umrah_filter_trans_label'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Transparan"
+      />
+      @error('umrah_filter_trans_label') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+  </div>
+
+  <hr class="my-6 border-slate-200">
+
+  <div>
+    <h4 class="text-base font-semibold text-slate-900">Tips Box (Hero Kanan)</h4>
+    <p class="text-sm text-slate-500 mt-1">Judul, deskripsi, dan 4 kartu tips.</p>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tips Title</label>
+      <input
+        type="text"
+        name="umrah_tips_title"
+        value="{{ old('umrah_tips_title', $settings['umrah_tips_title'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Tips Cepat"
+      />
+      @error('umrah_tips_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tips Description</label>
+      <input
+        type="text"
+        name="umrah_tips_desc"
+        value="{{ old('umrah_tips_desc', $settings['umrah_tips_desc'] ?? '') }}"
+        class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+        placeholder="Gunakan kata kunci destinasi untuk hasil lebih akurat."
+      />
+      @error('umrah_tips_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    @for($i = 1; $i <= 4; $i++)
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <h5 class="text-sm font-semibold text-slate-900">Tip {{ $i }}</h5>
+          <span class="text-xs text-slate-500">umrah_tip{{ $i }}_*</span>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-slate-700">Title</label>
+          <input
+            type="text"
+            name="umrah_tip{{ $i }}_title"
+            value="{{ old("umrah_tip{$i}_title", $settings["umrah_tip{$i}_title"] ?? '') }}"
+            class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+            placeholder="Judul tip {{ $i }}"
+          />
+          @error("umrah_tip{$i}_title") <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-slate-700">Description</label>
+          <input
+            type="text"
+            name="umrah_tip{{ $i }}_desc"
+            value="{{ old("umrah_tip{$i}_desc", $settings["umrah_tip{$i}_desc"] ?? '') }}"
+            class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+            placeholder="Deskripsi tip {{ $i }}"
+          />
+          @error("umrah_tip{$i}_desc") <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+      </div>
+    @endfor
+  </div>
+</div>
+{{-- =========================
+     DOKUMENTASI PER KATEGORI
+========================= --}}
+<div class="bg-white border border-slate-200 rounded-xl p-6 mt-6">
+  <div>
+    <h3 class="text-lg font-semibold text-slate-900">Dokumentasi per Kategori</h3>
+    <p class="text-sm text-slate-500 mt-1">Override hero untuk Dokumentasi Sewa Kapal & Dokumentasi Umrah.</p>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {{-- DOCS SHIP --}}
+    <div class="border border-slate-200 rounded-xl p-4">
+      <h4 class="text-base font-semibold text-slate-900">Dokumentasi Sewa Kapal</h4>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Badge</label>
+        <input
+          type="text"
+          name="docs_ship_hero_badge"
+          value="{{ old('docs_ship_hero_badge', $settings['docs_ship_hero_badge'] ?? '') }}"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Dokumentasi Sewa Kapal"
+        />
+        @error('docs_ship_hero_badge') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Title</label>
+        <input
+          type="text"
+          name="docs_ship_hero_title"
+          value="{{ old('docs_ship_hero_title', $settings['docs_ship_hero_title'] ?? '') }}"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Dokumentasi Sewa Kapal"
+        />
+        @error('docs_ship_hero_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Description</label>
+        <textarea
+          name="docs_ship_hero_desc"
+          rows="3"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video."
+        >{{ old('docs_ship_hero_desc', $settings['docs_ship_hero_desc'] ?? '') }}</textarea>
+        @error('docs_ship_hero_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+    </div>
+
+    {{-- DOCS UMRAH --}}
+    <div class="border border-slate-200 rounded-xl p-4">
+      <h4 class="text-base font-semibold text-slate-900">Dokumentasi Umrah</h4>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Badge</label>
+        <input
+          type="text"
+          name="docs_umrah_hero_badge"
+          value="{{ old('docs_umrah_hero_badge', $settings['docs_umrah_hero_badge'] ?? '') }}"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Dokumentasi Umrah"
+        />
+        @error('docs_umrah_hero_badge') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Title</label>
+        <input
+          type="text"
+          name="docs_umrah_hero_title"
+          value="{{ old('docs_umrah_hero_title', $settings['docs_umrah_hero_title'] ?? '') }}"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Dokumentasi Umrah"
+        />
+        @error('docs_umrah_hero_title') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-slate-700">Hero Description</label>
+        <textarea
+          name="docs_umrah_hero_desc"
+          rows="3"
+          class="mt-2 w-full rounded-lg border-slate-300 focus:border-slate-400 focus:ring-slate-200"
+          placeholder="Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video."
+        >{{ old('docs_umrah_hero_desc', $settings['docs_umrah_hero_desc'] ?? '') }}</textarea>
+        @error('docs_umrah_hero_desc') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+      </div>
+    </div>
+  </div>
+</div>
 
 {{-- =========================
   HALAMAN DOKUMENTASI

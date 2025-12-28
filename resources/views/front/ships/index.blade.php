@@ -25,15 +25,15 @@
         <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
              style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
           <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-          Sewa Kapal
+          {{ $siteSettings['ship_hero_badge'] ?? 'Sewa Kapal' }}
         </div>
 
         <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-          Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda
+           {{ $siteSettings['ship_hero_title'] ?? 'Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda' }}
         </h1>
 
         <p class="mt-3 text-slate-600 max-w-2xl">
-          Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia.
+           {{ $siteSettings['ship_hero_desc'] ?? 'Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia.' }}
         </p>
 
         <div class="mt-6 flex flex-wrap gap-2">
@@ -56,9 +56,9 @@
               </div>
 
               <div>
-                <div class="font-extrabold text-slate-900">Tips Cepat</div>
+                <div class="font-extrabold text-slate-900"> {{ $siteSettings['ship_tips_title'] ?? 'Tips Cepat' }}</div>
                 <div class="text-sm text-slate-600 mt-0.5">
-                  Cek detail paket untuk harga weekday/weekend & fitur yang tersedia.
+                 {{ $siteSettings['ship_tips_desc'] ?? 'Cek detail paket untuk harga weekday/weekend & fitur yang tersedia.' }}
                 </div>
               </div>
             </div>
@@ -67,40 +67,40 @@
               <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                   <i data-lucide="calendar" class="w-4 h-4" style="color:#0194F3;"></i>
-                  Weekday/Weekend
+                  {{ $siteSettings['ship_tip1_title'] ?? 'Weekday/Weekend' }}
                 </div>
                 <div class="mt-1 text-xs text-slate-600 leading-relaxed">
-                  Harga berbeda sesuai hari
+                  {{ $siteSettings['ship_tip1_desc'] ?? 'Harga berbeda sesuai hari' }}
                 </div>
               </div>
 
               <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                   <i data-lucide="users" class="w-4 h-4" style="color:#0194F3;"></i>
-                  Untuk Grup
+                  {{ $siteSettings['ship_tip2_title'] ?? 'Untuk Grup' }}
                 </div>
                 <div class="mt-1 text-xs text-slate-600 leading-relaxed">
-                  Cocok keluarga/rombongan
+                  {{ $siteSettings['ship_tip2_desc'] ?? 'Cocok keluarga/rombongan' }}
                 </div>
               </div>
 
               <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                   <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
-                  Rekomendasi
+                  {{ $siteSettings['ship_tip3_title'] ?? 'Rekomendasi' }}
                 </div>
                 <div class="mt-1 text-xs text-slate-600 leading-relaxed">
-                  Paket favorit pelanggan
+                  {{ $siteSettings['ship_tip3_desc'] ?? 'Paket favorit pelanggan' }}
                 </div>
               </div>
 
               <div class="rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md hover:border-slate-300">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                   <i data-lucide="headphones" class="w-4 h-4" style="color:#0194F3;"></i>
-                  Support
+                  {{ $siteSettings['ship_tip4_title'] ?? 'Support' }}
                 </div>
                 <div class="mt-1 text-xs text-slate-600 leading-relaxed">
-                  Bisa konsultasi sebelum booking
+                  {{ $siteSettings['ship_tip4_desc'] ?? 'Bisa konsultasi sebelum booking' }}
                 </div>
               </div>
             </div>

@@ -37,7 +37,7 @@
         </h1>
 
         <p class="mt-3 text-slate-600">
-          {{ $siteSettings['docs_hero_desc'] ?? 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.' }}
+         {{ $heroDesc ?? ($siteSettings['docs_hero_desc'] ?? 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.') }}
         </p>
       </div>
 

@@ -172,6 +172,52 @@ class SettingController extends Controller
             'rentcar_note3_desc'  => ['nullable', 'string', 'max:80'],
             'rentcar_note4_title' => ['nullable', 'string', 'max:40'],
             'rentcar_note4_desc'  => ['nullable', 'string', 'max:80'],
+// Halaman Sewa Kapal (Hero)
+'ship_hero_badge' => ['nullable', 'string', 'max:60'],
+'ship_hero_title' => ['nullable', 'string', 'max:200'],
+'ship_hero_desc'  => ['nullable', 'string', 'max:500'],
+
+// Sewa Kapal - Tips Box
+'ship_tips_title' => ['nullable', 'string', 'max:60'],
+'ship_tips_desc'  => ['nullable', 'string', 'max:180'],
+'ship_tip1_title' => ['nullable', 'string', 'max:60'],
+'ship_tip1_desc'  => ['nullable', 'string', 'max:80'],
+'ship_tip2_title' => ['nullable', 'string', 'max:60'],
+'ship_tip2_desc'  => ['nullable', 'string', 'max:80'],
+'ship_tip3_title' => ['nullable', 'string', 'max:60'],
+'ship_tip3_desc'  => ['nullable', 'string', 'max:80'],
+'ship_tip4_title' => ['nullable', 'string', 'max:60'],
+'ship_tip4_desc'  => ['nullable', 'string', 'max:80'],
+
+// Halaman Umrah (Hero + filter + tips) - ini penting karena view udah pakai keys ini
+'umrah_hero_badge' => ['nullable', 'string', 'max:60'],
+'umrah_hero_title' => ['nullable', 'string', 'max:200'],
+'umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
+
+'umrah_filter_dest_label'  => ['nullable', 'string', 'max:30'],
+'umrah_filter_cat_label'   => ['nullable', 'string', 'max:30'],
+'umrah_filter_dur_label'   => ['nullable', 'string', 'max:30'],
+'umrah_filter_trans_label' => ['nullable', 'string', 'max:30'],
+
+'umrah_tips_title' => ['nullable', 'string', 'max:60'],
+'umrah_tips_desc'  => ['nullable', 'string', 'max:180'],
+'umrah_tip1_title' => ['nullable', 'string', 'max:60'],
+'umrah_tip1_desc'  => ['nullable', 'string', 'max:80'],
+'umrah_tip2_title' => ['nullable', 'string', 'max:60'],
+'umrah_tip2_desc'  => ['nullable', 'string', 'max:80'],
+'umrah_tip3_title' => ['nullable', 'string', 'max:60'],
+'umrah_tip3_desc'  => ['nullable', 'string', 'max:80'],
+'umrah_tip4_title' => ['nullable', 'string', 'max:60'],
+'umrah_tip4_desc'  => ['nullable', 'string', 'max:80'],
+
+// Dokumentasi per kategori (Ship & Umrah)
+'docs_ship_hero_badge' => ['nullable', 'string', 'max:60'],
+'docs_ship_hero_title' => ['nullable', 'string', 'max:120'],
+'docs_ship_hero_desc'  => ['nullable', 'string', 'max:500'],
+
+'docs_umrah_hero_badge' => ['nullable', 'string', 'max:60'],
+'docs_umrah_hero_title' => ['nullable', 'string', 'max:120'],
+'docs_umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
 
             // Halaman Dokumentasi
             'docs_hero_badge' => ['nullable', 'string', 'max:60'],
@@ -299,6 +345,45 @@ class SettingController extends Controller
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_title"], ['value' => $data["rentcar_note{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_desc"],  ['value' => $data["rentcar_note{$i}_desc"] ?? '']);
         }
+// HALAMAN SEWA KAPAL
+Setting::updateOrCreate(['key' => 'ship_hero_badge'], ['value' => $data['ship_hero_badge'] ?? '']);
+Setting::updateOrCreate(['key' => 'ship_hero_title'], ['value' => $data['ship_hero_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'ship_hero_desc'],  ['value' => $data['ship_hero_desc'] ?? '']);
+
+Setting::updateOrCreate(['key' => 'ship_tips_title'], ['value' => $data['ship_tips_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'ship_tips_desc'],  ['value' => $data['ship_tips_desc'] ?? '']);
+
+for ($i = 1; $i <= 4; $i++) {
+    Setting::updateOrCreate(['key' => "ship_tip{$i}_title"], ['value' => $data["ship_tip{$i}_title"] ?? '']);
+    Setting::updateOrCreate(['key' => "ship_tip{$i}_desc"],  ['value' => $data["ship_tip{$i}_desc"] ?? '']);
+}
+
+// HALAMAN UMRAH
+Setting::updateOrCreate(['key' => 'umrah_hero_badge'], ['value' => $data['umrah_hero_badge'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_hero_title'], ['value' => $data['umrah_hero_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_hero_desc'],  ['value' => $data['umrah_hero_desc'] ?? '']);
+
+Setting::updateOrCreate(['key' => 'umrah_filter_dest_label'],  ['value' => $data['umrah_filter_dest_label'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_filter_cat_label'],   ['value' => $data['umrah_filter_cat_label'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_filter_dur_label'],   ['value' => $data['umrah_filter_dur_label'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_filter_trans_label'], ['value' => $data['umrah_filter_trans_label'] ?? '']);
+
+Setting::updateOrCreate(['key' => 'umrah_tips_title'], ['value' => $data['umrah_tips_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'umrah_tips_desc'],  ['value' => $data['umrah_tips_desc'] ?? '']);
+
+for ($i = 1; $i <= 4; $i++) {
+    Setting::updateOrCreate(['key' => "umrah_tip{$i}_title"], ['value' => $data["umrah_tip{$i}_title"] ?? '']);
+    Setting::updateOrCreate(['key' => "umrah_tip{$i}_desc"],  ['value' => $data["umrah_tip{$i}_desc"] ?? '']);
+}
+
+// DOKUMENTASI PER KATEGORI
+Setting::updateOrCreate(['key' => 'docs_ship_hero_badge'], ['value' => $data['docs_ship_hero_badge'] ?? '']);
+Setting::updateOrCreate(['key' => 'docs_ship_hero_title'], ['value' => $data['docs_ship_hero_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'docs_ship_hero_desc'],  ['value' => $data['docs_ship_hero_desc'] ?? '']);
+
+Setting::updateOrCreate(['key' => 'docs_umrah_hero_badge'], ['value' => $data['docs_umrah_hero_badge'] ?? '']);
+Setting::updateOrCreate(['key' => 'docs_umrah_hero_title'], ['value' => $data['docs_umrah_hero_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'docs_umrah_hero_desc'],  ['value' => $data['docs_umrah_hero_desc'] ?? '']);
 
         // HALAMAN DOKUMENTASI
         Setting::updateOrCreate(['key' => 'docs_hero_badge'], ['value' => $data['docs_hero_badge'] ?? '']);
