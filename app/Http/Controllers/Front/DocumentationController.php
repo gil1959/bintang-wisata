@@ -7,18 +7,42 @@ use App\Models\Documentation;
 
 class DocumentationController extends Controller
 {
-    public function index()
+    public function tour()
+    {
+        return $this->renderDocs('tour', 'Dokumentasi Paket Tour');
+    }
+
+    public function ship()
+    {
+        return $this->renderDocs('ship', 'Dokumentasi Sewa Kapal');
+    }
+
+    public function umrah()
+    {
+        return $this->renderDocs('umrah', 'Dokumentasi Umrah');
+    }
+
+    private function renderDocs(string $category, string $pageTitle)
     {
         $photos = Documentation::query()
-            ->where('type', 'photo')->where('is_active', true)
-            ->orderBy('sort_order')->orderByDesc('created_at')
+            ->where('category', $category)
+            ->where('type', 'photo')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at')
             ->get();
 
         $videos = Documentation::query()
-            ->where('type', 'video')->where('is_active', true)
-            ->orderBy('sort_order')->orderByDesc('created_at')
+            ->where('category', $category)
+            ->where('type', 'video')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at')
             ->get();
 
-        return view('front.pages.docs', compact('photos', 'videos'));
+        $heroBadge = $pageTitle;
+        $heroTitle = $pageTitle;
+
+        return view('front.pages.docs', compact('photos', 'videos', 'pageTitle', 'heroBadge', 'heroTitle'));
     }
 }

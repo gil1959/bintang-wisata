@@ -31,9 +31,15 @@ class TourController extends Controller
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
+       if ($request->filled('category')) {
+    $query->where('category_id', $request->category);
+}
+
+if ($request->filled('subcategory')) {
+    $query->where('subcategory_id', $request->subcategory);
+}
+
+
 
         $packages = $query->orderBy('title')->paginate(12)->withQueryString();
         $categories = TourCategory::orderBy('name')->get();

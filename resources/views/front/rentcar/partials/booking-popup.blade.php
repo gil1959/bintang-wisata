@@ -70,12 +70,15 @@
               class="flex-1 rounded-xl border border-slate-200 px-3 py-2 focus:ring-brand-500 focus:border-brand-500"
               placeholder="Masukkan kode promo">
             <button
-              type="button"
-              class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition"
-              @click="applyPromo()"
-            >
-              Gunakan
-            </button>
+  type="button"
+  class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+  @click="applyPromo()"
+  :disabled="promoLocked || loading"
+>
+  <span x-show="!promoLocked">Gunakan</span>
+  <span x-show="promoLocked">Dipakai</span>
+</button>
+
           </div>
           <div class="mt-1 text-sm" x-html="promoMsg"></div>
         </div>
@@ -121,7 +124,7 @@ function rentcarBookingPopup(basePrice, slug){
     promo:'',
     promoId:null,
     promoMsg:'',
-
+promoLocked:false,
     pickup:'',
     ret:'',
 
@@ -133,13 +136,18 @@ function rentcarBookingPopup(basePrice, slug){
     token: @json(csrf_token()),
 
     open(detail){
-      this.pickup = detail?.pickup || '';
-      this.ret    = detail?.ret || '';
-      this.isOpen = true;
-      this.promoMsg = '';
-      this.promoId = null;
-      this.calc();
-    },
+  this.pickup = detail?.pickup || '';
+  this.ret    = detail?.ret || '';
+  this.isOpen = true;
+
+  // reset promo state setiap buka popup
+  this.promoMsg = '';
+  this.promoId = null;
+  this.promoLocked = false;
+
+  this.calc();
+},
+
 
     close(){
       this.isOpen = false;
@@ -169,10 +177,16 @@ function rentcarBookingPopup(basePrice, slug){
       catch(e){ return n; }
     },
 
-    applyPromo(){
-      this.promoMsg = '';
+   applyPromo(){
+  this.promoMsg = '';
 
-      if(!this.promo){
+  // ✅ kalau sudah apply sukses, jangan boleh apply lagi
+  if(this.promoLocked){
+    this.promoMsg = `<span class="text-slate-600">Promo sudah digunakan untuk booking ini.</span>`;
+    return;
+  }
+
+  if(!this.promo){
         this.promoMsg = `<span class="text-red-600">Kode promo belum diisi.</span>`;
         return;
       }
@@ -184,11 +198,13 @@ function rentcarBookingPopup(basePrice, slug){
       fetch('/promo/validate', {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({
-          _token: this.token,
-          code: this.promo,
-          price: this.total
-        })
+       body: JSON.stringify({
+  _token: this.token,
+  code: this.promo,
+  price: this.total,
+  email: this.email
+})
+
       })
       .then(r => r.json())
       .then(res => {
@@ -199,6 +215,7 @@ function rentcarBookingPopup(basePrice, slug){
         }
         this.total = res.final_price;
         this.promoId = res.promo_id;
+        this.promoLocked = true;
         this.promoMsg = `<span class="text-emerald-600">Diskon diterapkan!</span>`;
       })
       .catch(() => {

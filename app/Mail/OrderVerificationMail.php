@@ -23,20 +23,23 @@ class OrderVerificationMail extends Mailable
     }
 
     public function build()
-    {
-        $label = $this->result === 'approved' ? 'Terverifikasi (Lunas)' : 'Ditolak';
-        $subject = "Status Pembayaran {$label} - {$this->order->invoice_number}";
-        if ($this->isAdminCopy) {
-            $subject = '[ADMIN COPY] ' . $subject;
-        }
+{
+    $this->order->loadMissing('payments');
 
-        return $this
-            ->subject($subject)
-            ->view('emails.order_verification')
-            ->with([
-                'order' => $this->order,
-                'result' => $this->result,
-                'isAdminCopy' => $this->isAdminCopy,
-            ]);
+    $label = $this->result === 'approved' ? 'Terverifikasi (Lunas)' : 'Ditolak';
+    $subject = "Status Pembayaran {$label} - {$this->order->invoice_number}";
+    if ($this->isAdminCopy) {
+        $subject = '[ADMIN COPY] ' . $subject;
     }
+
+    return $this
+        ->subject($subject)
+        ->view('emails.order_verification')
+        ->with([
+            'order' => $this->order,
+            'result' => $this->result,
+            'isAdminCopy' => $this->isAdminCopy,
+        ]);
+}
+
 }

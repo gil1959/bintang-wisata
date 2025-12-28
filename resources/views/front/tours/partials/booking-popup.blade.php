@@ -120,13 +120,17 @@
                    placeholder="Contoh: LIBURAN50">
 
             <button type="button"
-                    class="rounded-xl px-4 py-2 text-sm font-extrabold text-white shadow-sm"
-                    style="background:#0194F3"
-                    onmouseover="this.style.background='#0186DB'"
-                    onmouseout="this.style.background='#0194F3'"
-                    @click="applyPromo()">
-              Gunakan
-            </button>
+        class="rounded-xl px-4 py-2 text-sm font-extrabold text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+        style="background:#0194F3"
+        onmouseover="if(!this.disabled) this.style.background='#0186DB'"
+        onmouseout="this.style.background='#0194F3'"
+        @click="applyPromo()"
+        :disabled="promoLocked || promoLoading || loading">
+  <span x-show="!promoLocked && !promoLoading">Gunakan</span>
+  <span x-show="promoLoading">Memproses...</span>
+  <span x-show="promoLocked">Dipakai</span>
+</button>
+
           </div>
 
           <div class="mt-2 text-sm"
@@ -178,6 +182,8 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl,
   form: { name:'', email:'', phone:'', departure_date:'' },
 
   promo: { code:'', id:null, ok:false, message:'' },
+  promoLocked: false,
+  promoLoading: false,
 
 
     open(e) {
@@ -185,6 +191,8 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl,
       this.count = this.tier.is_custom ? 2 : this.tier.min_people;
       this.total = 0;
       this.promo = { code:'', id:null, ok:false, message:'' };
+      this.promoLocked = false;
+      this.promoLoading = false;
       this.recalc();
       this.isOpen = true;
     },
@@ -197,6 +205,10 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl,
       const max = this.tier.max_people ?? 9999;
       if (this.count < min) this.count = min;
       if (this.count > max) this.count = max;
+
+      // ✅ PENTING: kalau promo sudah dipakai, jangan overwrite total diskon
+      if (this.promoLocked) return;
+
       this.total = this.count * this.tier.price;
     },
 
@@ -213,31 +225,53 @@ ${packageUrl}`;
 
 
     async applyPromo() {
-      const code = (this.promo.code || '').trim();
-      if (!code) {
-        this.promo = { ...this.promo, ok:false, id:null, message:'Masukkan kode promo.' };
-        return;
-      }
+  if (this.promoLocked) {
+    this.promo = { ...this.promo, message:'Promo sudah digunakan untuk booking ini.' };
+    return;
+  }
+  if (this.promoLoading) return;
 
-      const r = await fetch("/promo/validate", {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Accept":"application/json",
-          "X-CSRF-TOKEN":document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ code, price: this.total })
-      });
+  const code = (this.promo.code || '').trim();
+  if (!code) {
+    this.promo = { ...this.promo, ok:false, id:null, message:'Masukkan kode promo.' };
+    return;
+  }
 
-      const res = await r.json();
-      if (!res.valid) {
-        this.promo = { ...this.promo, ok:false, id:null, message: res.message || 'Promo tidak valid.' };
-        return;
-      }
+  this.promoLoading = true;
 
-      this.total = Number(res.final_price || this.total);
-      this.promo = { ...this.promo, ok:true, id: res.promo_id, message:'Diskon diterapkan.' };
-    },
+  try {
+    const r = await fetch("/promo/validate", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-CSRF-TOKEN":document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        code,
+        price: this.total,
+        email: (this.form.email || '').trim()
+      })
+    });
+
+    const res = await r.json();
+    this.promoLoading = false;
+
+    if (!res.valid) {
+      this.promo = { ...this.promo, ok:false, id:null, message: res.message || 'Promo tidak valid.' };
+      return;
+    }
+
+    this.total = Number(res.final_price || this.total);
+    this.promo = { ...this.promo, ok:true, id: res.promo_id, message:'Diskon diterapkan.' };
+    this.promoLocked = true;
+
+  } catch (e) {
+    this.promoLoading = false;
+    this.promo = { ...this.promo, ok:false, id:null, message:'Gagal menghubungi server.' };
+  }
+},
+
 
     async submitBooking() {
   if (this.loading) return; // kunci: biar gak bisa submit berkali-kali

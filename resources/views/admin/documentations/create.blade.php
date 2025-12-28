@@ -4,6 +4,12 @@
 @section('page-title', 'Tambah Dokumentasi')
 
 @section('content')
+@php
+    // category diambil dari query string: ?category=tour|ship|umrah
+    // default: tour
+    $category = request('category', 'tour');
+@endphp
+
 <div class="space-y-5" x-data="{ source: '{{ old('source','upload') }}' }">
 
     {{-- Header --}}
@@ -44,6 +50,9 @@
 
         <form method="POST" action="{{ route('admin.documentations.store') }}" enctype="multipart/form-data" class="p-5">
             @csrf
+
+            {{-- IMPORTANT: kunci category sesuai section yang dipilih --}}
+            <input type="hidden" name="category" value="{{ $category }}">
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
 

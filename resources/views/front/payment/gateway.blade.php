@@ -18,9 +18,22 @@
         <p class="text-sm text-gray-600">Invoice: <b>{{ $order->invoice_number }}</b></p>
         <p class="text-sm">{{ strtoupper($order->type) }} - {{ $order->product_name }}</p>
         <p class="text-sm">Atas nama: <b>{{ $order->customer_name }}</b> ({{ $order->customer_email }})</p>
-        <div class="flex justify-between mt-3 border-t pt-2">
-            <span class="font-semibold">Total yang harus dibayar</span>
-            <span class="font-bold text-lg">Rp {{ number_format($order->final_price,0,',','.') }}</span>
+
+        @php
+            $totalBayar = $order->payable_amount ?? $order->final_price;
+        @endphp
+
+        <div class="mt-3 border-t pt-2">
+            <div class="flex justify-between">
+                <span class="font-semibold">Total yang harus dibayar</span>
+                <span class="font-bold text-lg">Rp {{ number_format($totalBayar,0,',','.') }}</span>
+            </div>
+
+            @if(!is_null($order->unique_code) && !is_null($order->payable_amount))
+                <p class="text-xs text-gray-500 mt-1">
+                    Termasuk kode unik: <b>{{ $order->unique_code }}</b>
+                </p>
+            @endif
         </div>
     </div>
 
@@ -32,11 +45,19 @@
         </p>
 
         <form method="POST" action="{{ route('payment.gateway.start', $order) }}">
-            @csrf
-            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold">
-                Lanjut Bayar
-            </button>
-        </form>
+    @csrf
+    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold">
+        Lanjut Bayar
+    </button>
+</form>
+
+@if(session('show_change_method'))
+    <a href="{{ route('checkout.show', $order->id) }}#payment-method"
+       class="block w-full text-center border border-slate-300 hover:border-slate-400 text-slate-700 py-3 rounded-lg font-semibold">
+        Pilih metode pembayaran yang lain
+    </a>
+@endif
+
     </div>
 
 </div>

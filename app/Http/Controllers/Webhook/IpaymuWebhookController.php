@@ -24,7 +24,10 @@ class IpaymuWebhookController extends Controller
             (int) $data['Status'] === 1 &&
             isset($data['SessionID'])
         ) {
-            $payment = Payment::where('reference', $data['SessionID'])->first();
+            $payment = Payment::where('gateway_name', 'ipaymu')
+    ->where('gateway_reference', $data['SessionID'])
+    ->latest()
+    ->first();
 
             if (!$payment) {
                 Log::error('iPaymu webhook: payment not found', [
@@ -38,10 +41,12 @@ class IpaymuWebhookController extends Controller
             $payment->save();
 
             // update order
-            if ($payment->order) {
-                $payment->order->payment_status = 'paid';
-                $payment->order->save();
-            }
+           if ($payment->order) {
+    $payment->order->payment_status = 'paid';
+    $payment->order->order_status   = 'approved';
+    $payment->order->save();
+}
+
         }
 
         return response()->json(['success' => true]);

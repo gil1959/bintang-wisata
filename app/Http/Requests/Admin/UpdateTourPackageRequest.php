@@ -57,7 +57,12 @@ class UpdateTourPackageRequest extends FormRequest
             'tiers.domestic.*.price'      => ['required', 'integer', 'min:0'],
             'tiers.domestic.*.type'       => ['required', Rule::in(['domestic'])],
             'tiers.domestic.*.is_custom'  => ['required', 'boolean'],
-
+ 'subcategory_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('tour_categories', 'id')
+                ->where(fn ($q) => $q->where('parent_id', $this->input('category_id'))),
+        ],
             // International
             'tiers.international'            => ['required', 'array'],
             'tiers.international.*.id'       => ['nullable', 'integer'],

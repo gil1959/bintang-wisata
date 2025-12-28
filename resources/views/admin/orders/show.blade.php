@@ -95,42 +95,63 @@
                         </div>
 
                         <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700">
-                            @if($order->type === 'tour')
-                                <div>
-                                    <div class="text-xs font-extrabold text-slate-500">Keberangkatan</div>
-                                    <div class="mt-1 font-bold text-slate-900">
-                                        {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
-                                    <div class="mt-1 font-bold text-slate-900">
-                                        {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
-                                    </div>
-                                </div>
-                            @endif
 
-                            @if($order->type === 'rent_car')
-                                <div>
-                                    <div class="text-xs font-extrabold text-slate-500">Pickup</div>
-                                    <div class="mt-1 font-bold text-slate-900">
-                                        {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y') : '-' }}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-extrabold text-slate-500">Return</div>
-                                    <div class="mt-1 font-bold text-slate-900">
-                                        {{ $order->return_date ? $order->return_date->translatedFormat('d F Y') : '-' }}
-                                    </div>
-                                </div>
-                                <div class="sm:col-span-2">
-                                    <div class="text-xs font-extrabold text-slate-500">Durasi</div>
-                                    <div class="mt-1 font-bold text-slate-900">
-                                        {{ $order->total_days ? $order->total_days . ' hari' : '-' }}
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
+    @if($order->type === 'tour' || $order->type === 'umrah')
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">
+                {{ $order->type === 'umrah' ? 'Tanggal Booking' : 'Keberangkatan' }}
+            </div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
+            </div>
+        </div>
+
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
+            </div>
+        </div>
+    @endif
+
+    @if($order->type === 'ship')
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">Tanggal Sewa</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
+            </div>
+        </div>
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">Qty</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->participants ? number_format($order->participants,0,',','.') : 1 }}
+            </div>
+        </div>
+    @endif
+
+    @if($order->type === 'rent_car')
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">Pickup</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y') : '-' }}
+            </div>
+        </div>
+        <div>
+            <div class="text-xs font-extrabold text-slate-500">Return</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->return_date ? $order->return_date->translatedFormat('d F Y') : '-' }}
+            </div>
+        </div>
+        <div class="sm:col-span-2">
+            <div class="text-xs font-extrabold text-slate-500">Durasi</div>
+            <div class="mt-1 font-bold text-slate-900">
+                {{ $order->total_days ? $order->total_days . ' hari' : '-' }}
+            </div>
+        </div>
+    @endif
+
+</div>
+
                     </div>
 
                     {{-- WhatsApp --}}

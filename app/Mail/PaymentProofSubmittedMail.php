@@ -21,18 +21,21 @@ class PaymentProofSubmittedMail extends Mailable
     }
 
     public function build()
-    {
-        $subject = 'Bukti Pembayaran Diterima - ' . $this->order->invoice_number;
-        if ($this->isAdminCopy) {
-            $subject = '[ADMIN COPY] ' . $subject;
-        }
+{
+    $this->order->loadMissing('payments');
 
-        return $this
-            ->subject($subject)
-            ->view('emails.payment_proof_submitted')
-            ->with([
-                'order' => $this->order,
-                'isAdminCopy' => $this->isAdminCopy,
-            ]);
+    $subject = 'Bukti Pembayaran Diterima - ' . $this->order->invoice_number;
+    if ($this->isAdminCopy) {
+        $subject = '[ADMIN COPY] ' . $subject;
     }
+
+    return $this
+        ->subject($subject)
+        ->view('emails.payment_proof_submitted')
+        ->with([
+            'order' => $this->order,
+            'isAdminCopy' => $this->isAdminCopy,
+        ]);
+}
+
 }

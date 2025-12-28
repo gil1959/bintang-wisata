@@ -6,14 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TripayWebhookController extends Controller
 {
     public function __invoke(Request $request)
     {
         $gateway = PaymentGateway::where('name', 'tripay')->first();
+
+        // Jangan blok webhook cuma karena gateway inactive.
+        // Ini untuk lolos verifikasi callback + cegah retry spam.
         if (!$gateway || !$gateway->is_active) {
-            return response()->json(['message' => 'gateway inactive'], 403);
+            Log::warning('Tripay webhook received but gateway inactive', [
+                'ip' => $request->ip(),
+                'payload' => $request->all(),
+            ]);
+
+            return response()->json(['message' => 'OK'], 200);
         }
 
         $credentials = $gateway->credentials ?? [];
@@ -22,21 +31,18 @@ class TripayWebhookController extends Controller
             return response()->json(['message' => 'missing private_key'], 400);
         }
 
-        // (optional) event guard
-        // Tripay biasanya: payment_status
         $event = (string) $request->header('X-Callback-Event');
         if ($event !== '' && $event !== 'payment_status') {
-            // gak error, cuma ignore supaya gak ganggu
             return response()->json(['message' => 'ignored event'], 200);
         }
 
-        // Verify signature
         $raw = $request->getContent();
         $sig = (string) $request->header('X-Callback-Signature');
 
         $expected = hash_hmac('sha256', $raw, $privateKey);
         if ($sig === '' || !hash_equals($expected, $sig)) {
-            return response()->json(['message' => 'invalid signature'], 401);
+            // 403 lebih cocok untuk webhook
+            return response()->json(['message' => 'invalid signature'], 403);
         }
 
         $data = $request->input('data');
@@ -45,13 +51,12 @@ class TripayWebhookController extends Controller
         }
 
         $reference = $data['reference'] ?? null;
-        $status = strtoupper((string)($data['status'] ?? ''));
+        $status = strtoupper((string) ($data['status'] ?? ''));
 
         if (!$reference) {
             return response()->json(['message' => 'missing reference'], 400);
         }
 
-        // Cari payment yg bener (Tripay reference dari createTransaction)
         $payment = Payment::where('gateway_name', 'tripay')
             ->where('gateway_reference', $reference)
             ->latest()
@@ -61,7 +66,6 @@ class TripayWebhookController extends Controller
             return response()->json(['message' => 'payment not found'], 404);
         }
 
-        // Map ke enum DB lu
         $newPaymentStatus = match ($status) {
             'PAID', 'SUCCESS' => 'paid',
             'FAILED', 'EXPIRED' => 'failed',
@@ -72,7 +76,6 @@ class TripayWebhookController extends Controller
         $payment->gateway_payload = $request->all();
         $payment->save();
 
-        // Gateway auto approve/reject
         if ($payment->order) {
             if ($newPaymentStatus === 'paid') {
                 $payment->order->payment_status = 'paid';
@@ -82,7 +85,6 @@ class TripayWebhookController extends Controller
                 $payment->order->order_status = 'rejected';
             } else {
                 $payment->order->payment_status = 'waiting_payment';
-                // order_status biarin
             }
             $payment->order->save();
         }

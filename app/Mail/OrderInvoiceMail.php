@@ -21,18 +21,22 @@ class OrderInvoiceMail extends Mailable
     }
 
     public function build()
-    {
-        $subject = 'Invoice ' . $this->order->invoice_number . ' - Bintang Wisata';
-        if ($this->isAdminCopy) {
-            $subject = '[ADMIN COPY] ' . $subject;
-        }
+{
+    $this->order->loadMissing('payments');
 
-        return $this
-            ->subject($subject)
-            ->view('emails.order_invoice')
-            ->with([
-                'order' => $this->order,
-                'isAdminCopy' => $this->isAdminCopy,
-            ]);
+    $subject = 'Invoice ' . $this->order->invoice_number . ' - Bintang Wisata';
+    if ($this->isAdminCopy) {
+        $subject = '[ADMIN COPY] ' . $subject;
     }
+
+    return $this
+        ->subject($subject)
+        ->view('emails.order_invoice')
+        ->with([
+            'order' => $this->order,
+            'isAdminCopy' => $this->isAdminCopy,
+        ]);
+}
+
+
 }

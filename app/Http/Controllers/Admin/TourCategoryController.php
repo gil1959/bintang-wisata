@@ -10,45 +10,78 @@ class TourCategoryController extends Controller
 {
     public function index()
     {
-        $categories = TourCategory::orderBy('name')->get();
+        $categories = TourCategory::query()
+    ->whereNull('parent_id')
+    ->with('children')
+    ->orderBy('name')
+    ->get();
         return view('admin.categories.index', compact('categories'));
     }
 
     public function create()
-    {
-        return view('admin.categories.create');
-    }
+{
+    $parents = TourCategory::query()
+        ->whereNull('parent_id')
+        ->orderBy('name')
+        ->get(['id','name']);
+
+    return view('admin.categories.create', compact('parents'));
+}
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:tour_categories,slug'
-        ]);
+  'name' => ['required','string','max:190'],
+  'slug' => ['required','string','max:190','unique:tour_categories,slug'],
+  'parent_id' => ['nullable','exists:tour_categories,id'],
+]);
 
-        TourCategory::create($request->only('name', 'slug'));
+TourCategory::create($request->only('name','slug','parent_id'));
+
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil dibuat.');
     }
 
     public function edit(TourCategory $category)
-    {
-        return view('admin.categories.edit', compact('category'));
-    }
+{
+    $parents = TourCategory::query()
+        ->whereNull('parent_id')
+        ->where('id', '!=', $category->id) // cegah dia jadi parent dirinya sendiri
+        ->orderBy('name')
+        ->get(['id','name']);
+
+    return view('admin.categories.edit', compact('category', 'parents'));
+}
+
 
     public function update(Request $request, TourCategory $category)
-    {
-        $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:tour_categories,slug,' . $category->id
-        ]);
+{
+    $data = $request->validate([
+        'name' => ['required', 'string', 'max:190'],
+        'slug' => ['required', 'string', 'max:190', 'unique:tour_categories,slug,' . $category->id],
+        'parent_id' => ['nullable', 'exists:tour_categories,id'],
+    ]);
 
-        $category->update($request->only('name', 'slug'));
-
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil diperbarui.');
+    // Guard: cegah category jadi parent dirinya sendiri
+    if (!empty($data['parent_id']) && (int)$data['parent_id'] === (int)$category->id) {
+        return back()
+            ->withErrors(['parent_id' => 'Parent kategori tidak boleh dirinya sendiri.'])
+            ->withInput();
     }
+
+    $category->update([
+        'name'      => $data['name'],
+        'slug'      => $data['slug'],
+        'parent_id' => $data['parent_id'] ?? null,
+    ]);
+
+    return redirect()
+        ->route('admin.categories.index')
+        ->with('success', 'Kategori berhasil diperbarui.');
+}
+
 
     public function destroy(TourCategory $category)
     {
@@ -62,4 +95,10 @@ class TourCategoryController extends Controller
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil dihapus.');
     }
+    public function subcategories(TourCategory $category)
+{
+    $items = $category->children()->get(['id','name']);
+    return response()->json(['items' => $items]);
+}
+
 }

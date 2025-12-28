@@ -35,10 +35,16 @@ class TripayService
         $json = $resp->json();
 
         // ✅ kalau TriPay balikin success=false tapi HTTP 200
-        if (isset($json['success']) && $json['success'] === false) {
-            $msg = $json['message'] ?? 'Unknown error';
-            throw new \RuntimeException("TriPay response gagal: {$msg}");
-        }
+       if (isset($json['success']) && $json['success'] === false) {
+    $msg = $json['message'] ?? 'Unknown error';
+
+    if (stripos($msg, 'merchant status is rejected') !== false) {
+        throw new \RuntimeException("Akun TriPay ditolak: {$msg}");
+    }
+
+    throw new \RuntimeException("Gagal ambil channel TriPay: {$msg}");
+}
+
 
         // ✅ fallback kalau struktur beda
         $data = $json['data'] ?? [];

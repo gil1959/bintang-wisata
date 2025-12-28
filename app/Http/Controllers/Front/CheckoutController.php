@@ -11,20 +11,26 @@ use App\Models\Setting;
 use App\Services\Payments\TripayService;
 use Illuminate\Support\Facades\Log;
 
-
 class CheckoutController extends Controller
 {
     public function show($orderId, TripayService $tripay)
-
     {
         $order = Order::findOrFail($orderId);
 
         // Ambil paket buat ringkasan
         if ($order->type === 'tour') {
-            $package = \App\Models\TourPackage::find($order->product_id);
-        } else {
-            $package = \App\Models\RentCarPackage::find($order->product_id);
-        }
+    $package = \App\Models\TourPackage::find($order->product_id);
+} elseif ($order->type === 'rent_car') {
+    $package = \App\Models\RentCarPackage::find($order->product_id);
+} elseif ($order->type === 'ship') {
+    $package = \App\Models\ShipPackage::find($order->product_id);
+} elseif ($order->type === 'umrah') {
+    $package = \App\Models\UmrahPackage::find($order->product_id);
+} else {
+    $package = null;
+}
+
+
 
         // Manual methods tetap sama
         $manualMethods = PaymentMethod::where('is_active', 1)
@@ -80,13 +86,22 @@ class CheckoutController extends Controller
                     continue;
                 }
 
+                $gatewayLabel = $g->label ?? strtoupper($g->name);
+
                 $gatewayOptions[] = [
-                    'value' => "gateway:{$g->name}:{$code}",
-                    'label' => ($g->label ?? strtoupper($g->name)) . ' - ' . ($ch['name'] ?? $code),
+                    'value'         => "gateway:{$g->name}:{$code}",
+                    'label'         => $gatewayLabel . ' - ' . ($ch['name'] ?? $code),
+
+                    // tambahan untuk UI checkout (logo + grouping)
+                    'gateway'       => $g->name,
+                    'gateway_label' => $gatewayLabel,
+                    'channel_code'  => $code,
+                    'name'          => $ch['name'] ?? $code,
+                    'group'         => $ch['group'] ?? null,
+                    'icon_url'      => $ch['icon_url'] ?? null,
                 ];
             }
         }
-
 
         return view('front.checkout.index', [
             'order'          => $order,
@@ -129,6 +144,8 @@ class CheckoutController extends Controller
                     'payment_method' => 'Rekening transfer tidak ditemukan / nonaktif.',
                 ])->withInput();
             }
+
+            // Generate kode unik (manual)
             if ($order->unique_code === null || $order->payable_amount === null) {
                 $min = (int)(Setting::where('key', 'manual_unique_code_min')->value('value') ?? 1);
                 $max = (int)(Setting::where('key', 'manual_unique_code_max')->value('value') ?? 999);
@@ -141,13 +158,12 @@ class CheckoutController extends Controller
 
                 $code = null;
 
-                // C) anti bentrok: payable_amount unik untuk order yang masih menunggu
+                // anti bentrok: payable_amount unik untuk semua order yang masih menunggu
                 for ($tries = 0; $tries < 25; $tries++) {
                     $candidate = random_int($min, $max);
                     $payable = (int)$order->final_price + $candidate;
 
                     $exists = Order::whereIn('payment_status', ['waiting_payment', 'waiting_verification'])
-                        ->where('payment_method', 'like', 'manual:%')
                         ->where('payable_amount', $payable)
                         ->exists();
 
@@ -163,7 +179,6 @@ class CheckoutController extends Controller
                         $payable = (int)$order->final_price + $candidate;
 
                         $exists = Order::whereIn('payment_status', ['waiting_payment', 'waiting_verification'])
-                            ->where('payment_method', 'like', 'manual:%')
                             ->where('payable_amount', $payable)
                             ->exists();
 
@@ -179,6 +194,7 @@ class CheckoutController extends Controller
                 $order->unique_code = $code;
                 $order->payable_amount = (int)$order->final_price + $code;
             }
+
             // Update order tetap sama seperti flow lama
             $order->update([
                 'billing_first_name' => $data['billing_first_name'],
@@ -191,8 +207,8 @@ class CheckoutController extends Controller
                 'billing_phone'      => $data['billing_phone'],
                 'payment_method'     => $raw,
                 'payment_status'     => 'waiting_payment',
-                'unique_code'       => $order->unique_code,
-                'payable_amount'    => $order->payable_amount,
+                'unique_code'        => $order->unique_code,
+                'payable_amount'     => $order->payable_amount,
             ]);
 
             return redirect()->route('payment.manual.page', $order->id);
@@ -215,7 +231,6 @@ class CheckoutController extends Controller
                     'payment_method' => 'Payment gateway tidak didukung.',
                 ])->withInput();
             }
-
 
             $gateway = PaymentGateway::where('name', $gatewayName)
                 ->where('is_active', 1)
@@ -242,7 +257,40 @@ class CheckoutController extends Controller
                 ])->withInput();
             }
 
-            // Update order sama: simpan payment_method & status waiting_payment
+            // ✅ Generate kode unik juga untuk gateway
+            if ($order->unique_code === null || $order->payable_amount === null) {
+                $min = (int)(Setting::where('key', 'manual_unique_code_min')->value('value') ?? 1);
+                $max = (int)(Setting::where('key', 'manual_unique_code_max')->value('value') ?? 999);
+
+                if ($min < 1) $min = 1;
+                if ($max > 999) $max = 999;
+                if ($min > $max) {
+                    [$min, $max] = [$max, $min];
+                }
+
+                $code = null;
+
+                for ($tries = 0; $tries < 25; $tries++) {
+                    $candidate = random_int($min, $max);
+                    $payable = (int)$order->final_price + $candidate;
+
+                    $exists = Order::whereIn('payment_status', ['waiting_payment', 'waiting_verification'])
+                        ->where('payable_amount', $payable)
+                        ->exists();
+
+                    if (!$exists) {
+                        $code = $candidate;
+                        break;
+                    }
+                }
+
+                if ($code === null) $code = $min;
+
+                $order->unique_code = $code;
+                $order->payable_amount = (int)$order->final_price + $code;
+            }
+
+            // Update order sama: simpan payment_method & status waiting_payment + nominal unik
             $order->update([
                 'billing_first_name' => $data['billing_first_name'],
                 'billing_last_name'  => $data['billing_last_name'],
@@ -254,6 +302,8 @@ class CheckoutController extends Controller
                 'billing_phone'      => $data['billing_phone'],
                 'payment_method'     => $raw,
                 'payment_status'     => 'waiting_payment',
+                'unique_code'        => $order->unique_code,
+                'payable_amount'     => $order->payable_amount,
             ]);
 
             return redirect()->route('payment.gateway.page', $order->id);

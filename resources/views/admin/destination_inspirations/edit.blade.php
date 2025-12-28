@@ -31,6 +31,12 @@
       @endforeach
     </select>
   </div>
+<div class="mt-3">
+  <label class="block text-sm font-bold mb-1">Sub Kategori (opsional)</label>
+  <select id="inspSubcategory" name="tour_subcategory_id" class="w-full border rounded-xl px-3 py-2">
+    <option value="">-- Semua Sub Kategori --</option>
+  </select>
+</div>
 
   {{-- TAMBAH BLOK INI --}}
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -66,3 +72,39 @@
 
 </div>
 @endsection
+@push('scripts')
+<script>
+(function(){
+  const cat = document.querySelector('select[name="tour_category_id"]');
+  const sub = document.getElementById('inspSubcategory');
+  const oldSub = "{{ old('tour_subcategory_id', $item->tour_subcategory_id ?? '') }}";
+
+  async function loadSubs() {
+    const catId = cat.value;
+    sub.innerHTML = '<option value="">-- Semua Sub Kategori --</option>';
+    if (!catId) return;
+
+    const url = new URL(
+  "{{ route('admin.categories.subcategories', ['category' => 0]) }}".replace('/0/', '/' + catId + '/'),
+  window.location.origin
+);
+
+
+    const res = await fetch(url.toString(), { headers: {'X-Requested-With': 'XMLHttpRequest'}});
+    if (!res.ok) return;
+
+    const data = await res.json();
+    (data.items || []).forEach(it => {
+      const opt = document.createElement('option');
+      opt.value = it.id;
+      opt.textContent = it.name;
+      if (oldSub && String(oldSub) === String(it.id)) opt.selected = true;
+      sub.appendChild(opt);
+    });
+  }
+
+  cat.addEventListener('change', () => { sub.value=''; loadSubs(); });
+  loadSubs();
+})();
+</script>
+@endpush

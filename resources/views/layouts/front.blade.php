@@ -16,7 +16,8 @@
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Poppins:wght@400;500;600;700&display=swap">
 
     {{-- APP CSS via MIX --}}
-    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+    <link rel="preload" as="style" href="{{ mix('css/app.css') }}">
+<link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
     {{-- ALPINE JS HARUS DI BAWAH CSS & DEFER --}}
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

@@ -26,5 +26,9 @@ Route::post('/webhooks/doku', DokuWebhookController::class);
 Route::post('/webhooks/midtrans', MidtransWebhookController::class);
 Route::post('/webhooks/xendit', [XenditWebhookController::class, 'handle']);
 Route::post('/webhooks/ipaymu', [IpaymuWebhookController::class, 'handle']);
-Route::post('/webhooks/paypal', [\App\Http\Controllers\Webhooks\PayPalWebhookController::class, 'handle'])
+Route::post('/webhooks/paypal', [\App\Http\Controllers\Webhook\PayPalWebhookController::class, 'handle'])
     ->name('webhooks.paypal');
+
+Route::match(['GET', 'HEAD'], '/webhooks/tripay', function () {
+    return response()->json(['message' => 'ok'], 200);
+});

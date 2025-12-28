@@ -61,6 +61,9 @@
                     @csrf
                     @method('PUT')
 
+                    {{-- IMPORTANT: kunci category supaya item ga nyasar pindah kategori --}}
+                    <input type="hidden" name="category" value="{{ $documentation->category ?? 'tour' }}">
+
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
 
                         {{-- Type (read-only biar aman, kalau mau editable bilang) --}}

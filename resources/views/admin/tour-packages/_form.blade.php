@@ -98,6 +98,14 @@
                     @endforeach
                 </select>
             </div>
+            <div class="md:col-span-4">
+  <label class="block text-sm font-bold text-slate-800 mb-1">Sub Kategori</label>
+  <select id="subcategorySelect" name="subcategory_id"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+    <option value="">-- (Opsional) Pilih Sub Kategori --</option>
+  </select>
+</div>
+
         </div>
     </div>
 </div>
@@ -431,3 +439,43 @@
         </select>
     </div>
 </div>
+@push('scripts')
+<script>
+(function(){
+  const cat = document.querySelector('select[name="category_id"]');
+  const sub = document.getElementById('subcategorySelect');
+  const oldSub = "{{ old('subcategory_id', $pkg->subcategory_id ?? '') }}";
+
+  async function loadSubs() {
+    const catId = cat.value;
+    sub.innerHTML = '<option value="">-- (Opsional) Pilih Sub Kategori --</option>';
+    if (!catId) return;
+
+    const url = new URL("{{ route('admin.categories.subcategories', ['category' => 0]) }}".replace('/0/', '/' + catId + '/'), window.location.origin);
+
+    const res = await fetch(url.toString(), { headers: {'X-Requested-With': 'XMLHttpRequest'}});
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const items = data.items || [];
+
+    for (const it of items) {
+      const opt = document.createElement('option');
+      opt.value = it.id;
+      opt.textContent = it.name;
+      if (oldSub && String(oldSub) === String(it.id)) opt.selected = true;
+      sub.appendChild(opt);
+    }
+  }
+
+  cat.addEventListener('change', () => {
+    // reset oldSub ketika category berubah
+    sub.value = '';
+    loadSubs();
+  });
+
+  loadSubs();
+})();
+</script>
+@endpush
+

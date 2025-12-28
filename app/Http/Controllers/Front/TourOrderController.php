@@ -42,13 +42,29 @@ class TourOrderController extends Controller
         $subtotal = $tier->price * $data['participants'];
 
         // ===================== PROMO ======================
-        $discount = 0;
-        if ($data['promo_id']) {
-            $promo = Promo::find($data['promo_id']);
-            if ($promo && $promo->is_valid_for($subtotal)) {
-                $discount = $promo->calculate_discount($subtotal);
-            }
+       $discount = 0;
+$promoUsed = null;
+
+if (!empty($data['promo_id'])) {
+    $promo = Promo::find($data['promo_id']);
+
+    if ($promo && $promo->is_valid_for($subtotal)) {
+        // ✅ enforce 1x per checkout (tanpa akun) berdasarkan email
+        $alreadyUsed = Order::where('customer_email', $data['email'])
+            ->where('promo_id', $promo->id)
+            ->exists();
+
+        if ($alreadyUsed) {
+            return response()->json([
+                'error' => 'Kode promo ini sudah pernah digunakan untuk email ini.'
+            ], 422);
         }
+
+        $discount = $promo->calculate_discount($subtotal);
+        $promoUsed = $promo;
+    }
+}
+
 
         $final = $subtotal - $discount;
 
@@ -71,7 +87,8 @@ class TourOrderController extends Controller
             'subtotal'       => $subtotal,
             'discount'       => $discount,
             'final_price'    => $final,
-
+ 'discount'       => $discount,
+    'final_price'    => $final,
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);

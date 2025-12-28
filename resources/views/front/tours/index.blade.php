@@ -308,8 +308,12 @@
     </svg>
 
     <span class="font-semibold">
-        {{ $package->rating_value ?? 5 }} Rating
-    </span>
+    {{ number_format((float)($package->rating_value ?? 5), 1) }}/5
+</span>
+<span class="text-slate-500">
+    · {{ (int)($package->rating_count ?? 0) }} ulasan
+</span>
+
 </div>
 
                         </div>

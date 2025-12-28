@@ -12,15 +12,29 @@ class DocumentationController extends Controller
     public function index(Request $request)
     {
         $type = $request->get('type'); // photo|video|null
-        $q = Documentation::query();
+$base = Documentation::query();
 
-        if ($type && in_array($type, ['photo', 'video'])) {
-            $q->where('type', $type);
-        }
+if ($type && in_array($type, ['photo', 'video'])) {
+    $base->where('type', $type);
+}
 
-        $items = $q->orderByDesc('created_at')->paginate(20)->withQueryString();
+$tourItems = (clone $base)->where('category', 'tour')
+    ->orderByDesc('created_at')
+    ->paginate(20, ['*'], 'tour_page')
+    ->withQueryString();
 
-        return view('admin.documentations.index', compact('items', 'type'));
+$shipItems = (clone $base)->where('category', 'ship')
+    ->orderByDesc('created_at')
+    ->paginate(20, ['*'], 'ship_page')
+    ->withQueryString();
+
+$umrahItems = (clone $base)->where('category', 'umrah')
+    ->orderByDesc('created_at')
+    ->paginate(20, ['*'], 'umrah_page')
+    ->withQueryString();
+
+return view('admin.documentations.index', compact('type', 'tourItems', 'shipItems', 'umrahItems'));
+
     }
 
     public function create()
@@ -31,6 +45,7 @@ class DocumentationController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'category' => ['required', 'in:tour,ship,umrah'],
             'type' => ['required', 'in:photo,video'],
             'title' => ['nullable', 'string', 'max:120'],
             'source' => ['required', 'in:upload,link'],
@@ -59,6 +74,7 @@ class DocumentationController extends Controller
                 $path = $file->store($dir, 'public');
 
                 Documentation::create([
+                    'category' => $data['category'],
                     'type' => $data['type'],
                     'title' => $data['title'],
                     'file_path' => $path,

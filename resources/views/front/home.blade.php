@@ -285,9 +285,11 @@
     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         @forelse($inspirations as $it)
             @php
-                $href = $it->tour_category_id
-                    ? route('tours.index', ['category' => $it->tour_category_id])
-                    : route('tours.index');
+               $href = route('tours.index', array_filter([
+  'category' => $it->tour_category_id,
+  'subcategory' => $it->tour_subcategory_id,
+]));
+
 
                 $img = $it->image_path ? asset('storage/'.$it->image_path) : null;
             @endphp
@@ -424,8 +426,12 @@
     </svg>
 
     <span class="font-semibold">
-        {{ $package->rating_value ?? 5 }} Rating
-    </span>
+    {{ number_format((float)($package->rating_value ?? 5), 1) }}/5
+</span>
+<span class="text-slate-500">
+    · {{ (int)($package->rating_count ?? 0) }} ulasan
+</span>
+
 </div>
 
                         <div class="mt-4 inline-flex items-center gap-2 text-sm font-extrabold" style="color:#0194F3;">

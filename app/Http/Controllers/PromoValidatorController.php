@@ -10,10 +10,12 @@ class PromoValidatorController extends Controller
 {
     public function validatePromo(Request $request)
     {
-        $request->validate([
-            'code' => 'required|string',
-            'price' => 'required|numeric|min:0',
-        ]);
+       $request->validate([
+    'code'  => 'required|string',
+    'price' => 'required|numeric|min:0',
+    'email' => 'nullable|email',
+]);
+
 
         $promo = Promo::where('code', strtoupper($request->code))
             ->where('is_active', true)
@@ -27,14 +29,19 @@ class PromoValidatorController extends Controller
         }
 
         // Check usage (once per user)
-        if (PromoUserUsage::where('user_id', auth()->id())
-            ->where('promo_id', $promo->id)->exists()
-        ) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'Kode promo sudah pernah digunakan.'
-            ]);
-        }
+       if ($request->filled('email')) {
+    $alreadyUsed = \App\Models\Order::where('customer_email', $request->email)
+        ->where('promo_id', $promo->id)
+        ->exists();
+
+    if ($alreadyUsed) {
+        return response()->json([
+            'valid' => false,
+            'message' => 'Kode promo sudah pernah digunakan untuk email ini.'
+        ]);
+    }
+}
+
 
         // hitung diskon
         $basePrice = $request->price;

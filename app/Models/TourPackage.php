@@ -27,6 +27,8 @@ class TourPackage extends Model
         'seo_title',
         'seo_description',
         'seo_keywords',
+        'subcategory_id',
+
     ];
 
 
@@ -49,6 +51,10 @@ class TourPackage extends Model
     {
         return $this->hasMany(TourItinerary::class)->orderBy("sort_order");
     }
+public function subcategory()
+{
+    return $this->belongsTo(TourCategory::class, 'subcategory_id');
+}
 
     public function photos()
     {

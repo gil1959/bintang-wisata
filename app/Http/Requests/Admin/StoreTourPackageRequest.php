@@ -24,7 +24,12 @@ class StoreTourPackageRequest extends FormRequest
             'destination'      => ['nullable', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:tour_categories,id'],
             'long_description' => ['nullable', 'string'],
-
+ 'subcategory_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('tour_categories', 'id')
+                ->where(fn ($q) => $q->where('parent_id', $this->input('category_id'))),
+        ],
             'rating_value' => ['nullable', 'integer', 'min:1', 'max:5'],
             'rating_count' => ['nullable', 'integer', 'min:0'],
             // ========= INCLUDES / EXCLUDES =========

@@ -22,7 +22,7 @@ class DestinationInspirationController extends Controller
 
     public function create()
     {
-        $categories = TourCategory::orderBy('name')->get();
+        $categories = TourCategory::whereNull('parent_id')->orderBy('name')->get();
         return view('admin.destination_inspirations.create', compact('categories'));
     }
 
@@ -34,6 +34,11 @@ class DestinationInspirationController extends Controller
             'tour_category_id' => ['nullable', 'exists:tour_categories,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'tour_subcategory_id' => [
+  'nullable',
+  \Illuminate\Validation\Rule::exists('tour_categories','id')
+    ->where(fn($q) => $q->where('parent_id', $request->tour_category_id)),
+],
         ]);
 
         $data['is_active'] = (bool)($request->input('is_active', false));
@@ -49,13 +54,15 @@ class DestinationInspirationController extends Controller
     }
 
     public function edit(DestinationInspiration $destinationInspiration)
-    {
-        $categories = TourCategory::orderBy('name')->get();
-        return view('admin.destination_inspirations.edit', [
-            'item' => $destinationInspiration,
-            'categories' => $categories,
-        ]);
-    }
+{
+    $categories = TourCategory::whereNull('parent_id')->orderBy('name')->get();
+
+    return view('admin.destination_inspirations.edit', [
+        'item' => $destinationInspiration,
+        'categories' => $categories,
+    ]);
+}
+
 
     public function update(Request $request, \App\Models\DestinationInspiration $destinationInspiration)
     {
@@ -65,6 +72,11 @@ class DestinationInspirationController extends Controller
             'tour_category_id' => ['nullable', 'exists:tour_categories,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'tour_subcategory_id' => [
+  'nullable',
+  \Illuminate\Validation\Rule::exists('tour_categories','id')
+    ->where(fn($q) => $q->where('parent_id', $request->tour_category_id)),
+],
         ]);
 
         $data['is_active'] = (bool)($request->input('is_active', false));

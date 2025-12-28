@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Webhooks;
+namespace App\Http\Controllers\Webhook;
 
 use App\Http\Controllers\Controller;
 use App\Models\PaymentGateway;
@@ -63,10 +64,12 @@ class PayPalWebhookController extends Controller
                     $payment->save();
 
                     $order = $payment->order;
-                    if ($order && $order->payment_status !== 'paid') {
-                        $order->payment_status = 'paid';
-                        $order->save();
-                    }
+                   if ($order && $order->payment_status !== 'paid') {
+    $order->payment_status = 'paid';
+    $order->order_status   = 'approved';
+    $order->save();
+}
+
                 }
             }
         }

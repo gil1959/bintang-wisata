@@ -86,16 +86,34 @@
             </div>
 
             <div class="md:col-span-2">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    
-                    <div class="text-xs text-slate-500">Dipakai hanya kalau mode = Custom</div>
-                </div>
+    <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="text-xs text-slate-500">Dipakai hanya kalau mode = Custom</div>
 
-                <div class="rounded-2xl border border-slate-200 p-4 max-h-80 overflow-auto">
-                    @if($promoCandidates->count() > 0)
-                        <div class="grid gap-2">
-                            @foreach($promoCandidates as $p)
-                                <label class="flex items-center gap-3 text-sm">
+        {{-- SEARCH BOX --}}
+        <div class="w-full max-w-xs">
+            <input
+                id="promoTourSearch"
+                type="text"
+                class="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-900"
+                placeholder="CARI PAKET TOUR"
+                autocomplete="off"
+            />
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 p-4 max-h-80 overflow-auto">
+        <div id="promoTourSearchEmpty" class="hidden text-sm text-slate-500">
+            Tidak ada paket yang cocok.
+        </div>
+
+        @if($promoCandidates->count() > 0)
+            <div class="grid gap-2" id="promoTourList">
+                @foreach($promoCandidates as $p)
+                    <label
+                        class="promo-tour-item flex items-center gap-3 text-sm"
+                        data-search="{{ \Illuminate\Support\Str::lower('#'.$p->id.' '.$p->title) }}"
+                    >
+
                                     <input
                                         type="checkbox"
                                         name="home_promo_custom_ids[]"
@@ -127,4 +145,35 @@
         </div>
     </form>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('promoTourSearch');
+    const list = document.getElementById('promoTourList');
+    const empty = document.getElementById('promoTourSearchEmpty');
+
+    if (!input || !list) return;
+
+    const items = Array.from(list.querySelectorAll('.promo-tour-item'));
+
+    function applyFilter() {
+        const q = (input.value || '').trim().toLowerCase();
+        let visibleCount = 0;
+
+        items.forEach((el) => {
+            const hay = (el.dataset.search || '');
+            const show = q === '' || hay.includes(q);
+            el.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        if (empty) empty.classList.toggle('hidden', visibleCount !== 0);
+    }
+
+    input.addEventListener('input', applyFilter);
+    applyFilter();
+});
+</script>
+@endpush
+
 @endsection

@@ -24,6 +24,10 @@ use App\Http\Controllers\Admin\DestinationInspirationController;
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\SystemController;
+use App\Http\Controllers\Admin\ShipPackageController;
+use App\Http\Controllers\Front\ShipController;
+use App\Http\Controllers\Front\ShipOrderController;
+
 /*
 |--------------------------------------------------------------------------
 | Front Controllers
@@ -67,14 +71,24 @@ Route::prefix('bw-admin')
         Route::post('seo', [SeoController::class, 'update'])->name('seo.update');
         Route::get('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'edit'])
             ->name('legal-pages.edit');
+Route::resource('umrah-packages', \App\Http\Controllers\Admin\UmrahPackageController::class);
+Route::delete('umrah-packages/photo/{photo}', [\App\Http\Controllers\Admin\UmrahPackageController::class, 'deletePhoto'])
+    ->name('umrah-packages.delete-photo');
+Route::get('categories/{category}/subcategories', [\App\Http\Controllers\Admin\TourCategoryController::class, 'subcategories'])
+    ->name('categories.subcategories');
 
+Route::resource('umrah-categories', \App\Http\Controllers\Admin\UmrahCategoryController::class);
         Route::post('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'update'])
             ->name('legal-pages.update');
+Route::get('/reviews/packages', [AdminReviewController::class, 'packages'])
+    ->name('reviews.packages');
 
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class);
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache');
+            Route::resource('ship-packages', ShipPackageController::class);
+
         // Payments
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/bank', [PaymentController::class, 'addBank'])->name('bank.add');
@@ -127,6 +141,7 @@ Route::prefix('bw-admin')
 
         // Categories
         Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);
+Route::resource('ship-categories', \App\Http\Controllers\Admin\ShipCategoryController::class);
 
         Route::resource('rent-car-categories', \App\Http\Controllers\Admin\RentCarCategoryController::class);
         Route::resource(
@@ -169,6 +184,15 @@ Route::post('/tours/{slug}/draft-booking', [TourOrderController::class, 'draft']
 Route::post('/rent-car/{slug}/draft-booking', [RentCarOrderController::class, 'draft'])
     ->name('rentcar.draft');
 
+// Ship (Sewa Kapal)
+Route::prefix('sewa-kapal')->name('ship.')->group(function () {
+    Route::get('/', [ShipController::class, 'index'])->name('index');
+    Route::get('/{slug}', [ShipController::class, 'show'])->name('show');
+});
+
+// Draft booking ship
+Route::post('/sewa-kapal/{slug}/draft-booking', [ShipOrderController::class, 'draft'])
+    ->name('ship.draft');
 
 Route::get('/lang/{locale}', function ($locale) {
     $available = array_keys(config('app.available_locales', []));
@@ -184,6 +208,13 @@ Route::get('/checkout/{order}', [CheckoutController::class, 'show'])
 
 Route::post('/checkout/{order}', [CheckoutController::class, 'process'])
     ->name('checkout.process');
+Route::get('/paket-umrah', [\App\Http\Controllers\Front\UmrahController::class, 'index'])
+    ->name('umrah.index');
+
+Route::get('/umrah/{umrahPackage:slug}', [\App\Http\Controllers\Front\UmrahController::class, 'show'])
+    ->name('umrah.show');
+
+Route::post('/umrah/{slug}/draft-booking', [\App\Http\Controllers\Front\UmrahOrderController::class, 'draft']);
 
 /*
 |--------------------------------------------------------------------------
@@ -234,7 +265,9 @@ Route::get('/artikel/{slug}', [FrontArticleController::class, 'show'])
 Route::get('/', [TourController::class, 'home'])->name('home');
 Route::get('/paket-tour', [TourController::class, 'index'])->name('tours.index');
 
-Route::get('/dokumentasi', [FrontDocumentationController::class, 'index'])->name('docs');
+Route::get('/dokumentasi', [FrontDocumentationController::class, 'tour'])->name('docs');
+Route::get('/dokumentasi/sewa-kapal', [FrontDocumentationController::class, 'ship'])->name('docs.ship');
+Route::get('/dokumentasi/umrah', [FrontDocumentationController::class, 'umrah'])->name('docs.umrah');
 Route::view('/about', 'front.pages.about')->name('about');
 
 Route::post('/review', [ReviewController::class, 'store'])
@@ -280,10 +313,15 @@ Route::get('/dashboard', function () {
 
 require __DIR__ . '/auth.php';
 Route::fallback(function () {
+    // Jangan redirect untuk path API (biar gak 302)
+    if (request()->is('api/*')) {
+        abort(404);
+    }
+
     if (request()->is('bw-admin/*')) {
-        // kalau admin salah URL, balikin ke dashboard admin
         return redirect()->route('admin.dashboard');
     }
 
     return redirect()->route('home');
 });
+

@@ -60,6 +60,25 @@
         {{-- TITLE + META --}}
         <div class="mt-2">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{{ $package->title }}</h1>
+<div class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+    @php
+        $avg = (float) ($package->rating_value ?? 5);
+        $count = (int) ($package->rating_count ?? 0);
+        $rounded = (int) round($avg);
+    @endphp
+
+    <div class="flex gap-1">
+        @for($i=1;$i<=5;$i++)
+            <svg class="w-4 h-4 {{ $i <= $rounded ? 'text-amber-400' : 'text-slate-300' }}"
+                 fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.955a1 1 0 00.95.69h4.156c.969 0 1.371 1.24.588 1.81l-3.363 2.444a1 1 0 00-.364 1.118l1.286 3.955c.3.921-.755 1.688-1.54 1.118l-3.363-2.444a1 1 0 00-1.175 0L6.98 18.007c-.784.57-1.838-.197-1.539-1.118l1.286-3.955a1 1 0 00-.364-1.118L3 9.382c-.783-.57-.38-1.81.588-1.81h4.156a1 1 0 00.95-.69l1.286-3.955z"/>
+            </svg>
+        @endfor
+    </div>
+
+    <span class="font-semibold">{{ number_format($avg, 1) }}/5</span>
+    <span class="text-slate-500">· {{ $count }} ulasan</span>
+</div>
 
             <div class="mt-2 text-sm text-gray-500 flex flex-wrap items-center gap-4">
                 @if($package->duration_text)

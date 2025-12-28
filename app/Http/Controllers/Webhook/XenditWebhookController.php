@@ -37,7 +37,11 @@ class XenditWebhookController extends Controller
             isset($data['status']) &&
             in_array($data['status'], ['PAID', 'SETTLED'])
         ) {
-            $payment = Payment::where('reference', $data['id'])->first();
+           $payment = Payment::where('gateway_name', 'xendit')
+    ->where('gateway_reference', $data['id'])
+    ->latest()
+    ->first();
+
 
             if (!$payment) {
                 Log::error('Xendit webhook: payment not found', ['reference' => $data['id']]);
@@ -49,10 +53,12 @@ class XenditWebhookController extends Controller
             $payment->save();
 
             // update order
-            if ($payment->order) {
-                $payment->order->payment_status = 'paid';
-                $payment->order->save();
-            }
+           if ($payment->order) {
+    $payment->order->payment_status = 'paid';
+    $payment->order->order_status   = 'approved';
+    $payment->order->save();
+}
+
         }
 
         return response()->json(['success' => true]);

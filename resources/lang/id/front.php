@@ -11,6 +11,8 @@ return [
         'home' => 'Home',
         'tours' => 'Paket Tour',
         'rental' => 'Rental',
+        'ship' => 'Sewa Kapal',
+ 'umrah' => 'Umrah',
         'docs' => 'Dokumentasi',
         'about' => 'About',
         'articles' => 'Artikel',

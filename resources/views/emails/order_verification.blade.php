@@ -6,10 +6,14 @@
   <title>Status Pembayaran - {{ $order->invoice_number }}</title>
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif; background:#f8fafc; padding:24px;">
-  <div style="max-width: 680px; margin: 0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden;">
+  <div style="max-width: 760px; margin: 0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden;">
     <div style="padding:18px 20px; background:#0f172a; color:#ffffff;">
       <div style="font-size:18px; font-weight:bold;">Bintang Wisata</div>
-      <div style="font-size:12px; opacity:0.9;">Invoice: {{ $order->invoice_number }}</div>
+      <div style="font-size:12px; opacity:0.9;">
+        Invoice: {{ $order->invoice_number }}
+        <span style="opacity:0.75;">•</span>
+        Tanggal: {{ optional($order->created_at)->format('d/m/Y H:i') }}
+      </div>
     </div>
 
     <div style="padding:20px; color:#0f172a;">
@@ -33,26 +37,7 @@
         </p>
       @endif
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
-        <tr>
-          <td style="padding:10px 0; border-bottom:1px solid #e2e8f0; width:40%; color:#475569;">Produk</td>
-          <td style="padding:10px 0; border-bottom:1px solid #e2e8f0;"><b>{{ $order->product_name }}</b></td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0; border-bottom:1px solid #e2e8f0; color:#475569;">Total</td>
-          <td style="padding:10px 0; border-bottom:1px solid #e2e8f0;">
-            <b>Rp {{ number_format($order->final_price, 0, ',', '.') }}</b>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0; color:#475569;">Status</td>
-          <td style="padding:10px 0;">
-            <b>
-              {{ $result === 'approved' ? 'Lunas / Approved' : 'Gagal / Rejected' }}
-            </b>
-          </td>
-        </tr>
-      </table>
+      @include('emails.partials.order_full_detail', ['order' => $order])
 
       <div style="margin-top:18px; padding:12px 14px; background:#f1f5f9; border-radius:12px;">
         <div style="font-size:12px; color:#475569;">Langkah Selanjutnya</div>

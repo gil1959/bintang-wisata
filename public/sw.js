@@ -20,6 +20,8 @@ const OFFLINE_URL = "/offline.html";
 const PRECACHE_URLS = [
     "/",
     "/dokumentasi",
+    "/dokumentasi/sewa-kapal",
+  "/dokumentasi/umrah",
     "/about",
     "/artikel",
     "/paket-tour",

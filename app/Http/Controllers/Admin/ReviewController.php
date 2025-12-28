@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-
+use App\Models\RentCarPackage;
+use App\Models\ShipPackage;
+use App\Models\UmrahPackage;
 
 class ReviewController extends Controller
 {
@@ -22,9 +24,11 @@ class ReviewController extends Controller
         if ($page < 1) $page = 1;
 
         $reviews = Review::query()
-            ->where('status', $status)
-            ->latest()
-            ->paginate(20, ['*'], 'page', $page);
+    ->with('reviewable')
+    ->where('status', $status)
+    ->latest()
+    ->paginate(20, ['*'], 'page', $page);
+
 
         $reviews->appends($request->query());
 
@@ -32,41 +36,81 @@ class ReviewController extends Controller
     }
 
     public function create()
-    {
-        // khusus paket tour (sesuai request lu)
-        $packages = TourPackage::query()
-            ->orderBy('title')
-            ->get(['id', 'title']);
+{
+    // gak load semua paket (bisa berat). Paket akan dicari via search bar (AJAX).
+    return view('admin.reviews.create');
+}
+public function packages(Request $request)
+{
+    $data = $request->validate([
+        'type' => ['required', 'in:tour,rent_car,ship,umrah'],
+        'q'    => ['nullable', 'string', 'max:80'],
+    ]);
 
-        return view('admin.reviews.create', compact('packages'));
+    $q = trim((string) ($data['q'] ?? ''));
+    $limit = 20;
+
+    $query = match ($data['type']) {
+        'tour'      => TourPackage::query(),
+        'rent_car'  => RentCarPackage::query(),
+        'ship'      => ShipPackage::query(),
+        'umrah'     => UmrahPackage::query(),
+    };
+
+    // optional: cuma yang aktif (kalau lo mau admin bisa review paket nonaktif, hapus filter ini)
+    // $query->where('is_active', true);
+
+    if ($q !== '') {
+        $query->where('title', 'like', '%' . $q . '%')
+              ->orWhere('id', $q); // biar bisa cari by ID juga kalau admin paste angka
     }
+
+    $items = $query->orderBy('title')
+        ->limit($limit)
+        ->get(['id', 'title'])
+        ->map(fn ($p) => [
+            'id'    => $p->id,
+            'title' => $p->title,
+        ]);
+
+    return response()->json([
+        'items' => $items,
+    ]);
+}
+
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'tour_package_id' => ['required', 'exists:tour_packages,id'],
-            'name'            => ['required', 'string', 'max:120'],
-            'email'           => ['required', 'email', 'max:190'],
-            'rating'          => ['required', 'integer', 'min:1', 'max:5'],
-            'comment'         => ['required', 'string', 'max:2000'],
-        ]);
+    'package_type' => ['required', 'in:tour,rent_car,ship,umrah'],
+    'package_id'   => ['required', 'integer'],
+    'name'         => ['required', 'string', 'max:120'],
+    'email'        => ['required', 'email', 'max:190'],
+    'rating'       => ['required', 'integer', 'min:1', 'max:5'],
+    'comment'      => ['required', 'string', 'max:2000'],
+]);
 
-        $package = TourPackage::findOrFail($data['tour_package_id']);
+$model = match ($data['package_type']) {
+    'tour'     => TourPackage::findOrFail($data['package_id']),
+    'rent_car' => RentCarPackage::findOrFail($data['package_id']),
+    'ship'     => ShipPackage::findOrFail($data['package_id']),
+    'umrah'    => UmrahPackage::findOrFail($data['package_id']),
+};
 
-        // admin bikin review → langsung approved
-        $package->reviews()->create([
-            'name'       => $data['name'],
-            'email'      => $data['email'],
-            'rating'     => $data['rating'],
-            'comment'    => $data['comment'],
-            'status'     => 'approved',
-            'ip_address' => $request->ip(),
-            'user_agent' => substr((string) $request->userAgent(), 0, 512),
-        ]);
+$model->reviews()->create([
+    'name'       => $data['name'],
+    'email'      => $data['email'],
+    'rating'     => $data['rating'],
+    'comment'    => $data['comment'],
+    'status'     => 'approved',
+    'ip_address' => $request->ip(),
+    'user_agent' => substr((string) $request->userAgent(), 0, 512),
+]);
 
-        return redirect()
-            ->route('admin.reviews.index', ['status' => 'approved'])
-            ->with('success', 'Review admin berhasil ditambahkan dan langsung tampil.');
+return redirect()
+    ->route('admin.reviews.index', ['status' => 'approved'])
+    ->with('success', 'Review admin berhasil ditambahkan dan langsung tampil.');
+
     }
 
 

@@ -75,13 +75,28 @@ class RentCarOrderController extends Controller
         $subtotal = $days * $package->price_per_day;
 
         // ===================== PROMO ======================
-        $discount = 0;
-        if (!empty($validated['promo_id'])) {
-            $promo = Promo::find($validated['promo_id']);
-            if ($promo && $promo->is_valid_for($subtotal)) {
-                $discount = $promo->calculate_discount($subtotal);
-            }
+       $discount = 0;
+$promoUsed = null;
+
+if (!empty($validated['promo_id'])) {
+    $promo = Promo::find($validated['promo_id']);
+
+    if ($promo && $promo->is_valid_for($subtotal)) {
+        $alreadyUsed = Order::where('customer_email', $validated['email'])
+            ->where('promo_id', $promo->id)
+            ->exists();
+
+        if ($alreadyUsed) {
+            return response()->json([
+                'error' => 'Kode promo ini sudah pernah digunakan untuk email ini.'
+            ], 422);
         }
+
+        $discount = $promo->calculate_discount($subtotal);
+        $promoUsed = $promo;
+    }
+}
+
 
         $final = max(0, $subtotal - $discount);
 
@@ -91,6 +106,8 @@ class RentCarOrderController extends Controller
             'type'           => 'rent_car',
             'product_id'     => $package->id,
             'product_name'   => $package->title,
+'promo_id'   => $promoUsed?->id,
+'promo_code' => $promoUsed?->code,
 
             'customer_name'  => $validated['name'],
             'customer_email' => $validated['email'],

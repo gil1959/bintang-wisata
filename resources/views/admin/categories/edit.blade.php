@@ -23,6 +23,22 @@
           class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
         @csrf
         @method('PUT')
+<div>
+    <label class="block text-sm font-extrabold text-slate-800 mb-1">Jenis Kategori</label>
+
+    <select name="parent_id"
+            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+        <option value="">Kategori Utama (Parent)</option>
+        @foreach($parents as $p)
+            <option value="{{ $p->id }}"
+                {{ old('parent_id', $category->parent_id) == $p->id ? 'selected' : '' }}>
+                Sub Kategori dari: {{ $p->name }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('parent_id') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
 
         <div>
             <label class="block text-sm font-extrabold text-slate-800 mb-1">Nama Kategori</label>
@@ -32,6 +48,7 @@
                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                    required>
         </div>
+
 
         <div>
             <label class="block text-sm font-extrabold text-slate-800 mb-1">Slug</label>

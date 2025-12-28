@@ -1,5 +1,5 @@
 @extends('layouts.front')
-@section('title', 'Dokumentasi - Bintang Wisata')
+@section('title', (($pageTitle ?? 'Dokumentasi') . ' - Bintang Wisata'))
 
 @section('content')
 
@@ -29,11 +29,11 @@
         <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold"
              style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
           <span class="h-2 w-2 rounded-full" style="background:#0194F3;"></span>
-          {{ $siteSettings['docs_hero_badge'] ?? 'Dokumentasi Perjalanan' }}
+          {{ $heroBadge ?? ($siteSettings['docs_hero_badge'] ?? 'Dokumentasi Perjalanan') }}
         </div>
 
         <h1 class="mt-4 text-3xl lg:text-4xl font-extrabold text-slate-900">
-          {{ $siteSettings['docs_hero_title'] ?? 'Dokumentasi' }}
+          {{ $heroTitle ?? ($siteSettings['docs_hero_title'] ?? 'Dokumentasi') }}
         </h1>
 
         <p class="mt-3 text-slate-600">
@@ -72,7 +72,18 @@
     </div>
 
     {{-- IMPORTANT: Alpine wrapper harus meliputi Tabs + Gallery --}}
-    <div x-data="{ ...lightboxGallery(), tab: 'photos' }" x-init="init()">
+    <div
+      x-data="{
+        ...lightboxGallery(),
+        tab: (window.location.hash === '#video' ? 'videos' : 'photos')
+      }"
+      x-init="
+        init();
+        window.addEventListener('hashchange', () => {
+          tab = (window.location.hash === '#video' ? 'videos' : 'photos');
+        });
+      "
+    >
 
       {{-- Tabs --}}
       <div class="mt-8" data-aos="fade-up" data-aos-delay="120">
@@ -80,7 +91,7 @@
           <button type="button"
                   class="px-4 py-2 rounded-xl text-sm font-extrabold transition inline-flex items-center gap-2"
                   :class="tab==='photos' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'"
-                  @click="tab='photos'"
+                  @click="tab='photos'; window.location.hash='photos'"
                   :style="tab==='photos' ? 'background:rgba(1,148,243,0.10); border:1px solid rgba(1,148,243,0.20);' : ''">
             <i data-lucide="image" class="w-4 h-4" :style="tab==='photos' ? 'color:#0194F3;' : ''"></i>
             {{ $siteSettings['docs_tab_photos'] ?? 'Foto' }}
@@ -89,7 +100,7 @@
           <button type="button"
                   class="px-4 py-2 rounded-xl text-sm font-extrabold transition inline-flex items-center gap-2"
                   :class="tab==='videos' ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'"
-                  @click="tab='videos'"
+                  @click="tab='videos'; window.location.hash='video'"
                   :style="tab==='videos' ? 'background:rgba(1,148,243,0.10); border:1px solid rgba(1,148,243,0.20);' : ''">
             <i data-lucide="video" class="w-4 h-4" :style="tab==='videos' ? 'color:#0194F3;' : ''"></i>
             {{ $siteSettings['docs_tab_videos'] ?? 'Video' }}

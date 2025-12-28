@@ -97,73 +97,332 @@
       </section>
 
       {{-- PAYMENT CARD --}}
-      <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+     <section id="payment-method" class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+
         <div class="mb-5">
           <h2 class="text-lg font-extrabold text-slate-900">Payment Method</h2>
           <p class="mt-1 text-sm text-slate-500">Pilih salah satu metode pembayaran di bawah.</p>
         </div>
 
-        <div class="space-y-6">
+        @php
+  $selected = old('payment_method', $order->payment_method ?? null);
 
-          {{-- MANUAL BANK --}}
-          @if($manualMethods->count())
-            <div>
-              <div class="mb-2 text-sm font-extrabold text-slate-800">Bank Transfer (Manual)</div>
+  // normalisasi item payment supaya gampang di-render tile
+  $bankItems = [];
+  $ewalletItems = [];
+  $qrItems = [];
+  $otherItems = [];
 
-              <div class="space-y-3">
-                @foreach($manualMethods as $m)
-                  <label class="group flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 hover:border-[#0194F3]/50 hover:bg-slate-50">
-                    <input type="radio"
-                           name="payment_method"
-                           value="manual:{{ $m->id }}"
-                           class="mt-1 h-4 w-4 accent-[#0194F3]"
-                           required>
+  // Manual bank -> masuk kategori Bank Transfer
+  foreach ($manualMethods as $m) {
+    $bankItems[] = [
+      'value' => "manual:{$m->id}",
+      'title' => $m->method_name,
+      'subtitle' => $m->account_number ? $m->account_number : null,
+      'meta' => $m->account_holder ? "A/n: {$m->account_holder}" : null,
+      'icon_url' => null, // manual ga punya icon_url
+      'source' => 'manual',
+    ];
+  }
 
-                    <div class="min-w-0">
-                      <div class="font-extrabold text-slate-900">
-                        {{ $m->method_name }}
-                        @if($m->account_number)
-                          <span class="font-semibold text-slate-500">({{ $m->account_number }})</span>
-                        @endif
-                      </div>
-                      <div class="mt-0.5 text-sm text-slate-500">
-                        Transfer manual ke rekening ini.
-                      </div>
-                      @if(!empty($m->account_holder))
-                        <div class="mt-1 text-xs text-slate-500">
-                          A/n: <span class="font-semibold text-slate-700">{{ $m->account_holder }}</span>
-                        </div>
-                      @endif
-                    </div>
-                  </label>
-                @endforeach
-              </div>
+  // Gateway channels -> kategorikan by group/name/code
+  foreach (($gatewayOptions ?? []) as $opt) {
+    $group = strtolower((string)($opt['group'] ?? ''));
+    $name  = strtolower((string)($opt['name'] ?? $opt['label'] ?? ''));
+    $code  = strtolower((string)($opt['channel_code'] ?? ''));
+
+    $item = [
+      'value' => $opt['value'],
+      'title' => $opt['name'] ?? $opt['label'],
+      'subtitle' => $opt['gateway_label'] ?? null,
+      'meta' => null,
+      'icon_url' => $opt['icon_url'] ?? null,
+      'source' => 'gateway',
+    ];
+
+    // QR
+    if (str_contains($group, 'qris') || str_contains($name, 'qris') || str_contains($name, 'qr')) {
+      $qrItems[] = $item;
+      continue;
+    }
+
+    // E-Wallet
+    if (str_contains($group, 'e-wallet') || str_contains($group, 'wallet') || str_contains($name, 'ovo') || str_contains($name, 'dana') || str_contains($name, 'shopee')) {
+      $ewalletItems[] = $item;
+      continue;
+    }
+
+    // Bank transfer / VA
+    if (str_contains($group, 'virtual') || str_contains($group, 'va') || str_contains($group, 'bank') || str_contains($name, 'va') || str_contains($name, 'bank')) {
+      $bankItems[] = $item;
+      continue;
+    }
+
+    // Sisanya (minimarket, credit card, dll)
+    $otherItems[] = $item;
+  }
+
+  // helper: render tile (biar ga duplikatif)
+@endphp
+
+<div
+  x-data="{
+    open: 'bank',
+    showOtherBanks: false
+  }"
+  class="space-y-3"
+>
+  {{-- ACCORDION: BANK TRANSFER --}}
+  <div class="rounded-2xl border border-slate-200 bg-white">
+    <button type="button"
+      class="w-full flex items-center justify-between px-4 py-4"
+      @click="open = (open === 'bank' ? null : 'bank')"
+    >
+      <div class="text-left">
+        <div class="text-sm font-extrabold text-slate-900">Bank Transfer</div>
+        <div class="text-xs text-slate-500">Transfer bank / Virtual Account</div>
+      </div>
+      <svg class="h-5 w-5 text-slate-500 transition-transform"
+        :class="open==='bank' ? 'rotate-180' : ''"
+        viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
+      </svg>
+    </button>
+
+    <div x-show="open==='bank'" x-collapse class="px-4 pb-4">
+      @php
+        // biar mirip screenshot: tampilkan max 6 dulu, sisanya masuk "Other Banks"
+        $bankFirst = array_slice($bankItems, 0, 6);
+        $bankRest  = array_slice($bankItems, 6);
+      @endphp
+
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        @foreach($bankFirst as $it)
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="payment_method"
+              value="{{ $it['value'] }}"
+              class="peer sr-only"
+              @if($selected === $it['value']) checked @endif
+              required
+            />
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
+                        hover:border-[#0194F3]/60 hover:bg-slate-50
+                        peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
+              @if(!empty($it['icon_url']))
+                <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
+              @else
+                <div class="text-center">
+                  <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
+                  @if(!empty($it['subtitle']))
+                    <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                  @endif
+                </div>
+              @endif
             </div>
-          @endif
+          </label>
+        @endforeach
 
-          {{-- GATEWAY --}}
-          @if(!empty($gatewayOptions) && count($gatewayOptions) > 0)
-            <div>
-              <div class="mb-2 text-sm font-extrabold text-slate-800">Payment Gateway</div>
+        @if(count($bankRest) > 0)
+          <button type="button"
+            class="rounded-2xl border border-slate-200 bg-white p-4 text-center
+                   hover:border-[#0194F3]/60 hover:bg-slate-50"
+            @click="showOtherBanks = !showOtherBanks"
+          >
+            <div class="text-sm font-extrabold text-slate-900">Other Banks</div>
+            <div class="mt-1 text-[11px] text-slate-500" x-text="showOtherBanks ? 'Sembunyikan' : 'Lihat lainnya'"></div>
+          </button>
+        @endif
+      </div>
 
-              @foreach($gatewayOptions as $opt)
-                <label class="group flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4 hover:border-[#0194F3]/50 hover:bg-slate-50">
-                  <input class="mt-1 h-4 w-4 accent-[#0194F3]"
-                        type="radio"
-                        name="payment_method"
-                        value="{{ $opt['value'] }}"
-                        required>
-                  <div class="min-w-0">
-                    <div class="font-extrabold text-slate-900">{{ $opt['label'] }}</div>
-                    <div class="mt-0.5 text-sm text-slate-500">Pembayaran otomatis via gateway.</div>
+      @if(count($bankRest) > 0)
+        <div x-show="showOtherBanks" x-collapse class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          @foreach($bankRest as $it)
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="payment_method"
+                value="{{ $it['value'] }}"
+                class="peer sr-only"
+                @if($selected === $it['value']) checked @endif
+                required
+              />
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
+                          hover:border-[#0194F3]/60 hover:bg-slate-50
+                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
+                @if(!empty($it['icon_url']))
+                  <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
+                @else
+                  <div class="text-center">
+                    <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
+                    @if(!empty($it['subtitle']))
+                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                    @endif
                   </div>
-                </label>
-              @endforeach
-            </div>
-          @endif
-
-
+                @endif
+              </div>
+            </label>
+          @endforeach
         </div>
+      @endif
+    </div>
+  </div>
+
+  {{-- ACCORDION: E-WALLET --}}
+  @if(count($ewalletItems) > 0)
+    <div class="rounded-2xl border border-slate-200 bg-white">
+      <button type="button"
+        class="w-full flex items-center justify-between px-4 py-4"
+        @click="open = (open === 'ewallet' ? null : 'ewallet')"
+      >
+        <div class="text-left">
+          <div class="text-sm font-extrabold text-slate-900">E-Wallet</div>
+          <div class="text-xs text-slate-500">OVO, DANA, ShopeePay, dll</div>
+        </div>
+        <svg class="h-5 w-5 text-slate-500 transition-transform"
+          :class="open==='ewallet' ? 'rotate-180' : ''"
+          viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <div x-show="open==='ewallet'" x-collapse class="px-4 pb-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          @foreach($ewalletItems as $it)
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="payment_method"
+                value="{{ $it['value'] }}"
+                class="peer sr-only"
+                @if($selected === $it['value']) checked @endif
+                required
+              />
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
+                          hover:border-[#0194F3]/60 hover:bg-slate-50
+                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
+                @if(!empty($it['icon_url']))
+                  <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
+                @else
+                  <div class="text-center">
+                    <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
+                    @if(!empty($it['subtitle']))
+                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                    @endif
+                  </div>
+                @endif
+              </div>
+            </label>
+          @endforeach
+        </div>
+      </div>
+    </div>
+  @endif
+
+  {{-- ACCORDION: QR PAYMENTS --}}
+  @if(count($qrItems) > 0)
+    <div class="rounded-2xl border border-slate-200 bg-white">
+      <button type="button"
+        class="w-full flex items-center justify-between px-4 py-4"
+        @click="open = (open === 'qr' ? null : 'qr')"
+      >
+        <div class="text-left">
+          <div class="text-sm font-extrabold text-slate-900">QR Payments</div>
+          <div class="text-xs text-slate-500">QRIS / QR pembayaran</div>
+        </div>
+        <svg class="h-5 w-5 text-slate-500 transition-transform"
+          :class="open==='qr' ? 'rotate-180' : ''"
+          viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <div x-show="open==='qr'" x-collapse class="px-4 pb-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          @foreach($qrItems as $it)
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="payment_method"
+                value="{{ $it['value'] }}"
+                class="peer sr-only"
+                @if($selected === $it['value']) checked @endif
+                required
+              />
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
+                          hover:border-[#0194F3]/60 hover:bg-slate-50
+                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
+                @if(!empty($it['icon_url']))
+                  <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
+                @else
+                  <div class="text-center">
+                    <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
+                    @if(!empty($it['subtitle']))
+                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                    @endif
+                  </div>
+                @endif
+              </div>
+            </label>
+          @endforeach
+        </div>
+      </div>
+    </div>
+  @endif
+
+  {{-- ACCORDION: OTHER PAYMENTS --}}
+  @if(count($otherItems) > 0)
+    <div class="rounded-2xl border border-slate-200 bg-white">
+      <button type="button"
+        class="w-full flex items-center justify-between px-4 py-4"
+        @click="open = (open === 'other' ? null : 'other')"
+      >
+        <div class="text-left">
+          <div class="text-sm font-extrabold text-slate-900">Other Payments</div>
+          <div class="text-xs text-slate-500">Minimarket / metode lain</div>
+        </div>
+        <svg class="h-5 w-5 text-slate-500 transition-transform"
+          :class="open==='other' ? 'rotate-180' : ''"
+          viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <div x-show="open==='other'" x-collapse class="px-4 pb-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          @foreach($otherItems as $it)
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="payment_method"
+                value="{{ $it['value'] }}"
+                class="peer sr-only"
+                @if($selected === $it['value']) checked @endif
+                required
+              />
+              <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
+                          hover:border-[#0194F3]/60 hover:bg-slate-50
+                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
+                @if(!empty($it['icon_url']))
+                  <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
+                @else
+                  <div class="text-center">
+                    <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
+                    @if(!empty($it['subtitle']))
+                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                    @endif
+                  </div>
+                @endif
+              </div>
+            </label>
+          @endforeach
+        </div>
+      </div>
+    </div>
+  @endif
+</div>
+
 
         {{-- SUBMIT --}}
         <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -203,7 +462,12 @@
               {{ $package->title ?? $order->product_name }}
             </p>
             <p class="mt-1 text-sm text-slate-500">
-              {{ $order->type === 'tour' ? 'Paket Tour' : 'Paket Rent Car' }}
+              @php
+  $typeLabel = $order->type === 'tour'
+    ? 'Paket Tour'
+    : ($order->type === 'rent_car' ? 'Paket Rent Car' : 'Sewa Kapal');
+@endphp
+{{ $typeLabel }}
             </p>
             @if($order->invoice_number ?? false)
               <p class="mt-1 text-xs text-slate-500">

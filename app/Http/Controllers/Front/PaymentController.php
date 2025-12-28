@@ -21,21 +21,55 @@ class PaymentController extends Controller
 {
     // Router lama biar gak ngerusak link existing
     public function show(Order $order)
-    {
-        if (!$order->payment_method) {
-            return redirect()->route('checkout.show', $order);
+{
+    // ✅ Kalau pembayaran gateway SUDAH PAID, langsung redirect ke WhatsApp admin
+    if (
+        $order->payment_status === 'paid'
+        && $order->payment_method
+        && str_starts_with($order->payment_method, 'gateway:')
+    ) {
+        $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
+        $wa = preg_replace('/\D+/', '', $rawWa);
+
+        // normalisasi 0xxx -> 62xxx
+        if (str_starts_with($wa, '0')) {
+            $wa = '62' . substr($wa, 1);
         }
 
-        if (str_starts_with($order->payment_method, 'manual:')) {
-            return redirect()->route('payment.manual.page', $order);
-        }
+        // kalau WA belum diset, jangan paksa redirect (balik ke flow lama)
+        if (!empty($wa)) {
+            $total = $order->payable_amount ?? $order->final_price;
 
-        if (str_starts_with($order->payment_method, 'gateway:')) {
-            return redirect()->route('payment.gateway.page', $order);
-        }
+            $msg = "Halo Admin,\n"
+                . "Pembayaran berhasil.\n"
+                . "Invoice: {$order->invoice_number}\n"
+                . "Nama: {$order->customer_name}\n"
+                . "Produk: {$order->product_name}\n"
+                . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n"
+                . "Terima kasih.";
 
-        abort(400, 'Metode pembayaran tidak dikenal.');
+            $waUrl = "https://wa.me/{$wa}?text=" . urlencode($msg);
+
+            return redirect()->away($waUrl);
+        }
     }
+
+    // === FLOW LAMA (tetap) ===
+    if (!$order->payment_method) {
+        return redirect()->route('checkout.show', $order);
+    }
+
+    if (str_starts_with($order->payment_method, 'manual:')) {
+        return redirect()->route('payment.manual.page', $order);
+    }
+
+    if (str_starts_with($order->payment_method, 'gateway:')) {
+        return redirect()->route('payment.gateway.page', $order);
+    }
+
+    abort(400, 'Metode pembayaran tidak dikenal.');
+}
+
 
     // ===== PAGE MANUAL =====
     public function manualPage(Order $order)
@@ -115,8 +149,11 @@ class PaymentController extends Controller
         ]);
 
         $order->update([
-            'payment_status' => 'waiting_verification',
-        ]);
+    'payment_status'   => 'paid',
+    'approved_at'      => now(),
+    'approved_by'      => 'gateway',
+]);
+
 
         // ✅ EMAIL: proof uploaded (admin + buyer)
         try {
@@ -246,9 +283,13 @@ class PaymentController extends Controller
             try {
                 $resp = $tripay->createTransaction($cred, $payload);
             } catch (\Throwable $e) {
-                Log::error('Tripay error', ['err' => $e->getMessage()]);
-                return back()->with('error', 'Tripay sedang bermasalah. Coba lagi.');
-            }
+    Log::error('Tripay error', ['err' => $e->getMessage()]);
+    return redirect()
+        ->route('payment.gateway.page', $order->id)
+        ->with('error', 'Tripay sedang bermasalah. Coba lagi atau pilih metode lain.')
+        ->with('show_change_method', true);
+}
+
 
             $data = $resp['data'] ?? null;
             if (!$data) {
@@ -333,9 +374,13 @@ class PaymentController extends Controller
                 ->post('https://api.xendit.co/v2/invoices', $payload);
 
             if ($http->failed()) {
-                Log::error('Xendit create invoice failed', ['body' => $http->body()]);
-                return back()->with('error', 'Xendit sedang bermasalah. Coba lagi.');
-            }
+    Log::error('Xendit create invoice failed', ['body' => $http->body()]);
+    return redirect()
+        ->route('payment.gateway.page', $order->id)
+        ->with('error', 'Xendit sedang bermasalah. Coba lagi atau pilih metode lain.')
+        ->with('show_change_method', true);
+}
+
 
             $resp = $http->json();
 
@@ -585,7 +630,9 @@ class PaymentController extends Controller
             $payment->save();
 
             $order->payment_status = 'paid';
-            $order->save();
+$order->order_status   = 'approved';
+$order->save();
+
 
             return redirect()->route('payment.page', $order->id)->with('success', 'Pembayaran PayPal berhasil.');
         }
@@ -595,7 +642,11 @@ class PaymentController extends Controller
     }
 
     public function paypalCancel(Order $order)
-    {
-        return redirect()->route('payment.page', $order->id)->with('error', 'Pembayaran PayPal dibatalkan.');
-    }
+{
+    return redirect()
+        ->route('payment.page', $order->id)
+        ->with('error', 'Pembayaran PayPal dibatalkan.')
+        ->with('show_change_method', true);
+}
+
 }

@@ -12,7 +12,9 @@ class Order extends Model
         'type',           // tour / rent_car
         'product_id',
         'product_name',
-
+// PROMO (guest: enforce by email/phone)
+'promo_id',
+'promo_code',
         // CUSTOMER
         'customer_name',
         'customer_email',

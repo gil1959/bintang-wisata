@@ -21,7 +21,7 @@ class TourPackageController extends Controller
 
     public function create()
     {
-        $categories = TourCategory::orderBy('name')->get();
+        $categories = TourCategory::whereNull('parent_id')->orderBy('name')->get();
         return view('admin.tour-packages.create', compact('categories'));
     }
 
@@ -38,6 +38,7 @@ class TourPackageController extends Controller
                 'rating_count' => $request->rating_count ?? 0,
                 'slug'             => $request->slug,
                 'category_id'      => $request->category_id,
+                'subcategory_id' => $request->subcategory_id,
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
                 'long_description' => $request->long_description,
@@ -104,7 +105,7 @@ class TourPackageController extends Controller
             $tour_package->update([
                 'title'            => $request->title,
                 'label' => $request->label,
-
+'subcategory_id' => $request->subcategory_id,
                 'rating_value' => $request->rating_value ?? $tour_package->rating_value ?? 5,
                 'rating_count' => $request->rating_count ?? $tour_package->rating_count ?? 0,
                 'slug'             => $request->slug,

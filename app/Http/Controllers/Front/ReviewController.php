@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\RentCarPackage;
 use App\Models\TourPackage;
 use Illuminate\Http\Request;
+use App\Models\ShipPackage;
+use App\Models\UmrahPackage;
 
 class ReviewController extends Controller
 {
@@ -26,7 +28,7 @@ class ReviewController extends Controller
         }
 
         $data = $request->validate([
-            'reviewable_type' => ['required', 'in:tour,rent'],
+            'reviewable_type' => ['required', 'in:tour,rent,ship,umrah'],
             'reviewable_id'   => ['required', 'integer'],
             'name'            => ['required', 'string', 'max:80'],
             'email'           => ['required', 'email', 'max:120'],
@@ -37,6 +39,8 @@ class ReviewController extends Controller
         $model = match ($data['reviewable_type']) {
             'tour' => TourPackage::findOrFail($data['reviewable_id']),
             'rent' => RentCarPackage::findOrFail($data['reviewable_id']),
+            'ship' => ShipPackage::findOrFail($data['reviewable_id']),
+            'umrah' => UmrahPackage::findOrFail($data['reviewable_id']),
         };
 
         // Anti spam soft: email yang sama untuk item yang sama dalam 10 menit diblok
