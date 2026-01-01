@@ -29,6 +29,7 @@ class StoreUmrahPackageRequest extends FormRequest
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string',
             'seo_description' => 'nullable|string',
+'is_active' => 'required|in:0,1',
 
             'thumbnail' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:4096',
             'gallery' => 'nullable|array',

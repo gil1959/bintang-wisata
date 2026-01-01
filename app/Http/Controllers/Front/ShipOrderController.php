@@ -11,6 +11,8 @@ use App\Models\Setting;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use App\Models\AffiliateLink;
 
 class ShipOrderController extends Controller
 {
@@ -64,12 +66,43 @@ class ShipOrderController extends Controller
         }
 
         $final = max(0, $subtotal - $discount);
+$affUserId = session('affiliate_user_id');
+$affLinkId = session('affiliate_link_id');
+$affRef    = session('affiliate_ref');
+
+$affType   = null;
+$affValue  = null;
+$affAmount = null;
+$affStatus = null;
+
+if ($affUserId && $affLinkId && $affRef) {
+    $affUser = User::find($affUserId);
+
+    if ($affUser && $affUser->is_affiliate) {
+        $affType  = $affUser->affiliate_commission_type ?: 'percent';
+        $affValue = (float) ($affUser->affiliate_commission_value ?: 0);
+
+        if ($affType === 'percent') {
+            $affAmount = (int) round(($final * $affValue) / 100);
+        } else {
+            $affAmount = (int) round($affValue);
+        }
+
+        $affStatus = 'pending';
+    } else {
+        $affUserId = null;
+        $affLinkId = null;
+        $affRef = null;
+    }
+}
+$userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
 
         $order = Order::create([
             'invoice_number' => 'INV-' . date('YmdHis') . rand(1000, 9999),
             'type' => 'ship',
             'product_id' => $package->id,
             'product_name' => $package->title,
+'user_id' => $userId,
 
             'promo_id' => $promoUsed?->id,
             'promo_code' => $promoUsed?->code,
@@ -81,7 +114,13 @@ class ShipOrderController extends Controller
             // ship pakai field tour-style
             'departure_date' => $data['departure_date'],
             'participants' => $qty, // reuse kolom participants sebagai qty
-
+'affiliate_user_id' => $affUserId,
+'affiliate_link_id' => $affLinkId,
+'affiliate_ref' => $affRef,
+'affiliate_commission_type' => $affType,
+'affiliate_commission_value' => $affValue,
+'affiliate_commission_amount' => $affAmount,
+'affiliate_commission_status' => $affStatus,
             'pickup_date' => null,
             'return_date' => null,
             'total_days' => null,
@@ -93,7 +132,9 @@ class ShipOrderController extends Controller
             'payment_status' => 'waiting_payment',
             'order_status' => 'pending',
         ]);
-
+if ($affLinkId) {
+    AffiliateLink::where('id', $affLinkId)->increment('conversions');
+}
         try {
             if (!empty($order->customer_email)) {
                 Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));

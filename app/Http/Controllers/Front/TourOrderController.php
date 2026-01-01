@@ -12,6 +12,9 @@ use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
+use App\Models\User;
+use App\Models\AffiliateLink;
+
 class TourOrderController extends Controller
 {
     public function draft(Request $request, $slug)
@@ -67,6 +70,36 @@ if (!empty($data['promo_id'])) {
 
 
         $final = $subtotal - $discount;
+$affUserId = session('affiliate_user_id');
+$affLinkId = session('affiliate_link_id');
+$affRef    = session('affiliate_ref');
+
+$affType   = null;
+$affValue  = null;
+$affAmount = null;
+$affStatus = null;
+
+if ($affUserId && $affLinkId && $affRef) {
+    $affUser = User::find($affUserId);
+
+    if ($affUser && $affUser->is_affiliate) {
+        $affType  = $affUser->affiliate_commission_type ?: 'percent';
+        $affValue = (float) ($affUser->affiliate_commission_value ?: 0);
+
+        if ($affType === 'percent') {
+            $affAmount = (int) round(($final * $affValue) / 100);
+        } else {
+            $affAmount = (int) round($affValue);
+        }
+
+        $affStatus = 'pending';
+    } else {
+        $affUserId = null;
+        $affLinkId = null;
+        $affRef = null;
+    }
+}
+$userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
 
         // ===================== SIMPAN ORDER ======================
         $order = Order::create([
@@ -74,6 +107,7 @@ if (!empty($data['promo_id'])) {
             'type'           => 'tour',
             'product_id'     => $package->id,
             'product_name'   => $package->title,
+'user_id' => $userId,
 
             'customer_name'  => $data['name'],
             'customer_email' => $data['email'],
@@ -83,7 +117,13 @@ if (!empty($data['promo_id'])) {
             'participants'   => $data['participants'],
 
             'total_days'     => null, // khusus rent car
-
+    'affiliate_user_id' => $affUserId,
+    'affiliate_link_id' => $affLinkId,
+    'affiliate_ref' => $affRef,
+    'affiliate_commission_type' => $affType,
+    'affiliate_commission_value' => $affValue,
+    'affiliate_commission_amount' => $affAmount,
+    'affiliate_commission_status' => $affStatus,
             'subtotal'       => $subtotal,
             'discount'       => $discount,
             'final_price'    => $final,
@@ -92,6 +132,9 @@ if (!empty($data['promo_id'])) {
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);
+        if ($affLinkId) {
+    AffiliateLink::where('id', $affLinkId)->increment('conversions');
+}
         try {
             if (!empty($order->customer_email)) {
                 Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));

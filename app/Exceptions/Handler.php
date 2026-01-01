@@ -4,6 +4,8 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Http\Request;
 
 class Handler extends ExceptionHandler
 {
@@ -33,9 +35,22 @@ class Handler extends ExceptionHandler
      * @return void
      */
     public function register()
-    {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
-    }
+{
+    // redirect 404 frontend ke homepage (SEO safe)
+    $this->renderable(function (NotFoundHttpException $e, Request $request) {
+
+        // JANGAN ganggu admin, api, asset
+        if (
+            $request->is('admin/*') ||
+            $request->is('api/*') ||
+            $request->expectsJson()
+        ) {
+            return null; // biarin Laravel handle normal
+        }
+
+        return redirect('/')
+            ->setStatusCode(302); // TEMPORARY (AMAN SEO)
+    });
+}
+
 }

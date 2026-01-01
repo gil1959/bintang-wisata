@@ -8,6 +8,8 @@ use App\Models\UmrahPackage;
 use App\Models\Order;
 use App\Models\Promo;
 
+use App\Models\User;
+use App\Models\AffiliateLink;
 class UmrahOrderController extends Controller
 {
     public function draft(Request $request, $slug)
@@ -58,16 +60,53 @@ class UmrahOrderController extends Controller
         }
 
         $final = $subtotal - $discount;
+$affUserId = session('affiliate_user_id');
+$affLinkId = session('affiliate_link_id');
+$affRef    = session('affiliate_ref');
+
+$affType   = null;
+$affValue  = null;
+$affAmount = null;
+$affStatus = null;
+
+if ($affUserId && $affLinkId && $affRef) {
+    $affUser = User::find($affUserId);
+
+    if ($affUser && $affUser->is_affiliate) {
+        $affType  = $affUser->affiliate_commission_type ?: 'percent';
+        $affValue = (float) ($affUser->affiliate_commission_value ?: 0);
+
+        if ($affType === 'percent') {
+            $affAmount = (int) round(($final * $affValue) / 100);
+        } else {
+            $affAmount = (int) round($affValue);
+        }
+
+        $affStatus = 'pending';
+    } else {
+        $affUserId = null;
+        $affLinkId = null;
+        $affRef = null;
+    }
+}
+$userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
 
         $order = Order::create([
     'invoice_number' => 'INV-' . date('YmdHis') . rand(1000, 9999),
     'type'           => 'umrah',
     'product_id'     => $package->id,
     'product_name'   => $package->title,
+'user_id' => $userId,
 
     'promo_id'       => $promoUsed?->id,
     'promo_code'     => $promoUsed?->code,
-
+'affiliate_user_id' => $affUserId,
+'affiliate_link_id' => $affLinkId,
+'affiliate_ref' => $affRef,
+'affiliate_commission_type' => $affType,
+'affiliate_commission_value' => $affValue,
+'affiliate_commission_amount' => $affAmount,
+'affiliate_commission_status' => $affStatus,
     'customer_name'  => $data['name'],
     'customer_email' => $data['email'],
     'customer_phone' => $data['phone'],
@@ -91,11 +130,10 @@ class UmrahOrderController extends Controller
     'payment_status' => 'waiting_payment',
     'order_status'   => 'pending',
 ]);
+if ($affLinkId) {
+    AffiliateLink::where('id', $affLinkId)->increment('conversions');
+}
 
-
-        // Simpan detail tier yang dipilih biar admin bisa lihat (kalau orders punya kolom notes/meta).
-        // Kalau belum ada: lu bisa tambah kolom json "meta" di orders.
-        // Untuk minimal change: skip dulu.
 
        return response()->json([
     'ok' => true,

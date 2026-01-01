@@ -10,6 +10,7 @@ use App\Models\DestinationInspiration;
 use App\Models\ClientLogo;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
+use App\Models\ShipPackage;
 
 class TourController extends Controller
 {
@@ -111,7 +112,36 @@ if ($request->filled('subcategory')) {
                     ->get();
             }
         }
+        // ===================== PROMO SHIP PACKAGES (Home Section) =====================
+$shipPromoEnabled = filter_var(Setting::getValue('home_ship_promo_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
+$shipPromoMode = Setting::getValue('home_ship_promo_mode', 'auto'); // auto | custom
 
-        return view('front.home', compact('packages', 'inspirations', 'clientLogos', 'promoTours'));
+$promoShips = collect();
+
+if ($shipPromoEnabled) {
+    $customShipIds = json_decode(Setting::getValue('home_ship_promo_custom_ids', '[]'), true);
+    $customShipIds = is_array($customShipIds) ? array_values(array_unique(array_map('intval', $customShipIds))) : [];
+
+    if ($shipPromoMode === 'custom' && count($customShipIds) > 0) {
+        // Ambil sesuai urutan admin (FIELD untuk MySQL)
+        $idsCsv = implode(',', $customShipIds);
+
+        $promoShips = ShipPackage::query()
+            ->where('is_active', true)
+            ->whereIn('id', $customShipIds)
+            ->orderByRaw(DB::raw("FIELD(id, {$idsCsv})"))
+            ->get();
+    } else {
+        // AUTO: label PROMO
+        $promoShips = ShipPackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->latest()
+            ->get();
+    }
+}
+
+
+        return view('front.home', compact('packages', 'inspirations', 'clientLogos', 'promoTours', 'promoShips'));
     }
 }

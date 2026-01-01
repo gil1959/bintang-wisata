@@ -36,8 +36,8 @@
 
             <div class="flex items-center justify-between text-sm">
                 <a href="{{ route('login') }}" class="text-[#0194F3] hover:underline">
-                    Sudah punya akun?
-                </a>
+  Sudah punya akun? Login
+</a>
 
                 <button class="px-5 py-2 rounded-xl bg-[#0194F3] text-white font-semibold">
                     Daftar

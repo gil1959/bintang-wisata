@@ -101,10 +101,18 @@ class OrderController extends Controller
         $prevOrderStatus   = $order->order_status;
 
         if ($data['action'] === 'approve') {
-            $order->update([
-                'payment_status' => 'paid',
-                'order_status'   => 'approved',
-            ]);
+    $order->update([
+        'payment_status' => 'paid',
+        'order_status'   => 'approved',
+    ]);
+
+    // ===== affiliate commission status ikut approved =====
+    if ($order->affiliate_user_id && $order->affiliate_commission_amount !== null) {
+        $order->update([
+            'affiliate_commission_status' => 'approved',
+        ]);
+    }
+
 
             if ($payment && $payment->status === 'waiting_verification') {
                 $payment->update(['status' => 'paid']);
@@ -129,10 +137,18 @@ class OrderController extends Controller
                 }
             }
         } else {
-            $order->update([
-                'payment_status' => 'failed',
-                'order_status'   => 'rejected',
-            ]);
+    $order->update([
+        'payment_status' => 'failed',
+        'order_status'   => 'rejected',
+    ]);
+
+    // ===== affiliate commission status ikut cancelled =====
+    if ($order->affiliate_user_id) {
+        $order->update([
+            'affiliate_commission_status' => 'cancelled',
+        ]);
+    }
+
 
             if ($payment && $payment->status === 'waiting_verification') {
                 $payment->update(['status' => 'failed']);

@@ -11,30 +11,20 @@ use App\Models\Setting;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\User;
+use App\Models\AffiliateLink;
 class RentCarOrderController extends Controller
 {
     public function draft(Request $request, $slug)
     {
         $package = RentCarPackage::where('slug', $slug)->firstOrFail();
 
-        /**
-         * Frontend lo saat ini ngirim:
-         * - pickup (string date)
-         * - return (string date)
-         *
-         * Tapi untuk DB kita simpan sebagai:
-         * - pickup_date
-         * - return_date
-         *
-         * Jadi kita validasi yang ada, lalu normalisasi.
-         */
         $validated = $request->validate([
             'name'     => 'required|string|max:120',
             'email'    => 'required|email',
             'phone'    => 'required|string|max:50',
 
-            // ✅ terima dua kemungkinan nama field
+            
             'pickup'       => 'nullable|date',
             'return'       => 'nullable|date',
             'pickup_date'  => 'nullable|date',
@@ -43,7 +33,7 @@ class RentCarOrderController extends Controller
             'promo_id' => 'nullable|integer',
         ]);
 
-        // ✅ normalisasi tanggal (prioritaskan pickup_date jika ada)
+        
         $pickupDate = $validated['pickup_date'] ?? $validated['pickup'] ?? null;
         $returnDate = $validated['return_date'] ?? $validated['return'] ?? null;
 
@@ -57,7 +47,7 @@ class RentCarOrderController extends Controller
             ], 422);
         }
 
-        // ✅ validasi return >= pickup
+       
         if (strtotime($returnDate) < strtotime($pickupDate)) {
             return response()->json([
                 'message' => 'The given data was invalid.',
@@ -99,6 +89,36 @@ if (!empty($validated['promo_id'])) {
 
 
         $final = max(0, $subtotal - $discount);
+$affUserId = session('affiliate_user_id');
+$affLinkId = session('affiliate_link_id');
+$affRef    = session('affiliate_ref');
+
+$affType   = null;
+$affValue  = null;
+$affAmount = null;
+$affStatus = null;
+
+if ($affUserId && $affLinkId && $affRef) {
+    $affUser = User::find($affUserId);
+
+    if ($affUser && $affUser->is_affiliate) {
+        $affType  = $affUser->affiliate_commission_type ?: 'percent';
+        $affValue = (float) ($affUser->affiliate_commission_value ?: 0);
+
+        if ($affType === 'percent') {
+            $affAmount = (int) round(($final * $affValue) / 100);
+        } else {
+            $affAmount = (int) round($affValue);
+        }
+
+        $affStatus = 'pending';
+    } else {
+        $affUserId = null;
+        $affLinkId = null;
+        $affRef = null;
+    }
+}
+$userId = auth()->id() ?: User::where('email', $validated['email'])->value('id');
 
         // ===================== SIMPAN ORDER ======================
         $order = Order::create([
@@ -112,8 +132,15 @@ if (!empty($validated['promo_id'])) {
             'customer_name'  => $validated['name'],
             'customer_email' => $validated['email'],
             'customer_phone' => $validated['phone'],
+'affiliate_user_id' => $affUserId,
+'affiliate_link_id' => $affLinkId,
+'affiliate_ref' => $affRef,
+'affiliate_commission_type' => $affType,
+'affiliate_commission_value' => $affValue,
+'affiliate_commission_amount' => $affAmount,
+'affiliate_commission_status' => $affStatus,
+            'user_id' => $userId,
 
-            // ✅ ini yang bikin admin bisa tampil
             'pickup_date'    => $pickupDate,
             'return_date'    => $returnDate,
 
@@ -129,6 +156,10 @@ if (!empty($validated['promo_id'])) {
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);
+        if ($affLinkId) {
+    AffiliateLink::where('id', $affLinkId)->increment('conversions');
+}
+
         try {
             if (!empty($order->customer_email)) {
                 Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));

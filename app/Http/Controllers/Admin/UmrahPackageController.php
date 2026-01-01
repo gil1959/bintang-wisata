@@ -38,6 +38,7 @@ class UmrahPackageController extends Controller
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
+'is_active' => (int) $request->input('is_active', 1),
 
                 'long_description' => $request->long_description,
                 'itinerary'        => $request->itinerary,
@@ -91,6 +92,7 @@ class UmrahPackageController extends Controller
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
+'is_active' => (int) $request->input('is_active', 1),
 
                 'long_description' => $request->long_description,
                 'itinerary'        => $request->itinerary,

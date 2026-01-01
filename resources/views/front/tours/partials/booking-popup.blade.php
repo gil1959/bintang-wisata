@@ -195,6 +195,12 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl,
       this.promoLoading = false;
       this.recalc();
       this.isOpen = true;
+       const params = new URLSearchParams(window.location.search);
+  const promoQ = (params.get('promo') || '').trim();
+  if (promoQ) {
+    this.promo.code = promoQ;
+    this.applyPromo();
+  }
     },
 
     close() { this.isOpen = false; },

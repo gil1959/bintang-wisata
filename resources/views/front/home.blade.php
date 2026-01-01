@@ -260,6 +260,7 @@
 {{-- ================= WHY US ================= --}}
 <section class="bg-slate-50">
    @include('front.partials.home-promo-tours')
+   @include('front.partials.home-promo-ships')
 
         {{-- ================= INSPIRASI DESTINASI ================= --}}
 <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 travel-grid shadow-soft" data-aos="fade-up" data-aos-delay="140">

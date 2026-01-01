@@ -54,7 +54,7 @@ class RentCarOrderController extends Controller
             'type'           => 'rent_car',
             'product_id'     => $package->id,
             'product_name'   => $package->title,
-
+'user_id'        => auth()->check() ? auth()->id() : null,
             'customer_name'  => $data['name'],
             'customer_email' => $data['email'],
             'customer_phone' => $data['phone'],

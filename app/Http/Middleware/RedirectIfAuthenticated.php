@@ -29,7 +29,7 @@ class RedirectIfAuthenticated
                     return redirect('/bw-admin');
                 }
 
-                return redirect('/');
+                return redirect('/user/dashboard');
             }
         }
 

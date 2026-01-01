@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Admin Controllers
@@ -27,6 +28,8 @@ use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\ShipPackageController;
 use App\Http\Controllers\Front\ShipController;
 use App\Http\Controllers\Front\ShipOrderController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\AffiliateUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +79,31 @@ Route::delete('umrah-packages/photo/{photo}', [\App\Http\Controllers\Admin\Umrah
     ->name('umrah-packages.delete-photo');
 Route::get('categories/{category}/subcategories', [\App\Http\Controllers\Admin\TourCategoryController::class, 'subcategories'])
     ->name('categories.subcategories');
+Route::prefix('affiliate')->name('affiliate.')->group(function () {
+    Route::get('/requests', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'index'])
+        ->name('requests.index');
+    Route::get('/requests/{user}', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'show'])
+        ->name('requests.show');
+        Route::get('/orders', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'index'])
+    ->name('orders.index');
+Route::get('/orders/{order}', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'show'])
+    ->name('orders.show');
+    Route::get('/withdrawals', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'index'])
+    ->name('withdrawals.index');
+Route::get('/withdrawals/{requestModel}', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'show'])
+    ->name('withdrawals.show');
+Route::post('/withdrawals/{requestModel}/status', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'updateStatus'])
+    ->name('withdrawals.status');
+
+Route::post('/orders/{order}/commission', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'setCommission'])
+    ->name('orders.commission');
+
+    Route::post('/requests/{user}/approve', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'approve'])
+        ->name('requests.approve');
+    Route::post('/requests/{user}/decline', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'decline'])
+        ->name('requests.decline');
+});
+
 
 Route::resource('umrah-categories', \App\Http\Controllers\Admin\UmrahCategoryController::class);
         Route::post('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'update'])
@@ -83,6 +111,13 @@ Route::resource('umrah-categories', \App\Http\Controllers\Admin\UmrahCategoryCon
 Route::get('/reviews/packages', [AdminReviewController::class, 'packages'])
     ->name('reviews.packages');
 
+Route::get('users/affiliate', [AffiliateUserController::class, 'index'])
+    ->name('users.affiliate.index');
+
+Route::post('users/affiliate/{user}', [AffiliateUserController::class, 'update'])
+    ->name('users.affiliate.update');
+
+    Route::resource('users', AdminUserController::class)->except(['create', 'store']);
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class);
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
@@ -112,6 +147,7 @@ Route::get('/reviews/packages', [AdminReviewController::class, 'packages'])
 
         Route::post('home-sections/promo-tours', [\App\Http\Controllers\Admin\HomePromoToursController::class, 'update'])
             ->name('home-sections.promo-tours.update');
+            
         // Settings
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save');
@@ -159,6 +195,71 @@ Route::resource('ship-categories', \App\Http\Controllers\Admin\ShipCategoryContr
         Route::patch('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
     });
 
+/*
+|--------------------------------------------------------------------------
+| User Panel
+|--------------------------------------------------------------------------
+*/
+Route::prefix('user')
+    ->name('user.')
+    ->middleware(['auth', 'role:user', 'verified'])
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])
+            ->name('dashboard');
+Route::get('/orders/{order}/confirm-admin', [\App\Http\Controllers\User\OrderController::class, 'confirmAdmin'])
+    ->name('orders.confirm-admin');
+Route::get('/withdrawals', [\App\Http\Controllers\User\AffiliateController::class, 'withdrawals'])
+    ->name('withdrawals');
+
+Route::post('/withdrawals', [\App\Http\Controllers\User\AffiliateController::class, 'submitWithdrawal'])
+    ->name('withdrawals.submit');
+
+        Route::prefix('affiliate')
+    ->name('affiliate.')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\AffiliateController::class, 'dashboard'])
+            ->name('dashboard');
+
+        Route::get('/commission', [\App\Http\Controllers\User\AffiliateController::class, 'commission'])
+            ->name('commission');
+
+       Route::get('/links', [\App\Http\Controllers\User\AffiliateController::class, 'links'])
+    ->name('links');
+
+Route::get('/links/create', [\App\Http\Controllers\User\AffiliateController::class, 'createLinkForm'])
+    ->name('links.create');
+
+Route::post('/links', [\App\Http\Controllers\User\AffiliateController::class, 'storeLink'])
+    ->name('links.store');
+Route::get('/apply', [\App\Http\Controllers\User\AffiliateController::class, 'apply'])
+    ->name('apply');
+
+Route::post('/apply', [\App\Http\Controllers\User\AffiliateController::class, 'submitApplication'])
+    ->name('apply.submit');
+
+        Route::get('/coupons', [\App\Http\Controllers\User\AffiliateController::class, 'coupons'])
+    ->name('coupons');
+
+Route::post('/coupons', [\App\Http\Controllers\User\AffiliateController::class, 'storeUserCoupon'])
+    ->name('coupons.store');
+
+
+        Route::get('/orders', [\App\Http\Controllers\User\AffiliateController::class, 'orders'])
+            ->name('orders');
+    });
+
+
+        Route::get('/orders', [\App\Http\Controllers\User\OrderController::class, 'index'])
+            ->name('orders');
+            Route::get('/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])
+    ->name('orders.show');
+
+        Route::get('/profile', [\App\Http\Controllers\User\ProfileController::class, 'edit'])
+            ->name('profile.edit');
+
+        Route::post('/profile', [\App\Http\Controllers\User\ProfileController::class, 'update'])
+            ->name('profile.update');
+    });
 
 
 /*
@@ -325,3 +426,10 @@ Route::fallback(function () {
     return redirect()->route('home');
 });
 
+Route::post('/logout-to-login', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('login');
+})->name('logout.to.login');

@@ -121,28 +121,50 @@
 
     </nav>
 
-    {{-- RIGHT: LANG SWITCHER (DESKTOP + MOBILE) --}}
-    <div class="flex items-center">
-      <div x-data="{ open:false }" class="relative">
-        <button @click="open = !open"
-          class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition flex items-center gap-2">
-          <span>{{ config('app.available_locales')[app()->getLocale()] ?? strtoupper(app()->getLocale()) }}</span>
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-          </svg>
-        </button>
+    {{-- RIGHT: LANG SWITCHER (DESKTOP + MOBILE) + LOGIN (DESKTOP ONLY) --}}
+<div class="flex items-center gap-3">
+  {{-- LANG --}}
+  <div x-data="{ open:false }" class="relative">
+    <button @click="open = !open"
+            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm text-slate-700">
+      <i data-lucide="languages" class="w-4 h-4 text-slate-600"></i>
+      <span class="hidden sm:inline">{{ strtoupper(app()->getLocale()) }}</span>
+      <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500"></i>
+    </button>
 
-        <div x-show="open" @click.outside="open=false" x-transition
-          class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden z-50">
-          @foreach (config('app.available_locales', []) as $code => $label)
-            <a href="{{ route('lang.switch', $code) }}"
-               class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-              {{ $label }}
-            </a>
-          @endforeach
-        </div>
-      </div>
+    <div x-show="open" @click.outside="open=false" x-transition
+         class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden z-50">
+      @foreach (config('app.available_locales', []) as $code => $label)
+        <a href="{{ route('lang.switch', $code) }}"
+           class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+          {{ $label }}
+        </a>
+      @endforeach
     </div>
+  </div>
+
+  {{-- LOGIN / MASUK (DESKTOP ONLY) --}}
+  <div class="hidden lg:flex items-center">
+    @auth
+      @php
+        $to = auth()->user()->hasRole('admin') ? route('admin.dashboard') : route('user.dashboard');
+      @endphp
+
+       <a href="{{ $to }}"
+     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-95"
+     style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
+    Masuk
+  </a>
+    @else
+      <a href="{{ route('login') }}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-95"
+         style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
+        Login
+      </a>
+    @endauth
+  </div>
+</div>
+
 
   </div>
 </header>

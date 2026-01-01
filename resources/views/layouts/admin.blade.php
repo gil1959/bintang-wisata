@@ -135,6 +135,19 @@
         ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
         ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
         ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
+        [
+    'label' => 'Users',
+    'icon'  => 'users',
+    'children' => [
+        ['label'=>'All Users','route'=>'admin.users.index','match'=>'admin.users.index','icon'=>'users'],
+        ['label'=>'Affiliate Requests','route'=>'admin.affiliate.requests.index','match'=>'admin.affiliate.requests.*','icon'=>'badge-percent'],
+['label'=>'Affiliate Orders','route'=>'admin.affiliate.orders.index','match'=>'admin.affiliate.orders.*','icon'=>'receipt'],
+['label'=>'Affiliate Withdrawals','route'=>'admin.affiliate.withdrawals.index','match'=>'admin.affiliate.withdrawals.*','icon'=>'wallet'],
+
+    ],
+],
+
+
         ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
         ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user'],
     ];

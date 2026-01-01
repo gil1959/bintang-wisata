@@ -142,6 +142,14 @@ promoLocked:false,
 
   // reset promo state setiap buka popup
   this.promoMsg = '';
+  // ===== auto-fill promo dari URL (?promo=XXXX) =====
+const params = new URLSearchParams(window.location.search);
+const promoQ = (params.get('promo') || '').trim();
+if (promoQ) {
+  this.promo = promoQ;
+  this.applyPromo();
+}
+
   this.promoId = null;
   this.promoLocked = false;
 

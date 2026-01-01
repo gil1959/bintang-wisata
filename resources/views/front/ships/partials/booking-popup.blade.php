@@ -152,6 +152,13 @@ function shipBooking(waAdmin, packageTitle, packageSlug, packageUrl) {
       this.promoLocked = false;
       this.promoLoading = false;
       this.recalc();
+      const params = new URLSearchParams(window.location.search);
+const promoQ = (params.get('promo') || '').trim();
+if (promoQ) {
+  this.promo.code = promoQ;
+  this.applyPromo();
+}
+
       this.isOpen = true;
     },
 

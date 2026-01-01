@@ -27,6 +27,7 @@ class UpdateUmrahPackageRequest extends FormRequest
             'itinerary' => 'nullable|string',
             'include_text' => 'nullable|string',
             'exclude_text' => 'nullable|string',
+'is_active' => 'required|in:0,1',
 
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string',

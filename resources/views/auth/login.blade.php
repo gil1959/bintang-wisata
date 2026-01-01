@@ -115,6 +115,12 @@
                                 style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
                                 Log In
                             </button>
+                            <div class="mt-4 text-center text-sm text-slate-600">
+  Belum punya akun?
+  <a href="{{ route('register') }}" class="font-semibold text-[#0194F3] hover:underline">
+    Register
+  </a>
+</div>
                         </form>
                     </div>
 

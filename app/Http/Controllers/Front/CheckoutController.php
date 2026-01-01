@@ -10,6 +10,11 @@ use App\Models\PaymentGateway;
 use App\Models\Setting;
 use App\Services\Payments\TripayService;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
 
 class CheckoutController extends Controller
 {
@@ -129,6 +134,74 @@ class CheckoutController extends Controller
         ]);
 
         $raw = $data['payment_method'];
+// ===============================
+// AUTO-CREATE USER UNTUK GUEST
+// ===============================
+if (!Auth::check()) {
+    // Email sumbernya dari draft booking (customer_email)
+    $email = trim((string) $order->customer_email);
+
+    if (empty($email)) {
+        return back()->withErrors([
+            'payment_method' => 'Email customer kosong. Tidak bisa membuat akun otomatis.',
+        ])->withInput();
+    }
+
+    // Kalau email sudah terdaftar => jangan auto-login (ini celah takeover)
+    $existing = User::where('email', $email)->first();
+    if ($existing) {
+        return redirect()
+            ->route('login')
+            ->with('error', 'Email sudah terdaftar. Silakan login dulu untuk melanjutkan pembayaran.');
+    }
+
+    $fullName = trim($data['billing_first_name'] . ' ' . $data['billing_last_name']);
+
+    // Gabung alamat jadi 1 text
+    $fullAddress = trim(
+        ($data['billing_address'] ?? '') . ', ' .
+        ($data['billing_city'] ?? '') . ', ' .
+        ($data['billing_state'] ?? '') . ', ' .
+        ($data['billing_postal'] ?? '') . ', ' .
+        ($data['billing_country'] ?? '')
+    );
+
+    $user = User::create([
+        'name'              => $fullName ?: ($order->customer_name ?? 'User'),
+        'email'             => $email,
+        'password'          => Hash::make(Str::random(24)),
+        'phone'             => $data['billing_phone'] ?? ($order->customer_phone ?? null),
+        'address'           => $fullAddress ?: null,
+        'email_verified_at' => now(), // auto verified sesuai requirement lu
+        'is_affiliate'            => false,
+    'affiliate_status'        => 'none',
+    'affiliate_requested_at'  => null,
+    'affiliate_reviewed_at'   => null,
+    'affiliate_reviewed_by'   => null,
+    'affiliate_review_note'   => null,
+    ]);
+
+    // Role default
+    $user->assignRole('user');
+
+    // Login otomatis biar bisa direct ke dashboard order
+    Auth::login($user);
+
+    // Attach order ke user
+    $order->user_id = $user->id;
+    $order->save();
+} else {
+    // Kalau sudah login, pastikan order ini milik dia (atau attach kalau masih null)
+    if ($order->user_id === null) {
+        $order->user_id = Auth::id();
+        $order->save();
+    }
+
+    if ((int) $order->user_id !== (int) Auth::id()) {
+    abort(403, 'Order ini bukan milik akun kamu.');
+}
+
+}
 
         // --- Manual: manual:{id} ---
         if (str_starts_with($raw, 'manual:')) {

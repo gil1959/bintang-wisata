@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $fillable = [
+        'user_id',
+
         // IDENTITAS ORDER
         'invoice_number',
         'type',           // tour / rent_car
@@ -49,14 +51,25 @@ class Order extends Model
 
         // PAYMENT
         'payment_method',
-        'payment_status',   // waiting_payment, waiting_verification, paid, failed
-        'order_status',     // pending, approved, rejected
+        'payment_status',   
+        'order_status',    
+        'affiliate_user_id',
+'affiliate_link_id',
+'affiliate_ref',
+'affiliate_commission_type',
+'affiliate_commission_value',
+'affiliate_commission_amount',
+'affiliate_commission_status',
+'affiliate_commission_set_by',
+'affiliate_commission_set_at',
     ];
 
     protected $casts = [
+         'user_id' => 'integer',
         'departure_date' => 'date',
         'pickup_date' => 'date',
         'return_date' => 'date',
+        'affiliate_commission_set_at' => 'datetime',
 
     ];
 

@@ -38,13 +38,54 @@
     </div>
 
     <div>
-      <label class="block text-sm font-extrabold text-slate-800 mb-1">Label (opsional)</label>
-      <input type="text" name="label"
-             value="{{ old('label', $package->label ?? '') }}"
-             placeholder="Contoh: PROMO, DISKON, TERLARIS"
-             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-      <p class="mt-1 text-xs text-slate-500">Maks 30 karakter. Kosongkan jika tidak perlu.</p>
-    </div>
+  <label class="block text-sm font-extrabold text-slate-800 mb-1">Label (opsional)</label>
+  <input type="text" name="label"
+         value="{{ old('label', $package->label ?? '') }}"
+         placeholder="Contoh: PROMO, DISKON, TERLARIS"
+         class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+  <p class="mt-1 text-xs text-slate-500">Maks 30 karakter. Kosongkan jika tidak perlu.</p>
+  @error('label') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+<div>
+  <label class="block text-sm font-extrabold text-slate-800 mb-1">Rating (1 - 5)</label>
+  <input
+    type="number"
+    name="rating_value"
+    min="1"
+    max="5"
+    step="0.1"
+    value="{{ old('rating_value', $package->rating_value ?? 5) }}"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  @error('rating_value') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+<div>
+  <label class="block text-sm font-extrabold text-slate-800 mb-1">Jumlah Rating</label>
+  <input
+    type="number"
+    name="rating_count"
+    min="0"
+    value="{{ old('rating_count', $package->rating_count ?? 0) }}"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+  >
+  @error('rating_count') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
+<div>
+  <label class="block text-sm font-extrabold text-slate-800 mb-1">Kategori</label>
+  <select name="category_id" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+    <option value="">-</option>
+    @foreach($categories as $c)
+      <option value="{{ $c->id }}" {{ (string)old('category_id', $package->category_id ?? '') === (string)$c->id ? 'selected' : '' }}>
+        {{ $c->name }}
+      </option>
+    @endforeach
+  </select>
+  @error('category_id') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
+</div>
+
 
     <div>
       <label class="block text-sm font-extrabold text-slate-800 mb-1">Kategori</label>

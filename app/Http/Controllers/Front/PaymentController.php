@@ -87,52 +87,19 @@ $payment = $paymentQuery->latest()->first();
     }
 
     // ✅ Kalau pembayaran gateway SUDAH PAID, langsung redirect ke WhatsApp admin
-    if (
-        $order->payment_status === 'paid'
-        && $order->payment_method
-        && str_starts_with($order->payment_method, 'gateway:')
-    ) {
-        $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
-        $wa = preg_replace('/\D+/', '', $rawWa);
-
-        if (str_starts_with($wa, '0')) {
-            $wa = '62' . substr($wa, 1);
-        }
-
-        if (!empty($wa)) {
-            $total = $order->payable_amount ?? $order->final_price;
-
-            // ✅ pesan WA detail
-            $dates = [];
-            if (!empty($order->departure_date)) {
-                $dates[] = 'Tanggal: ' . date('d-m-Y', strtotime($order->departure_date));
-            }
-            if (!empty($order->pickup_date) || !empty($order->return_date)) {
-                $p = $order->pickup_date ? date('d-m-Y', strtotime($order->pickup_date)) : '-';
-                $r = $order->return_date ? date('d-m-Y', strtotime($order->return_date)) : '-';
-                $dates[] = "Pickup/Return: {$p} s/d {$r}";
-            }
-
-            $days = $order->total_days ? "Durasi: {$order->total_days} hari\n" : '';
-            $participants = $order->participants ? "Peserta/QTY: {$order->participants}\n" : '';
-
-            $msg =
-                "Halo Admin,\n"
-                . "Pembayaran *BERHASIL* ✅\n\n"
-                . "Invoice: {$order->invoice_number}\n"
-                . "Nama: {$order->customer_name}\n"
-                . "Email: {$order->customer_email}\n"
-                . "WA Customer: {$order->customer_phone}\n"
-                . "Produk: {$order->product_name}\n"
-                . $participants
-                . $days
-                . (count($dates) ? implode("\n", $dates) . "\n" : '')
-                . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
-                . "Mohon diproses. Terima kasih.";
-
-            return redirect()->away("https://wa.me/{$wa}?text=" . urlencode($msg));
-        }
+   if (
+    $order->payment_status === 'paid'
+    && $order->payment_method
+    && str_starts_with($order->payment_method, 'gateway:')
+) {
+    if (!auth()->check()) {
+        return redirect()->route('login')->with('error', 'Silakan login untuk melihat order kamu.');
     }
+
+    return redirect()
+        ->route('user.orders.show', $order)
+        ->with('success', 'Pembayaran berhasil. Order kamu sudah tercatat.');
+}
 
     // === FLOW LAMA (tetap) ===
     if (!$order->payment_method) {
@@ -255,9 +222,16 @@ $payment = $paymentQuery->latest()->first();
             ]);
         }
 
-        return redirect()
-            ->route('payment.waiting', $order)
-            ->with('success', 'Bukti transfer berhasil diupload. Pesanan menunggu verifikasi admin.');
+        // Pastikan user login untuk akses halaman order
+if (!auth()->check()) {
+    // harusnya sudah login dari checkout auto-create
+    return redirect()->route('login')->with('error', 'Silakan login untuk melihat order kamu.');
+}
+
+return redirect()
+    ->route('user.orders.show', $order)
+    ->with('success', 'Bukti transfer berhasil diupload. Silakan konfirmasi ke admin.');
+
     }
 
     public function waiting(Order $order)

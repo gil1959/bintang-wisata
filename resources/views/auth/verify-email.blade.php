@@ -16,21 +16,25 @@
             </div>
         @endif
 
-        <div class="flex items-center justify-between">
-            <form method="POST" action="{{ route('verification.send') }}">
-                @csrf
-                <button class="px-4 py-2 rounded-xl bg-[#0194F3] text-white font-semibold hover:opacity-90">
-                    Kirim Ulang Email
-                </button>
-            </form>
+        <div class="flex items-center justify-between gap-3">
+    <form method="POST" action="{{ route('verification.send') }}">
+        @csrf
+        <button type="submit"
+            class="px-4 py-2 rounded-xl bg-[#0194F3] text-white font-semibold hover:opacity-90">
+            Kirim Ulang Email
+        </button>
+    </form>
 
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="text-sm text-gray-500 hover:underline">
-                    Logout
-                </button>
-            </form>
-        </div>
+    <form method="POST" action="{{ route('logout.to.login') }}">
+        @csrf
+        <button type="submit"
+            class="px-4 py-2 rounded-xl border border-[#0194F3] text-[#0194F3] font-semibold hover:bg-[#0194F3]/10">
+            Login
+        </button>
+    </form>
+</div>
+
+
 
     </x-auth.auth-wrapper>
 </x-guest-layout>

@@ -20,10 +20,25 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    'name',
+    'email',
+    'password',
+    'phone',
+    'address',
+    'full_address',
+    'sub_district',
+    'email_verified_at',
+   // affiliate
+'is_affiliate',
+'affiliate_status',
+'affiliate_requested_at',
+'affiliate_reviewed_at',
+'affiliate_reviewed_by',
+'affiliate_review_note',
+'affiliate_commission_type',
+'affiliate_commission_value',
+];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -42,5 +57,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_affiliate' => 'boolean',
+        'affiliate_requested_at' => 'datetime',
+    'affiliate_reviewed_at' => 'datetime',
     ];
 }
