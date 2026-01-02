@@ -94,15 +94,20 @@
       </div>
     @endif
 
-    <div class="mt-10">
-      @include('front.partials.reviews', ['item' => $package, 'type' => 'ship'])
-    </div>
 
-  </div>
 
-  <aside class="md:col-span-1 space-y-6">
-    @include('front.ships.partials.reservation')
-  </aside>
+
+</div>
+
+{{-- RESERVASI (DESKTOP: sidebar kanan) --}}
+
+<aside class="md:col-span-1 space-y-6">
+  @include('front.ships.partials.reservation')
+</aside>
+<section class="md:col-span-2 bg-white rounded-xl shadow-sm p-5">
+  @include('front.partials.reviews', ['item' => $package, 'type' => 'ship'])
+</section>
+
 
   @include('front.ships.partials.booking-popup', ['package' => $package])
 

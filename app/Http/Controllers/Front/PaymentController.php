@@ -17,11 +17,16 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentProofSubmittedMail;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
 class PaymentController extends Controller
 {
     // Router lama biar gak ngerusak link existing
     
-    public function show(Order $order, TripayService $tripay)
+    public function show(Request $request, Order $order, TripayService $tripay)
 {
     // ✅ Sync status Tripay kalau user balik dari gateway tapi webhook belum update
     $gatewayName = null;
@@ -30,6 +35,80 @@ class PaymentController extends Controller
         $parts = explode(':', $order->payment_method, 3);
         $gatewayName = $parts[1] ?? null;
     }
+
+    // ✅ Sync status XENDIT kalau user balik dari gateway tapi webhook belum update
+if ($gatewayName === 'xendit' && $order->payment_status !== 'paid') {
+
+    $channelCode = null;
+    if ($order->payment_method && str_starts_with($order->payment_method, 'gateway:')) {
+        $parts = explode(':', $order->payment_method, 3);
+        $channelCode = $parts[2] ?? null;
+    }
+
+    $paymentQuery = $order->payments()
+        ->where('method', 'gateway')
+        ->where('gateway_name', 'xendit')
+        ->where('status', 'waiting_payment');
+
+    if (!empty($channelCode)) {
+        $paymentQuery->where('channel_code', $channelCode);
+    }
+
+    $payment = $paymentQuery->latest()->first();
+
+    if ($payment && !empty($payment->gateway_reference)) {
+        $gw = PaymentGateway::where('name', 'xendit')->first();
+        $cred = $gw?->credentials ?? [];
+
+        try {
+            // Xendit invoice status endpoint
+            $http = Http::withBasicAuth($cred['secret_key'] ?? '', '')
+                ->get('https://api.xendit.co/v2/invoices/' . $payment->gateway_reference);
+
+            if ($http->ok()) {
+                $detail = $http->json();
+                $status = strtoupper((string) data_get($detail, 'status', ''));
+
+                if (in_array($status, ['PAID', 'SETTLED'], true)) {
+                    $payment->status = 'paid';
+                    $payment->gateway_payload = $detail;
+                    $payment->save();
+
+                    $order->payment_status = 'paid';
+                    $order->order_status = 'approved';
+                    $order->save();
+                } elseif (in_array($status, ['EXPIRED'], true)) {
+                    $payment->status = 'failed';
+                    $payment->gateway_payload = $detail;
+                    $payment->save();
+
+                    $order->payment_status = 'failed';
+                    $order->order_status = 'rejected';
+                    $order->save();
+                } else {
+                    // simpan payload terakhir (optional)
+                    $payment->gateway_payload = $detail;
+                    $payment->save();
+                }
+            } else {
+                Log::warning('Xendit sync failed http', [
+                    'invoice' => $order->invoice_number,
+                    'ref' => $payment->gateway_reference,
+                    'status' => $http->status(),
+                    'body' => $http->body(),
+                ]);
+            }
+
+        } catch (\Throwable $e) {
+            Log::warning('Xendit sync on return_url failed', [
+                'invoice' => $order->invoice_number,
+                'ref' => $payment->gateway_reference,
+                'err' => $e->getMessage(),
+            ]);
+        }
+    }
+}
+
 
     if ($gatewayName === 'tripay' && $order->payment_status !== 'paid') {
        $channelCode = null;
@@ -86,20 +165,38 @@ $payment = $paymentQuery->latest()->first();
         }
     }
 
-    // ✅ Kalau pembayaran gateway SUDAH PAID, langsung redirect ke WhatsApp admin
-   if (
+if (
     $order->payment_status === 'paid'
     && $order->payment_method
     && str_starts_with($order->payment_method, 'gateway:')
 ) {
     if (!auth()->check()) {
-        return redirect()->route('login')->with('error', 'Silakan login untuk melihat order kamu.');
+        // WAJIB aman: validasi token return_url (token ini lu bikin & simpan di payments)
+        $token = (string) $request->query('token');
+
+        $valid = false;
+        if ($token !== '') {
+            $valid = $order->payments()
+                ->where('method', 'gateway')
+                ->where('return_token', $token)
+                ->exists();
+        }
+
+        if (!$valid) {
+            return redirect()
+                ->route('login')
+                ->with('error', 'Silakan login untuk melihat order kamu.');
+        }
+
+        // token valid → boleh auto login + create account
+        $this->autoLoginForPaidOrder($order);
     }
 
     return redirect()
         ->route('user.orders.show', $order)
         ->with('success', 'Pembayaran berhasil. Order kamu sudah tercatat.');
 }
+
 
     // === FLOW LAMA (tetap) ===
     if (!$order->payment_method) {
@@ -295,19 +392,25 @@ return redirect()
             ->latest()
             ->first();
 
-        if (!$payment) {
-            $payment = $order->payments()->create([
-                'method'            => 'gateway',
-                'amount'            => $amount,
-                'proof_image'       => null,
-                'gateway_name'      => $gatewayName,
-                'channel_code'      => $channelCode,
-                'gateway_reference' => null,
-                'payment_url'       => null,
-                'gateway_payload'   => null,
-                'status'            => 'waiting_payment',
-            ]);
-        }
+       if (!$payment) {
+    $payment = $order->payments()->create([
+        'method'            => 'gateway',
+        'amount'            => (int)$amount,
+        'gateway_name'      => $gatewayName,
+        'channel_code'      => $channelCode,
+        'gateway_reference' => null,
+        'payment_url'       => null,
+        'return_token'      => Str::random(48),
+        'gateway_payload'   => null,
+        'status'            => 'waiting_payment',
+    ]);
+} else {
+    // safety: kalau payment lama belum punya token (data lama)
+    if (empty($payment->return_token)) {
+        $payment->return_token = Str::random(48);
+        $payment->save();
+    }
+}
 if (
     $gatewayName === 'tripay'
     && $payment->status === 'waiting_payment'
@@ -317,63 +420,60 @@ if (
     return redirect()->away($payment->payment_url);
 }
         // ========= TRIPAY =========
-        if ($gatewayName === 'tripay') {
-            $cred = $gateway->credentials ?? [];
+if ($gatewayName === 'tripay') {
+    $cred = $gateway->credentials ?? [];
 
-            $payload = [
-                'method'       => $channelCode,
-                'merchant_ref' => $order->invoice_number,
-                'amount'       => (int)$amount,
+    $returnUrl = route('payment.page', $order->id) . '?token=' . $payment->return_token;
 
-                'customer_name'  => $order->customer_name,
-                'customer_email' => $order->customer_email,
-                'customer_phone' => $order->customer_phone,
+    $payload = [
+        'method'       => $channelCode,
+        'merchant_ref' => $order->invoice_number,
+        'amount'       => (int) $amount,
 
-                'order_items' => [[
-                    'sku'      => 'ORDER',
-                    'name'     => $order->product_name,
-                    'price'    => (int)$amount,
-                    'quantity' => 1,
-                    'subtotal' => (int)$amount,
-                ]],
+        'customer_name'  => $order->customer_name,
+        'customer_email' => $order->customer_email,
+        'customer_phone' => $order->customer_phone,
 
-                'return_url'   => route('payment.page', $order->id),
-                'callback_url' => url('/api/webhooks/tripay'),
-                'expired_time' => time() + (24 * 60 * 60),
-            ];
+        'order_items' => [[
+            'sku'      => 'ORDER',
+            'name'     => $order->product_name,
+            'price'    => (int) $amount,
+            'quantity' => 1,
+            'subtotal' => (int) $amount,
+        ]],
 
-            try {
-                $resp = $tripay->createTransaction($cred, $payload);
-            } catch (\Throwable $e) {
-    Log::error('Tripay error', ['err' => $e->getMessage()]);
-    return redirect()
-        ->route('payment.gateway.page', $order->id)
-        ->with('error', 'Tripay sedang bermasalah. Coba lagi atau pilih metode lain.')
-        ->with('show_change_method', true);
+        // Webhook server-to-server:
+        'callback_url' => url('/api/webhooks/tripay'),
+
+        // Return ke browser user:
+        'return_url'   => $returnUrl,
+    ];
+
+    try {
+        $resp = $tripay->createTransaction($cred, $payload);
+    } catch (\Throwable $e) {
+        Log::error('TRIPAY error', ['err' => $e->getMessage()]);
+        return back()->with('error', 'TriPay sedang bermasalah. Coba lagi.');
+    }
+
+    // TriPay biasanya balikin:
+    // data.reference + data.checkout_url
+    $reference = data_get($resp, 'data.reference');
+    $checkoutUrl = data_get($resp, 'data.checkout_url');
+
+    $payment->gateway_reference = $reference;
+    $payment->payment_url = $checkoutUrl;
+    $payment->gateway_payload = $resp;
+    $payment->save();
+
+    if (!$checkoutUrl) {
+        Log::error('Tripay missing checkout_url', ['resp' => $resp]);
+        return back()->with('error', 'TriPay response invalid.');
+    }
+
+    return redirect()->away($checkoutUrl);
 }
 
-
-            $data = $resp['data'] ?? null;
-            if (!$data) {
-                $payment->gateway_payload = $resp;
-                $payment->save();
-                return back()->with('error', 'Tripay response tidak valid.');
-            }
-
-            $reference = $data['reference'] ?? null;
-            $checkoutUrl = $data['checkout_url'] ?? ($data['pay_url'] ?? null);
-
-            $payment->gateway_reference = $reference;
-            $payment->payment_url = $checkoutUrl;
-            $payment->gateway_payload = $resp;
-            $payment->save();
-
-            if (!$checkoutUrl) {
-                return back()->with('error', 'Tripay tidak mengembalikan checkout url.');
-            }
-
-            return redirect()->away($checkoutUrl);
-        }
 
         // ========= DOKU =========
         if ($gatewayName === 'doku') {
@@ -423,20 +523,29 @@ if (
         if ($gatewayName === 'xendit') {
             $cred = $gateway->credentials ?? [];
 
-            $payload = [
-                'external_id' => $order->invoice_number,
-                'amount' => (int)$amount,
-                'payer_email' => $order->customer_email,
-                'description' => 'Order ' . $order->invoice_number,
-                'success_redirect_url' => route('payment.page', $order->id),
-                'failure_redirect_url' => route('payment.page', $order->id),
-            ];
+            $returnUrl = route('payment.page', $order->id) . '?token=' . $payment->return_token;
+
+$payload = [
+    'external_id' => $order->invoice_number,
+    'amount' => (int)$amount,
+    'payer_email' => $order->customer_email,
+    'description' => 'Order ' . $order->invoice_number,
+    'success_redirect_url' => $returnUrl,
+    'failure_redirect_url' => $returnUrl,
+];
+
 
             $http = Http::withBasicAuth($cred['secret_key'] ?? '', '')
                 ->post('https://api.xendit.co/v2/invoices', $payload);
 
             if ($http->failed()) {
-    Log::error('Xendit create invoice failed', ['body' => $http->body()]);
+   Log::error('Xendit create invoice failed', [
+    'status' => $http->status(),
+    'body' => $http->body(),
+    'mode' => $cred['mode'] ?? null,
+    'key_prefix' => substr(($cred['secret_key'] ?? ''), 0, 20),
+]);
+
     return redirect()
         ->route('payment.gateway.page', $order->id)
         ->with('error', 'Xendit sedang bermasalah. Coba lagi atau pilih metode lain.')
@@ -723,5 +832,62 @@ $order->save();
         ->with('error', 'Pembayaran PayPal dibatalkan.')
         ->with('show_change_method', true);
 }
+private function autoLoginForPaidOrder(Order $order): void
+{
+    $email = trim((string) $order->customer_email);
+
+    if ($email === '') {
+        return; // gak bisa auto-create tanpa email
+    }
+
+    $user = User::where('email', $email)->first();
+
+    if (!$user) {
+        $name = trim((string) $order->customer_name);
+
+        $user = User::create([
+            'name'              => $name !== '' ? $name : 'User',
+            'email'             => $email,
+            'password'          => Hash::make(Str::random(24)),
+            'phone'             => $order->customer_phone ?: null,
+
+            // di Order model lu adanya billing_address, bukan customer_address
+            'address'           => $order->billing_address ?: null,
+
+            // field lain di User ada, tapi order lu gak punya datanya → biarin null
+            'full_address'      => null,
+            'sub_district'      => null,
+
+            // auto verified sesuai requirement lu
+            'email_verified_at' => now(),
+
+            // field affiliate ada di fillable user lu
+            'is_affiliate'           => false,
+            'affiliate_status'       => 'none',
+            'affiliate_requested_at' => null,
+            'affiliate_reviewed_at'  => null,
+            'affiliate_reviewed_by'  => null,
+            'affiliate_review_note'  => null,
+        ]);
+
+        // role default (project lu pakai spatie/permission)
+        $user->assignRole('user');
+    } else {
+        // requirement lu: kalau user ada tapi belum verified → auto verify
+        if (empty($user->email_verified_at)) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+    }
+
+    // attach order ke user kalau belum ada
+    if (empty($order->user_id)) {
+        $order->user_id = $user->id;
+        $order->save();
+    }
+
+    Auth::login($user);
+}
+
 
 }

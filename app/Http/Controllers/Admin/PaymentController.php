@@ -186,19 +186,36 @@ class PaymentController extends Controller
             $channels = $doku->staticChannels();
         } elseif ($gateway->name === 'xendit') {
 
-            $credentials['secret_key'] = trim((string) $request->input('secret_key', ''));
-            $credentials['callback_token'] = trim((string) $request->input('callback_token', ''));
+    // 1) Ambil credential dari request dulu
+    $credentials['secret_key'] = trim((string) $request->input('secret_key', ''));
+    $credentials['callback_token'] = trim((string) $request->input('callback_token', ''));
 
-            foreach (['secret_key', 'callback_token'] as $k) {
-                if ($credentials[$k] === '') {
-                    return back()->with('error', "Xendit: field {$k} wajib.");
-                }
-            }
+    // 2) Validasi wajib
+    foreach (['secret_key', 'callback_token'] as $k) {
+        if ($credentials[$k] === '') {
+            return back()->with('error', "Xendit: field {$k} wajib.");
+        }
+    }
 
-            $channels = [
-                ['channel_code' => 'invoice', 'name' => 'Xendit Invoice (All Methods)'],
-            ];
-        } elseif ($gateway->name === 'ipaymu') {
+    // 3) Validasi mode vs prefix key (baru dicek setelah key ada)
+    $mode = $credentials['mode'] ?? 'sandbox';
+    $key  = $credentials['secret_key'];
+
+    if ($mode === 'production' && str_starts_with($key, 'xnd_development_')) {
+        return back()->with('error', 'Xendit: Mode Production wajib pakai secret key xnd_production_, bukan xnd_development_.');
+    }
+
+    if ($mode === 'sandbox' && str_starts_with($key, 'xnd_production_')) {
+        return back()->with('error', 'Xendit: Mode Sandbox wajib pakai secret key xnd_development_, bukan xnd_production_.');
+    }
+
+    // 4) Channel statis
+    $channels = [
+        ['channel_code' => 'invoice', 'name' => 'Xendit Invoice (All Methods)'],
+    ];
+}
+
+ elseif ($gateway->name === 'ipaymu') {
 
             $credentials['va'] = trim((string) $request->input('va', ''));
             $credentials['api_key'] = trim((string) $request->input('api_key', ''));

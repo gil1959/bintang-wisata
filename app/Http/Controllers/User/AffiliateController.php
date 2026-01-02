@@ -364,7 +364,7 @@ public function storeUserCoupon(Request $request)
         if ($q === '') return $query;
         return $query->where(function($w) use ($q){
             $w->where('title', 'like', "%{$q}%")
-              ->orWhere('name', 'like', "%{$q}%")
+              
               ->orWhere('slug', 'like', "%{$q}%");
         });
     };
