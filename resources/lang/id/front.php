@@ -10,6 +10,8 @@ return [
     'nav' => [
         'home' => 'Home',
         'tours' => 'Paket Tour',
+        'mice'  => 'Paket MICE',
+
         'rental' => 'Rental',
         'ship' => 'Sewa Kapal',
  'umrah' => 'Umrah',

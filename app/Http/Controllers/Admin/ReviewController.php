@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
 use App\Models\UmrahPackage;
+use App\Models\MicePackage;
+
 
 class ReviewController extends Controller
 {
@@ -55,6 +57,7 @@ public function packages(Request $request)
         'rent_car'  => RentCarPackage::query(),
         'ship'      => ShipPackage::query(),
         'umrah'     => UmrahPackage::query(),
+        'mice'      => MicePackage::query(),
     };
 
     // optional: cuma yang aktif (kalau lo mau admin bisa review paket nonaktif, hapus filter ini)

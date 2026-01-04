@@ -189,6 +189,10 @@ class TourPackageController extends Controller
         foreach (['domestic', 'international'] as $type) {
 
             foreach ($tiers[$type] ?? [] as $row) {
+                if ($type === 'international' && (!isset($row['price']) || $row['price'] === '' || $row['price'] === null)) {
+    continue;
+}
+
 
                 if (!empty($row['id'])) {
                     $submitted[] = (int)$row['id'];

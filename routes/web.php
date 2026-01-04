@@ -79,6 +79,12 @@ Route::delete('umrah-packages/photo/{photo}', [\App\Http\Controllers\Admin\Umrah
     ->name('umrah-packages.delete-photo');
 Route::get('categories/{category}/subcategories', [\App\Http\Controllers\Admin\TourCategoryController::class, 'subcategories'])
     ->name('categories.subcategories');
+    // MICE
+Route::resource('mice-packages', \App\Http\Controllers\Admin\MicePackageController::class);
+Route::delete('mice-packages/photo/{photo}', [\App\Http\Controllers\Admin\MicePackageController::class, 'deletePhoto'])
+    ->name('mice-packages.delete-photo');
+
+Route::resource('mice-categories', \App\Http\Controllers\Admin\MiceCategoryController::class);
 Route::prefix('affiliate')->name('affiliate.')->group(function () {
     Route::get('/requests', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'index'])
         ->name('requests.index');
@@ -97,6 +103,8 @@ Route::post('/withdrawals/{requestModel}/status', [\App\Http\Controllers\Admin\A
 
 Route::post('/orders/{order}/commission', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'setCommission'])
     ->name('orders.commission');
+
+
 
     Route::post('/requests/{user}/approve', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'approve'])
         ->name('requests.approve');
@@ -281,7 +289,9 @@ Route::post('/promo/validate', [PromoValidatorController::class, 'validatePromo'
 // Rent Car Draft Booking
 Route::post('/tours/{slug}/draft-booking', [TourOrderController::class, 'draft'])
     ->name('tour.draft');
-
+Route::get('/paket-mice', [\App\Http\Controllers\Front\MiceController::class, 'index'])->name('mice.index');
+Route::get('/paket-mice/{micePackage:slug}', [\App\Http\Controllers\Front\MiceController::class, 'show'])->name('mice.show');
+Route::post('/mice/{slug}/draft-booking', [\App\Http\Controllers\Front\MiceOrderController::class, 'draft'])->name('mice.draft');
 Route::post('/rent-car/{slug}/draft-booking', [RentCarOrderController::class, 'draft'])
     ->name('rentcar.draft');
 

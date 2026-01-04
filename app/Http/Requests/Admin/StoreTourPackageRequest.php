@@ -56,12 +56,12 @@ class StoreTourPackageRequest extends FormRequest
             'tiers.domestic.*.is_custom'  => ['required', 'boolean'],
 
             // International tiers
-            'tiers.international'            => ['required', 'array'],
-            'tiers.international.*.min_people' => ['required', 'integer', 'min:1'],
-            'tiers.international.*.max_people' => ['nullable', 'integer', 'gte:tiers.international.*.min_people'],
-            'tiers.international.*.price'      => ['required', 'integer', 'min:0'],
-            'tiers.international.*.type'       => ['required', Rule::in(['international'])],
-            'tiers.international.*.is_custom'  => ['required', 'boolean'],
+          'tiers.international'              => ['nullable', 'array'],
+'tiers.international.*.min_people' => ['required_with:tiers.international.*.price', 'integer', 'min:1'],
+'tiers.international.*.max_people' => ['nullable', 'integer', 'gte:tiers.international.*.min_people'],
+'tiers.international.*.price'      => ['nullable', 'integer', 'min:0'],
+'tiers.international.*.type'       => ['nullable', Rule::in(['international'])],
+'tiers.international.*.is_custom'  => ['nullable', 'boolean'],
 
             // ========= FLIGHT INFO =========
             'flight_info' => ['required', Rule::in(['included', 'not_included'])],
@@ -88,6 +88,22 @@ class StoreTourPackageRequest extends FormRequest
             ->values()
             ->all();
 
+$tiers = $this->tiers ?? [];
+
+if (isset($tiers['international']) && is_array($tiers['international'])) {
+    $tiers['international'] = collect($tiers['international'])
+        ->filter(function ($row) {
+            $price = $row['price'] ?? null;
+            // anggap baris kosong kalau price kosong (ini yang paling aman)
+            return !($price === null || $price === '');
+        })
+        ->values()
+        ->all();
+}
+
+$this->merge([
+    'tiers' => $tiers,
+]);
 
         $this->merge([
             'includes'    => $includes,

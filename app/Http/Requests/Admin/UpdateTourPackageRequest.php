@@ -63,14 +63,15 @@ class UpdateTourPackageRequest extends FormRequest
             Rule::exists('tour_categories', 'id')
                 ->where(fn ($q) => $q->where('parent_id', $this->input('category_id'))),
         ],
-            // International
-            'tiers.international'            => ['required', 'array'],
-            'tiers.international.*.id'       => ['nullable', 'integer'],
-            'tiers.international.*.min_people' => ['required', 'integer', 'min:1'],
-            'tiers.international.*.max_people' => ['nullable', 'integer', 'gte:tiers.international.*.min_people'],
-            'tiers.international.*.price'      => ['required', 'integer', 'min:0'],
-            'tiers.international.*.type'       => ['required', Rule::in(['international'])],
-            'tiers.international.*.is_custom'  => ['required', 'boolean'],
+            // International (OPSIONAL)
+'tiers.international'               => ['nullable', 'array'],
+'tiers.international.*.id'          => ['nullable', 'integer'],
+'tiers.international.*.min_people'  => ['required_with:tiers.international.*.price', 'integer', 'min:1'],
+'tiers.international.*.max_people'  => ['nullable', 'integer', 'gte:tiers.international.*.min_people'],
+'tiers.international.*.price'       => ['nullable', 'integer', 'min:0'],
+'tiers.international.*.type'        => ['nullable', Rule::in(['international'])],
+'tiers.international.*.is_custom'   => ['nullable', 'boolean'],
+
 
             'thumbnail' => 'nullable|image|max:2048',
             'gallery.*' => 'nullable|image|max:2048',
@@ -87,6 +88,22 @@ class UpdateTourPackageRequest extends FormRequest
 
     public function prepareForValidation()
     {
+        $tiers = $this->tiers ?? [];
+
+if (isset($tiers['international']) && is_array($tiers['international'])) {
+    $tiers['international'] = collect($tiers['international'])
+        ->filter(function ($row) {
+            $price = $row['price'] ?? null;
+            return !($price === null || $price === '');
+        })
+        ->values()
+        ->all();
+}
+
+$this->merge([
+    'tiers' => $tiers,
+]);
+
         // Filter includes
         $includes = array_filter(
             $this->includes ?? [],

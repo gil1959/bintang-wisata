@@ -14,6 +14,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\MicePackage;
+
 
 
 class CheckoutController extends Controller
@@ -31,6 +33,8 @@ class CheckoutController extends Controller
     $package = \App\Models\ShipPackage::find($order->product_id);
 } elseif ($order->type === 'umrah') {
     $package = \App\Models\UmrahPackage::find($order->product_id);
+} elseif ($order->type === 'mice') {
+    $package = \App\Models\MicePackage::find($order->product_id);
 } else {
     $package = null;
 }

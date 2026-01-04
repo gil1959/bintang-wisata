@@ -462,12 +462,16 @@
               {{ $package->title ?? $order->product_name }}
             </p>
             <p class="mt-1 text-sm text-slate-500">
-              @php
-  $typeLabel = $order->type === 'tour'
-    ? 'Paket Tour'
-    : ($order->type === 'rent_car' ? 'Paket Rent Car' : 'Sewa Kapal');
+             @php
+  $typeLabel =
+    $order->type === 'tour' ? 'Paket Tour'
+    : ($order->type === 'rent_car' ? 'Paket Rent Car'
+    : ($order->type === 'ship' ? 'Sewa Kapal'
+    : ($order->type === 'umrah' ? 'Paket Umrah'
+    : ($order->type === 'mice' ? 'Paket MICE' : 'Produk'))));
 @endphp
 {{ $typeLabel }}
+
             </p>
             @if($order->invoice_number ?? false)
               <p class="mt-1 text-xs text-slate-500">

@@ -96,23 +96,30 @@
 
                         <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700">
 
-    @if($order->type === 'tour' || $order->type === 'umrah')
-        <div>
-            <div class="text-xs font-extrabold text-slate-500">
-                {{ $order->type === 'umrah' ? 'Tanggal Booking' : 'Keberangkatan' }}
-            </div>
-            <div class="mt-1 font-bold text-slate-900">
-                {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
-            </div>
+    @if(in_array($order->type, ['tour','umrah','mice']))
+    <div>
+        <div class="text-xs font-extrabold text-slate-500">
+            @if($order->type === 'umrah')
+                Tanggal Booking
+            @elseif($order->type === 'mice')
+                Jadwal / Tanggal
+            @else
+                Keberangkatan
+            @endif
         </div>
+        <div class="mt-1 font-bold text-slate-900">
+            {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
+        </div>
+    </div>
 
-        <div>
-            <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
-            <div class="mt-1 font-bold text-slate-900">
-                {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
-            </div>
+    <div>
+        <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+        <div class="mt-1 font-bold text-slate-900">
+            {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
         </div>
-    @endif
+    </div>
+@endif
+
 
     @if($order->type === 'ship')
         <div>

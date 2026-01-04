@@ -218,188 +218,78 @@
     </div>
 </div>
 
-{{-- DESKRIPSI --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-    <button type="button"
-        @click="open = !open"
-        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-        style="background:#0194F3;">
-        <span>Deskripsi Paket</span>
-        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-    </button>
+{{-- KONTEN (Deskripsi / Itinerary / Include / Exclude) --}}
 
-    <div x-show="open" x-cloak class="p-5">
-        <label class="block text-sm font-bold text-slate-800 mb-1">Deskripsi Lengkap</label>
-        <textarea name="long_description"
-          class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-          rows="12">{{ old('long_description', $pkg->long_description ?? '') }}</textarea>
-
-    </div>
-</div>
-
-{{-- ITINERARY --}}
 @php
-    // NORMALISASI DATA ITINERARY (EDIT: HH:MM:SS -> HH:MM)
-    $itinerariesForForm = old('itineraries') ?? collect($pkg->itineraries ?? [])
-        ->map(function ($i) {
-            return [
-             'id'    => $i->id,
-             'title' => $i->title ?? '',
-            ];
+    // Prefill Itinerary editor dari data DB (tour_itineraries) -> jadi <p>per baris</p>
+    $itineraryHtml = old('itinerary_text');
+    if ($itineraryHtml === null) {
+        $lines = ($pkg?->itineraries ?? collect())
+            ->sortBy('sort_order')
+            ->pluck('title')
+            ->filter()
+            ->values();
 
-        })
-        ->values()
-        ->toArray();
+        $itineraryHtml = $lines->map(fn($t) => '<p>' . e($t) . '</p>')->implode('');
+    }
+
+    // Prefill Include editor dari JSON includes
+    $includeHtml = old('include_text');
+    if ($includeHtml === null) {
+        $lines = collect($pkg->includes ?? [])->filter()->values();
+        $includeHtml = $lines->map(fn($t) => '<p>' . e($t) . '</p>')->implode('');
+    }
+
+    // Prefill Exclude editor dari JSON excludes
+    $excludeHtml = old('exclude_text');
+    if ($excludeHtml === null) {
+        $lines = collect($pkg->excludes ?? [])->filter()->values();
+        $excludeHtml = $lines->map(fn($t) => '<p>' . e($t) . '</p>')->implode('');
+    }
 @endphp
 
 <div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-    <button type="button"
-        @click="open = !open"
+    <button type="button" @click="open = !open"
         class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
         style="background:#0194F3;">
-        <span>Itinerary Perjalanan</span>
+        <span>Konten (Deskripsi / Itinerary / Include / Exclude)</span>
         <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
     </button>
 
-    <div x-show="open" x-cloak class="p-5">
-        <div x-data='{ items: @json($itinerariesForForm) }' class="space-y-3">
+    <div x-show="open" x-cloak class="p-5 space-y-4">
+        <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1">Deskripsi</label>
+            <textarea name="long_description"
+                class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                rows="10">{{ old('long_description', $pkg->long_description ?? '') }}</textarea>
+        </div>
 
-            <template x-for="(row, index) in items" :key="(row.id ?? index)">
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1">Itinerary</label>
+            <textarea name="itinerary_text"
+                class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                rows="10">{!! $itineraryHtml !!}</textarea>
+            <p class="mt-1 text-xs text-slate-500">Satu baris = satu item. Enter = item baru.</p>
+        </div>
 
-                        {{-- TITLE --}}
-                        <div class="sm:col-span-8">
-                            <label class="block text-sm font-bold text-slate-800 mb-1">Judul</label>
-                            <input type="text"
-                                   x-model="row.title"
-                                   :name="`itineraries[${index}][title]`"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                                   placeholder="Contoh: Check-in hotel, makan malam, dll">
-                        </div>
-                        
+        <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1">Include</label>
+            <textarea name="include_text"
+                class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                rows="8">{!! $includeHtml !!}</textarea>
+            <p class="mt-1 text-xs text-slate-500">Satu baris = satu item. Enter = item baru.</p>
+        </div>
 
-                        {{-- DELETE --}}
-                        <div class="sm:col-span-1 flex sm:items-end">
-                            <button type="button"
-                                    @click="items.splice(index, 1)"
-                                    class="w-full inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
-                                    style="background:#ef4444"
-                                    onmouseover="this.style.background='#dc2626'"
-                                    onmouseout="this.style.background='#ef4444'">
-                                X
-                            </button>
-                        </div>
-
-                        {{-- HIDDEN ID (PENTING BUAT EDIT) --}}
-                        <input type="hidden"
-                               x-model="row.id"
-                               :name="`itineraries[${index}][id]`">
-                    </div>
-                </div>
-            </template>
-
-            {{-- ADD --}}
-            <button type="button"
-                    @click="items.push({ id: null, time: '', title: '' })"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
-                    style="background:#16a34a"
-                    onmouseover="this.style.background='#15803d'"
-                    onmouseout="this.style.background='#16a34a'">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                Tambah Itinerary
-            </button>
-
+        <div>
+            <label class="block text-sm font-bold text-slate-800 mb-1">Exclude</label>
+            <textarea name="exclude_text"
+                class="wysiwyg w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                rows="8">{!! $excludeHtml !!}</textarea>
+            <p class="mt-1 text-xs text-slate-500">Satu baris = satu item. Enter = item baru.</p>
         </div>
     </div>
 </div>
 
-
-
-{{-- INCLUDE / EXCLUDE --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-    <button type="button"
-        @click="open = !open"
-        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-        style="background:#0194F3;">
-        <span>Include & Exclude</span>
-        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-    </button>
-
-    <div x-show="open" x-cloak class="p-5">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-            {{-- Includes --}}
-            <div x-data='{ list: @json(old("includes", $pkg->includes ?? [])) }' class="space-y-3">
-                <div class="font-extrabold text-slate-900">Includes</div>
-
-                <template x-for="(item, index) in list" :key="index">
-                    <div class="flex items-center gap-2">
-                        <input type="text"
-                               x-model="list[index]"
-                               name="includes[]"
-                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                               placeholder="Contoh: Hotel, Makan, Transport">
-
-                        <button type="button"
-                                @click="list.splice(index, 1)"
-                                class="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
-                                style="background:#ef4444"
-                                onmouseover="this.style.background='#dc2626'"
-                                onmouseout="this.style.background='#ef4444'">
-                            X
-                        </button>
-                    </div>
-                </template>
-
-                <button type="button"
-                        @click="list.push('')"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
-                        style="background:#16a34a"
-                        onmouseover="this.style.background='#15803d'"
-                        onmouseout="this.style.background='#16a34a'">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Tambah Include
-                </button>
-            </div>
-
-            {{-- Excludes --}}
-            <div x-data='{ list: @json(old("excludes", $pkg->excludes ?? [])) }' class="space-y-3">
-                <div class="font-extrabold text-slate-900">Excludes</div>
-
-                <template x-for="(item, index) in list" :key="index">
-                    <div class="flex items-center gap-2">
-                        <input type="text"
-                               x-model="list[index]"
-                               name="excludes[]"
-                               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                               placeholder="Contoh: Tiket pesawat, Tips guide">
-
-                        <button type="button"
-                                @click="list.splice(index, 1)"
-                                class="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
-                                style="background:#ef4444"
-                                onmouseover="this.style.background='#dc2626'"
-                                onmouseout="this.style.background='#ef4444'">
-                            X
-                        </button>
-                    </div>
-                </template>
-
-                <button type="button"
-                        @click="list.push('')"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
-                        style="background:#16a34a"
-                        onmouseover="this.style.background='#15803d'"
-                        onmouseout="this.style.background='#16a34a'">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Tambah Exclude
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
 
 {{-- TIERS --}}
 @include('admin.tour-packages._tier_section', [

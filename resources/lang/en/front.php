@@ -11,6 +11,8 @@ return [
         'home' => 'Home',
         'tours' => 'Tour Packages',
         'rental' => 'Car Rental',
+        'mice'  => 'MICE',
+
         'ship' => 'Boat Rental',
  'umrah' => 'Umrah',
         'docs' => 'Documentation',

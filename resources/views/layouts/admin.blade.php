@@ -132,6 +132,15 @@
             ],
         ],
 
+        [
+    'label' => 'MICE',
+    'icon'  => 'briefcase',
+    'children' => [
+        ['label'=>'Paket MICE','route'=>'admin.mice-packages.index','match'=>'admin.mice-packages.*','icon'=>'briefcase'],
+        ['label'=>'Kategori MICE','route'=>'admin.mice-categories.index','match'=>'admin.mice-categories.*','icon'=>'tags'],
+    ],
+],
+
         ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
         ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
         ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
