@@ -16,8 +16,11 @@ class TourPackageTier extends Model
     ];
 
     protected $casts = [
-        'is_custom' => 'boolean',
-    ];
+    'is_custom'  => 'boolean',
+    'min_people' => 'integer',
+    'max_people' => 'integer',
+    'price'      => 'integer',
+];
 
     public function package()
     {

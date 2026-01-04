@@ -104,7 +104,8 @@
                    @input="recalc()">
 
             <div class="text-slate-700">
-              x <span x-text="tier ? tier.price.toLocaleString('id-ID') : '0'"></span>
+              x <span x-text="tier ? Number(tier.price || 0).toLocaleString('id-ID') : '0'"></span>
+
               = <span class="font-extrabold">Rp <span x-text="totalFormatted"></span></span>
             </div>
           </div>

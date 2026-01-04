@@ -359,7 +359,7 @@
   }
 
   cat.addEventListener('change', () => {
-    // reset oldSub ketika category berubah
+
     sub.value = '';
     loadSubs();
   });

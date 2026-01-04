@@ -29,7 +29,8 @@ class TourPackageController extends Controller
     {
 
         DB::transaction(function () use ($request) {
-
+$includes = $this->htmlToLines($request->input('include_text'));
+$excludes = $this->htmlToLines($request->input('exclude_text'));
             $package = TourPackage::create([
                 'title'            => $request->title,
                 'label' => $request->label,
@@ -42,8 +43,8 @@ class TourPackageController extends Controller
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
                 'long_description' => $request->long_description,
-                'includes'         => $request->includes ?? [],
-                'excludes'         => $request->excludes ?? [],
+                'includes'         => $includes,
+    'excludes'         => $excludes,
                 'flight_info'      => $request->flight_info,
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
@@ -70,20 +71,7 @@ class TourPackageController extends Controller
                 }
             }
 
-            // =====================
-            // SAVE ITINERARIES
-            // =====================
-            if (!empty($request->itineraries)) {
-                foreach ($request->itineraries as $row) {
-                    $package->itineraries()->create([
-                        'title' => $row['title'],
-                    ]);
-                }
-            }
-
-            // =====================
-            // SAVE TIERS
-            // =====================
+         $this->replaceItinerariesFromHtml($package, $request->input('itinerary_text'));
             $this->syncTiers($package, $request->tiers);
         });
 
@@ -101,7 +89,8 @@ class TourPackageController extends Controller
     public function update(UpdateTourPackageRequest $request, TourPackage $tour_package)
     {
         DB::transaction(function () use ($request, $tour_package) {
-
+$includes = $this->htmlToLines($request->input('include_text'));
+$excludes = $this->htmlToLines($request->input('exclude_text'));
             $tour_package->update([
                 'title'            => $request->title,
                 'label' => $request->label,
@@ -113,8 +102,8 @@ class TourPackageController extends Controller
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
                 'long_description' => $request->long_description,
-                'includes'         => $request->includes ?? [],
-                'excludes'         => $request->excludes ?? [],
+                'includes'         => $includes,
+    'excludes'         => $excludes,
                 'flight_info'      => $request->flight_info,
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
@@ -138,7 +127,7 @@ class TourPackageController extends Controller
                 }
             }
 
-            $this->syncItineraries($tour_package, $request->itineraries);
+            $this->replaceItinerariesFromHtml($tour_package, $request->input('itinerary_text'));
             $this->syncTiers($tour_package, $request->tiers);
         });
 
@@ -180,6 +169,42 @@ class TourPackageController extends Controller
             $package->itineraries()->whereIn('id', $toDelete)->delete();
         }
     }
+private function htmlToLines(?string $html): array
+{
+    if (!$html) return [];
+
+    $text = $html;
+
+    // br -> newline
+    $text = preg_replace('/<\s*br\s*\/?>/i', "\n", $text);
+
+    // penutup block -> newline
+    $text = preg_replace('/<\/\s*(p|div|li|h[1-6])\s*>/i', "\n", $text);
+
+    // buang semua tag
+    $text = strip_tags($text);
+
+    $lines = preg_split("/\r\n|\r|\n/", $text) ?: [];
+    $lines = array_values(array_filter(array_map(fn($l) => trim($l), $lines), fn($l) => $l !== ''));
+
+    return $lines;
+}
+
+private function replaceItinerariesFromHtml(TourPackage $package, ?string $html): void
+{
+    $lines = $this->htmlToLines($html);
+
+    // reset total supaya urutan bener & gak nyisa data lama
+    $package->itineraries()->delete();
+
+    foreach ($lines as $idx => $title) {
+        $package->itineraries()->create([
+            'time' => null,
+            'title' => $title,
+            'sort_order' => $idx,
+        ]);
+    }
+}
 
     private function syncTiers(TourPackage $package, array $tiers)
     {

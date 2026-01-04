@@ -37,7 +37,9 @@
   <p class="text-[#0194F3] font-bold text-base sm:text-lg leading-tight">
     Rp <span x-text="Number(tier.price || 0).toLocaleString('id-ID')"></span>
   </p>
+  <p class="text-[11px] text-gray-500">/ pax</p>
 </div>
+
 
 </div>
 

@@ -33,15 +33,10 @@ class StoreTourPackageRequest extends FormRequest
             'rating_value' => ['nullable', 'integer', 'min:1', 'max:5'],
             'rating_count' => ['nullable', 'integer', 'min:0'],
             // ========= INCLUDES / EXCLUDES =========
-            'includes'         => ['nullable', 'array'],
-            'includes.*'       => ['nullable', 'string', 'max:500'],
+            'itinerary_text'  => ['nullable', 'string'],
+'include_text'    => ['nullable', 'string'],
+'exclude_text'    => ['nullable', 'string'],
 
-            'excludes'         => ['nullable', 'array'],
-            'excludes.*'       => ['nullable', 'string', 'max:500'],
-
-            // ========= ITINERARIES =========
-            'itineraries'         => ['nullable', 'array'],
-            'itineraries.*.title' => ['nullable', 'string', 'max:500'],
 
 
             // ========= TIERS (DOMESTIC + INTERNATIONAL) =========

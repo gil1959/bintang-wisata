@@ -33,16 +33,9 @@ class UpdateTourPackageRequest extends FormRequest
             'long_description' => ['nullable', 'string'],
 
 
-            // ========= INCLUDES / EXCLUDES =========
-            'includes'         => ['nullable', 'array'],
-            'includes.*'       => ['nullable', 'string', 'max:500'],
-
-            'excludes'         => ['nullable', 'array'],
-            'excludes.*'       => ['nullable', 'string', 'max:500'],
-
-            // ========= ITINERARIES =========
-            'itineraries'         => ['nullable', 'array'],
-            'itineraries.*.title' => ['nullable', 'string', 'max:500'],
+            'itinerary_text'  => ['nullable', 'string'],
+'include_text'    => ['nullable', 'string'],
+'exclude_text'    => ['nullable', 'string'],
 
 
 

@@ -43,7 +43,8 @@
                     </div>
                     <div class="text-right">
                         <p class="text-[#0194F3] font-bold text-lg">
-                            Rp <span x-text="tier.price.toLocaleString('id-ID')"></span>
+                            Rp <span x-text="Number(tier.price || 0).toLocaleString('id-ID')"></span>
+
                         </p>
                         <p class="text-[11px] text-gray-500">/ pax</p>
                     </div>
