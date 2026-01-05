@@ -126,23 +126,32 @@
 
   {{-- LOGIN / MASUK (DESKTOP ONLY) --}}
   <div class="hidden lg:flex items-center">
-    @auth
-      @php
-        $to = auth()->user()->hasRole('admin') ? route('admin.dashboard') : route('user.dashboard');
-      @endphp
+   @auth
+  @php
+    $u = auth()->user();
 
-       <a href="{{ $to }}"
+    if ($u->hasRole('admin')) {
+        $to = route('admin.dashboard');
+    } elseif ($u->hasRole('partner')) {
+        $to = route('partner.dashboard');
+    } else {
+        $to = route('user.dashboard');
+    }
+  @endphp
+
+  <a href="{{ $to }}"
      class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-95"
      style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
     Masuk
   </a>
-    @else
-      <a href="{{ route('login') }}"
-         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-95"
-         style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
-        Login
-      </a>
-    @endauth
+@else
+  <a href="{{ route('login') }}"
+     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:opacity-95"
+     style="background: linear-gradient(90deg, #0194F3 0%, #027DD1 100%);">
+    Login
+  </a>
+@endauth
+
   </div>
 </div>
 

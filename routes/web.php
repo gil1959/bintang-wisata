@@ -30,7 +30,12 @@ use App\Http\Controllers\Front\ShipController;
 use App\Http\Controllers\Front\ShipOrderController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\AffiliateUserController;
-
+use App\Http\Controllers\Front\PartnerRegistrationController;
+use App\Http\Controllers\Partner\DashboardController as PartnerDashboardController;
+use App\Http\Controllers\Admin\PartnerApplicationController;
+use App\Http\Controllers\Admin\PartnerProductReviewController;
+use App\Http\Controllers\Partner\ProfileController as PartnerProfileController;
+use App\Http\Controllers\Partner\OrderController as PartnerOrderController;
 /*
 |--------------------------------------------------------------------------
 | Front Controllers
@@ -66,6 +71,41 @@ Route::prefix('bw-admin')
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::prefix('partners')->name('partners.')->group(function () {
+
+    Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [PartnerApplicationController::class, 'show'])->name('applications.show');
+
+    Route::post('/applications/{application}/approve', [PartnerApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{application}/reject', [PartnerApplicationController::class, 'reject'])->name('applications.reject');
+Route::delete('/users/{user}', [PartnerApplicationController::class, 'destroyPartner'])->name('users.destroy');
+
+    Route::get('/users', [PartnerApplicationController::class, 'partnerUsers'])->name('users.index');
+    Route::post('/users/{user}/suspend', [PartnerApplicationController::class, 'suspend'])->name('users.suspend');
+    Route::post('/users/{user}/unsuspend', [PartnerApplicationController::class, 'unsuspend'])->name('users.unsuspend');
+    Route::post('/users/{user}/tax', [PartnerApplicationController::class, 'setTax'])->name('users.tax');
+Route::get('/users/{user}', [PartnerApplicationController::class, 'showPartnerUser'])
+    ->name('users.show');
+
+Route::get('/users/{user}/edit', [PartnerApplicationController::class, 'editPartnerUser'])
+    ->name('users.edit');
+
+Route::put('/users/{user}', [PartnerApplicationController::class, 'updatePartnerUser'])
+    ->name('users.update');
+
+    Route::prefix('products')->name('products.')->group(function () {
+    Route::get('/', [PartnerProductReviewController::class, 'index'])->name('index');
+
+    Route::post('/approve/{type}/{id}', [PartnerProductReviewController::class, 'approve'])
+        ->name('approve');
+
+    Route::post('/reject/{type}/{id}', [PartnerProductReviewController::class, 'reject'])
+        ->name('reject');
+
+    Route::post('/disable/{type}/{id}', [PartnerProductReviewController::class, 'disable'])
+        ->name('disable');
+});
+});
         // Tour
         Route::resource('tour-packages', TourPackageController::class);
         Route::delete('tour-packages/photo/{photo}', [TourPackageController::class, 'deletePhoto'])
@@ -74,6 +114,10 @@ Route::prefix('bw-admin')
         Route::post('seo', [SeoController::class, 'update'])->name('seo.update');
         Route::get('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'edit'])
             ->name('legal-pages.edit');
+             Route::get('/partner-withdrawals', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'index'])->name('partner_withdrawals.index');
+    Route::get('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'show'])->name('partner_withdrawals.show');
+    Route::put('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'update'])->name('partner_withdrawals.update');
+    Route::delete('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'destroy'])->name('partner_withdrawals.destroy');
 Route::resource('umrah-packages', \App\Http\Controllers\Admin\UmrahPackageController::class);
 Route::delete('umrah-packages/photo/{photo}', [\App\Http\Controllers\Admin\UmrahPackageController::class, 'deletePhoto'])
     ->name('umrah-packages.delete-photo');
@@ -269,6 +313,53 @@ Route::post('/coupons', [\App\Http\Controllers\User\AffiliateController::class, 
             ->name('profile.update');
     });
 
+// Partner registration
+Route::get('/partner', [PartnerRegistrationController::class, 'create'])->name('partner.register');
+Route::post('/partner', [PartnerRegistrationController::class, 'store'])->name('partner.register.store');
+Route::get('/partner/pending', [PartnerRegistrationController::class, 'pending'])->name('partner.pending');
+
+// Partner dashboard (after approved)
+Route::prefix('partner')->name('partner.')->middleware(['auth','role:partner'])->group(function () {
+    Route::get('/dashboard', [PartnerDashboardController::class, 'index'])->name('dashboard');
+  // ✅ Partner Orders (mirip admin)
+    Route::get('/orders', [PartnerOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/approved', [PartnerOrderController::class, 'approved'])->name('orders.approved');
+    Route::get('/orders/rejected', [PartnerOrderController::class, 'rejected'])->name('orders.rejected');
+    Route::get('/orders/{order}', [PartnerOrderController::class, 'show'])->name('orders.show');
+    Route::delete('/orders/{order}', [PartnerOrderController::class, 'destroy'])->name('orders.destroy');
+Route::get('/withdraw', [\App\Http\Controllers\Partner\WithdrawController::class, 'index'])->name('withdraw.index');
+Route::post('/withdraw', [\App\Http\Controllers\Partner\WithdrawController::class, 'store'])->name('withdraw.store');
+
+Route::get('/withdraw/requests', [\App\Http\Controllers\Partner\WithdrawController::class, 'requests'])->name('withdraw.requests');
+Route::get('/withdraw/requests/{withdrawal}', [\App\Http\Controllers\Partner\WithdrawController::class, 'show'])->name('withdraw.show');
+Route::delete('/withdraw/requests/{withdrawal}', [\App\Http\Controllers\Partner\WithdrawController::class, 'destroy'])->name('withdraw.destroy');
+
+    // ✅ Partner Profile
+    Route::get('/profile', [PartnerProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [PartnerProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [PartnerProfileController::class, 'updatePassword'])->name('profile.password');
+    // agency_paket_tour
+    Route::resource('tour-packages', \App\Http\Controllers\Partner\TourPackageController::class);
+    Route::get('categories/{category}/subcategories', [\App\Http\Controllers\Partner\TourCategoryController::class, 'subcategories'])
+    ->name('categories.subcategories');
+
+    Route::delete('tour-packages/photo/{photo}', [\App\Http\Controllers\Partner\TourPackageController::class, 'deletePhoto'])
+        ->name('tour-packages.delete-photo');
+
+    Route::resource('rent-car-packages', \App\Http\Controllers\Partner\RentCarPackageController::class);
+
+    // agency_kapal
+    Route::resource('ship-packages', \App\Http\Controllers\Partner\ShipPackageController::class);
+    Route::resource('tour-categories', \App\Http\Controllers\Partner\TourCategoryController::class)
+    ->except(['show']); // tour categories CRUD
+
+Route::resource('rent-car-categories', \App\Http\Controllers\Partner\RentCarCategoryController::class)
+    ->except(['show']);
+
+Route::resource('ship-categories', \App\Http\Controllers\Partner\ShipCategoryController::class)
+    ->except(['show']);
+
+});
 
 /*
 |--------------------------------------------------------------------------

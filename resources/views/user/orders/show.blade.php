@@ -25,12 +25,18 @@
                     <i data-lucide="arrow-left" class="w-4 h-4" style="color:#0194F3;"></i>
                     Back
                 </a>
-                <a href="{{ route('user.orders.confirm-admin', $order) }}"
+               @php
+    $partnerUser = \App\Support\OrderPartnerResolver::resolvePartnerUser($order);
+    $label = ($partnerUser && !empty($partnerUser->phone)) ? 'Hubungi Admin' : 'Konfirmasi ke Admin';
+@endphp
+
+<a href="{{ route('user.orders.confirm-admin', $order) }}"
    target="_blank"
    class="btn btn-gateway px-4 py-2.5">
     <i data-lucide="message-circle" class="w-4 h-4"></i>
-    Konfirmasi ke Admin
+    {{ $label }}
 </a>
+
 
             </div>
         </div>

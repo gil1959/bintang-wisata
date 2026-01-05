@@ -8,17 +8,25 @@ class DokuService
 {
     public function createPayment(array $credentials, array $payload): array
     {
-        $mode = $credentials['mode'] ?? 'sandbox';
-        $clientId = $credentials['client_id'] ?? null;
-        $secretKey = $credentials['secret_key'] ?? null;
+        $mode = strtolower(trim((string)($credentials['mode'] ?? 'sandbox')));
+if (!in_array($mode, ['sandbox', 'production'], true)) {
+    $mode = 'sandbox';
+}
 
-        if (!$clientId || !$secretKey) {
-            throw new \RuntimeException('DOKU credential kurang: client_id & secret_key wajib.');
-        }
+$clientId  = trim((string)($credentials['client_id'] ?? ''));
+$secretKey = trim((string)($credentials['secret_key'] ?? ''));
 
-        $base = $mode === 'production'
-            ? 'https://api.doku.com'
-            : 'https://api-sandbox.doku.com';
+// buang whitespace aneh (copy paste sering ada)
+$clientId = preg_replace('/\s+/', '', $clientId);
+
+if ($clientId === '' || $secretKey === '') {
+    throw new \RuntimeException('DOKU credential kurang: client_id & secret_key wajib.');
+}
+
+$base = $mode === 'production'
+    ? 'https://api.doku.com'
+    : 'https://api-sandbox.doku.com';
+
 
         $path = '/checkout/v1/payment';
         $url = $base . $path;
@@ -41,19 +49,26 @@ class DokuService
 
         $signature = base64_encode(hash_hmac('sha256', $signatureComponent, $secretKey, true));
 
-        $resp = Http::withHeaders([
-            'Client-Id' => $clientId,
-            'Request-Id' => $requestId,
-            'Request-Timestamp' => $timestamp,
-            'Signature' => 'HMACSHA256=' . $signature,
-            'Digest' => $digest,
-            'Content-Type' => 'application/json',
-        ])->withBody($body, 'application/json')
-            ->post($url);
+       $resp = Http::withHeaders([
+    // kirim dua versi untuk kompatibilitas (beberapa gateway implementasi masih “aneh”)
+    'Client-Id' => $clientId,
+    'Client-ID' => $clientId,
+
+    'Request-Id' => $requestId,
+    'Request-Timestamp' => $timestamp,
+    'Signature' => 'HMACSHA256=' . $signature,
+    'Digest' => $digest,
+    'Content-Type' => 'application/json',
+])->withBody($body, 'application/json')
+  ->post($url);
+
 
         if (!$resp->ok()) {
-            throw new \RuntimeException('Gagal create pembayaran DOKU: ' . $resp->body());
-        }
+    throw new \RuntimeException(
+        'Gagal create pembayaran DOKU (mode=' . $mode . ', client_id=' . substr($clientId, 0, 6) . '***): ' . $resp->body()
+    );
+}
+
 
         return $resp->json();
     }

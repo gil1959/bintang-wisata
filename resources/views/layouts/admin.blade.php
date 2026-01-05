@@ -155,6 +155,19 @@
 
     ],
 ],
+// GROUP: Partner
+[
+    'label' => 'Partner',
+    'icon'  => 'handshake',
+    'children' => [
+        ['label'=>'Partner Applications','route'=>'admin.partners.applications.index','match'=>'admin.partners.applications.*','icon'=>'user-check'],
+        ['label'=>'Partner Users','route'=>'admin.partners.users.index','match'=>'admin.partners.users.*','icon'=>'users'],
+        ['label'=>'Produk Partner','route'=>'admin.partners.products.index','match'=>'admin.partners.products.*','icon'=>'package'],
+['label'=>'Partner Withdrawals','route'=>'admin.partner_withdrawals.index','match'=>'admin.partner_withdrawals.*','icon'=>'wallet'],
+
+    ],
+],
+
 
 
         ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],

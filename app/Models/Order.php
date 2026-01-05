@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Services\PartnerPayoutService;
 
 class Order extends Model
 {
@@ -83,4 +84,17 @@ class Order extends Model
     {
         return $this->hasMany(\App\Models\Payment::class);
     }
+    protected static function booted()
+{
+    static::saved(function (Order $order) {
+        // cegah call kalau bukan paid+approved (service juga ngecek, ini buat hemat query)
+        if ($order->payment_status !== 'paid' || $order->order_status !== 'approved') {
+            return;
+        }
+
+        // jalankan payout sekali
+        app(PartnerPayoutService::class)->creditIfEligible($order);
+    });
+}
+
 }

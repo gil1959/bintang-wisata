@@ -23,6 +23,12 @@ class RentCarPackage extends Model
         'seo_title',
         'seo_keywords',
         'seo_description',
+        'created_by_partner_id',
+'partner_review_status',
+'partner_review_note',
+'partner_reviewed_by',
+'partner_reviewed_at',
+
     ];
 
 

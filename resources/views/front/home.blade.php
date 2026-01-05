@@ -654,4 +654,111 @@
     </div>
 </section>
 
+{{-- ================= PARTNER CTA ================= --}}
+<section class="bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 py-12 lg:py-16">
+        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 lg:p-10 shadow-soft" data-aos="fade-up">
+            <div class="absolute inset-0 travel-dots opacity-60 pointer-events-none"></div>
+
+            {{-- dekor svg (ngikut pola CTA home yang udah ada) --}}
+            <svg class="absolute -top-16 -right-12 w-72 h-72 opacity-70 pointer-events-none" viewBox="0 0 300 300" fill="none" aria-hidden="true">
+                <circle cx="150" cy="150" r="120" fill="#0194F3" fill-opacity="0.10"/>
+                <path d="M70 160c35-45 80-70 130-70 20 0 40 4 60 12" stroke="#0194F3" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
+                <path d="M95 205c42-34 78-50 115-50 30 0 55 8 80 19" stroke="#0194F3" stroke-opacity="0.22" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+
+            <div class="relative grid gap-8 lg:grid-cols-12 lg:items-center">
+                {{-- LEFT --}}
+                <div class="lg:col-span-5">
+                    <div class="pill pill-azure">
+                        <i data-lucide="handshake" class="w-4 h-4"></i>
+                        Program Partner
+                    </div>
+
+                    <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Mau jadi Partner Bintang Wisata?
+                    </h2>
+
+                    <p class="mt-3 text-slate-600 leading-relaxed">
+                        Kembangkan jangkauan layanan kamu bersama Bintang Wisata. Dapatkan akses dashboard khusus partner
+                        untuk kebutuhan operasional.
+                    </p>
+
+                    <div class="mt-6">
+                        <a href="{{ route('partner.register') }}" class="btn btn-primary px-8 py-3">
+                            <i data-lucide="user-plus" class="w-5 h-5"></i>
+                            Daftar Partner
+                        </a>
+                    </div>
+                </div>
+
+                {{-- RIGHT --}}
+                <div class="lg:col-span-7">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="card p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-badge">
+                                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-slate-900 font-extrabold">Dashboard Partner</div>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Akses halaman khusus partner untuk mengelola kebutuhan operasional.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-badge">
+                                    <i data-lucide="settings" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-slate-900 font-extrabold">Pengaturan Fleksibel</div>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Data akun partner dan konfigurasi layanan dapat dikelola dengan rapi.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-badge">
+                                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-slate-900 font-extrabold">Ringkas & Terukur</div>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Memudahkan pemantauan aktivitas dan pengelolaan kebutuhan harian.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="icon-badge">
+                                    <i data-lucide="headphones" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-slate-900 font-extrabold">Dukungan Tim</div>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Tim kami siap membantu untuk kelancaran kerja sama operasional.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 h-1 w-full rounded-full"
+                         style="background: linear-gradient(90deg, rgba(1,148,243,.18), rgba(1,148,243,0));"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
 @endsection

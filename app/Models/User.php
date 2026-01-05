@@ -37,6 +37,14 @@ class User extends Authenticatable implements MustVerifyEmail
 'affiliate_review_note',
 'affiliate_commission_type',
 'affiliate_commission_value',
+'partner_tax_percent',
+'is_suspended',
+'suspended_at',
+ 'partner_tax_percent',
+  'partner_type',
+  'partner_bank_name',
+  'partner_bank_account_number',
+  'partner_bank_account_holder',
 ];
 
 
@@ -60,5 +68,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_affiliate' => 'boolean',
         'affiliate_requested_at' => 'datetime',
     'affiliate_reviewed_at' => 'datetime',
+    'partner_tax_percent' => 'decimal:2',
+'is_suspended' => 'boolean',
+'suspended_at' => 'datetime',
     ];
 }

@@ -28,6 +28,11 @@ class TourPackage extends Model
         'seo_description',
         'seo_keywords',
         'subcategory_id',
+'created_by_partner_id',
+'partner_review_status',
+'partner_review_note',
+'partner_reviewed_by',
+'partner_reviewed_at',
 
     ];
 

@@ -20,6 +20,11 @@ class ShipPackage extends Model
         'seo_description',
         'rating_value',
         'rating_count',
+          'created_by_partner_id',
+    'partner_review_status',
+    'partner_review_note',
+    'partner_reviewed_by',
+    'partner_reviewed_at',
     ];
 
     protected $casts = [
@@ -27,6 +32,9 @@ class ShipPackage extends Model
         'features' => 'array',
         'rating_value' => 'float',
         'rating_count' => 'int',
+          'created_by_partner_id' => 'int',
+    'partner_reviewed_by' => 'int',
+    'partner_reviewed_at' => 'datetime',
     ];
 
     public function category()

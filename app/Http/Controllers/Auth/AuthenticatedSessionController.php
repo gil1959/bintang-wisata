@@ -21,17 +21,24 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
+        // IMPORTANT:
+        // intended URL sering nyangkut ke /user/dashboard dari session lama
+        // jadi kita bersihin biar redirect role ga ketimpa.
+        $request->session()->forget('url.intended');
+
         // ADMIN → ADMIN PANEL
         if ($user && $user->hasRole('admin')) {
-            return redirect()->intended('/bw-admin');
+            return redirect('/bw-admin');
         }
 
-        // USER → HOME
-       
-return redirect()->intended('/user/dashboard');
+        // PARTNER → PARTNER DASHBOARD (JANGAN intended)
+        if ($user && $user->hasRole('partner')) {
+            return redirect('/partner/dashboard');
+        }
 
+        // USER → USER DASHBOARD (JANGAN intended)
+        return redirect('/user/dashboard');
     }
-
 
     public function destroy(Request $request)
     {

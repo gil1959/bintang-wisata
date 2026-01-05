@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TourCategory extends Model
 {
-    protected $fillable = ['name', 'slug', 'parent_id'];
+    protected $fillable = ['name', 'slug', 'parent_id', 'created_by_partner_id'];
 
 public function parent()
 {
@@ -17,7 +17,10 @@ public function children()
 {
     return $this->hasMany(TourCategory::class, 'parent_id')->orderBy('name');
 }
-
+public function partner()
+{
+    return $this->belongsTo(User::class, 'created_by_partner_id');
+}
 public function packages()
 {
     return $this->hasMany(TourPackage::class, 'category_id');

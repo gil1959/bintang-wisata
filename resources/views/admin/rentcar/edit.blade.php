@@ -5,7 +5,10 @@
 
 @section('content')
 <div class="space-y-5">
-
+   @include('admin.partners.products._review_panel', [
+        'package' => $package,
+        'type' => 'rentcar'
+    ])
     @if ($errors->any())
         <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800">
             <div class="font-extrabold">Validation Error</div>

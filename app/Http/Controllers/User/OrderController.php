@@ -83,29 +83,41 @@ $canView =
 abort_unless($canView, 403);
 
 
+    $partner = \App\Support\OrderPartnerResolver::resolvePartnerUser($order);
+
+// target default: admin
+$targetName = 'Admin';
+$targetWa = null;
+
+if ($partner && $partner->phone) {
+    $targetName = $partner->name ?: 'Partner';
+    $targetWa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($partner->phone);
+}
+
+// kalau tidak ada partner/phone, fallback ke admin WA setting
+if (!$targetWa) {
     $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
-    $wa = preg_replace('/\D+/', '', $rawWa);
+    $targetWa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($rawWa);
+    $targetName = 'Admin';
+}
 
-    if (str_starts_with($wa, '0')) {
-        $wa = '62' . substr($wa, 1);
-    }
+abort_if(empty($targetWa), 404, 'Nomor WhatsApp tujuan belum diset (partner/admin).');
 
-    abort_if(empty($wa), 404, 'Nomor WhatsApp admin belum diset.');
+$total = $order->payable_amount ?? $order->final_price;
 
-    $total = $order->payable_amount ?? $order->final_price;
+$msg =
+    "Halo {$targetName},\n"
+    . "Saya ingin konfirmasi order:\n\n"
+    . "Invoice: {$order->invoice_number}\n"
+    . "Nama: {$order->customer_name}\n"
+    . "Email: {$order->customer_email}\n"
+    . "WA Customer: {$order->customer_phone}\n"
+    . "Produk: {$order->product_name}\n"
+    . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
+    . "Terima kasih.";
 
-    $msg =
-        "Halo Admin,\n"
-        . "Saya ingin konfirmasi order:\n\n"
-        . "Invoice: {$order->invoice_number}\n"
-        . "Nama: {$order->customer_name}\n"
-        . "Email: {$order->customer_email}\n"
-        . "WA Customer: {$order->customer_phone}\n"
-        . "Produk: {$order->product_name}\n"
-        . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
-        . "Terima kasih.";
+return redirect()->away(\App\Support\OrderPartnerResolver::buildWaLink($targetWa, $msg));
 
-    return redirect()->away("https://wa.me/{$wa}?text=" . urlencode($msg));
 }
 
 }
