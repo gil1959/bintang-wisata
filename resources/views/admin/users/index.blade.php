@@ -27,6 +27,12 @@
                 </button>
             </div>
         </form>
+        <a href="{{ route('admin.users.create') }}"
+   class="px-4 py-2.5 rounded-2xl font-extrabold text-white"
+   style="background:#0194F3;">
+   Tambah User
+</a>
+
     </div>
 
     @if(session('success'))

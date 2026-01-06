@@ -80,18 +80,18 @@
 
             {{-- NAV --}}
             @php
-    $nav = [
-        ['label'=>'Dashboard','route'=>'admin.dashboard','match'=>'admin.dashboard','icon'=>'layout-dashboard'],
-        ['label'=>'Orders','route'=>'admin.orders.index','match'=>'admin.orders.*','icon'=>'shopping-bag'],
-        ['label'=>'Pembayaran','route'=>'admin.payments.index','match'=>'admin.payments.*','icon'=>'credit-card'],
+        $nav = [
+        ['label'=>'Dashboard','route'=>'admin.dashboard','match'=>'admin.dashboard','icon'=>'layout-dashboard','perm'=>'admin.dashboard.view'],
+        ['label'=>'Orders','route'=>'admin.orders.index','match'=>'admin.orders.*','icon'=>'shopping-bag','perm'=>'admin.orders.manage'],
+        ['label'=>'Pembayaran','route'=>'admin.payments.index','match'=>'admin.payments.*','icon'=>'credit-card','perm'=>'admin.payments.manage'],
 
         // GROUP: Paket Wisata
         [
             'label' => 'Paket Wisata',
             'icon'  => 'map',
             'children' => [
-                ['label'=>'Paket Wisata','route'=>'admin.tour-packages.index','match'=>'admin.tour-packages.*','icon'=>'map'],
-                ['label'=>'Kategori Tour','route'=>'admin.categories.index','match'=>'admin.categories.*','icon'=>'tags'],
+                ['label'=>'Paket Wisata','route'=>'admin.tour-packages.index','match'=>'admin.tour-packages.*','icon'=>'map','perm'=>'admin.tour-packages.manage'],
+                ['label'=>'Kategori Tour','route'=>'admin.categories.index','match'=>'admin.categories.*','icon'=>'tags','perm'=>'admin.categories.manage'],
             ],
         ],
 
@@ -100,184 +100,179 @@
             'label' => 'Rental',
             'icon'  => 'car',
             'children' => [
-                ['label'=>'Rental','route'=>'admin.rent-car-packages.index','match'=>'admin.rent-car-packages.*','icon'=>'car'],
-                ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags'],
+                ['label'=>'Rental','route'=>'admin.rent-car-packages.index','match'=>'admin.rent-car-packages.*','icon'=>'car','perm'=>'admin.rent-car-packages.manage'],
+                ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags','perm'=>'admin.rent-car-categories.manage'],
             ],
         ],
 
-        ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent'],
-        ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images'],
-        ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles'],
-        ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper'],
-        ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles'],
-        ['label'=>'Halaman Legal','route'=>'admin.legal-pages.edit','match'=>'admin.legal-pages.*','icon'=>'file-text'],
+        ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent','perm'=>'admin.promos.manage'],
+        ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images','perm'=>'admin.documentations.manage'],
+        ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles','perm'=>'admin.destination-inspirations.manage'],
+        ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper','perm'=>'admin.articles.manage'],
+        ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles','perm'=>'admin.home-sections.manage'],
+        ['label'=>'Halaman Legal','route'=>'admin.legal-pages.edit','match'=>'admin.legal-pages.*','icon'=>'file-text','perm'=>'admin.legal-pages.manage'],
 
         // GROUP: Sewa Kapal
         [
             'label' => 'Sewa Kapal',
             'icon'  => 'ship',
             'children' => [
-                ['label'=>'Paket Sewa Kapal','route'=>'admin.ship-packages.index','match'=>'admin.ship-packages.*','icon'=>'ship'],
-                ['label'=>'Kategori Sewa Kapal','route'=>'admin.ship-categories.index','match'=>'admin.ship-categories.*','icon'=>'tags'],
+                ['label'=>'Paket Sewa Kapal','route'=>'admin.ship-packages.index','match'=>'admin.ship-packages.*','icon'=>'ship','perm'=>'admin.ship-packages.manage'],
+                ['label'=>'Kategori Sewa Kapal','route'=>'admin.ship-categories.index','match'=>'admin.ship-categories.*','icon'=>'tags','perm'=>'admin.ship-categories.manage'],
             ],
         ],
 
         // GROUP: Umrah
         [
             'label' => 'Umrah',
-            'icon'  => 'landmark',
+            'icon'  => 'kaaba',
             'children' => [
-                ['label'=>'Paket Umrah','route'=>'admin.umrah-packages.index','match'=>'admin.umrah-packages.*','icon'=>'landmark'],
-                ['label'=>'Kategori Umrah','route'=>'admin.umrah-categories.index','match'=>'admin.umrah-categories.*','icon'=>'tags'],
+                ['label'=>'Paket Umrah','route'=>'admin.umrah-packages.index','match'=>'admin.umrah-packages.*','icon'=>'kaaba','perm'=>'admin.umrah-packages.manage'],
+                ['label'=>'Kategori Umrah','route'=>'admin.umrah-categories.index','match'=>'admin.umrah-categories.*','icon'=>'tags','perm'=>'admin.umrah-categories.manage'],
             ],
         ],
 
+        // GROUP: MICE
         [
-    'label' => 'MICE',
-    'icon'  => 'briefcase',
-    'children' => [
-        ['label'=>'Paket MICE','route'=>'admin.mice-packages.index','match'=>'admin.mice-packages.*','icon'=>'briefcase'],
-        ['label'=>'Kategori MICE','route'=>'admin.mice-categories.index','match'=>'admin.mice-categories.*','icon'=>'tags'],
-    ],
-],
+            'label' => 'MICE',
+            'icon'  => 'briefcase',
+            'children' => [
+                ['label'=>'Paket MICE','route'=>'admin.mice-packages.index','match'=>'admin.mice-packages.*','icon'=>'briefcase','perm'=>'admin.mice-packages.manage'],
+                ['label'=>'Kategori MICE','route'=>'admin.mice-categories.index','match'=>'admin.mice-categories.*','icon'=>'tags','perm'=>'admin.mice-categories.manage'],
+            ],
+        ],
 
-        ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'badge-check'],
-        ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-circle'],
-        ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'globe'],
+        ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'image','perm'=>'admin.client-logos.manage'],
+        ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-square','perm'=>'admin.reviews.manage'],
+        ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'search','perm'=>'admin.seo.manage'],
+        ['label'=>'Bank Accounts','route'=>'admin.bank-accounts.index','match'=>'admin.bank-accounts.*','icon'=>'landmark','perm'=>'admin.bank-accounts.manage'],
+
+        // GROUP: Users & Affiliate
         [
-    'label' => 'Users',
-    'icon'  => 'users',
-    'children' => [
-        ['label'=>'All Users','route'=>'admin.users.index','match'=>'admin.users.index','icon'=>'users'],
-        ['label'=>'Affiliate Requests','route'=>'admin.affiliate.requests.index','match'=>'admin.affiliate.requests.*','icon'=>'badge-percent'],
-['label'=>'Affiliate Orders','route'=>'admin.affiliate.orders.index','match'=>'admin.affiliate.orders.*','icon'=>'receipt'],
-['label'=>'Affiliate Withdrawals','route'=>'admin.affiliate.withdrawals.index','match'=>'admin.affiliate.withdrawals.*','icon'=>'wallet'],
+            'label' => 'Users & Affiliate',
+            'icon'  => 'users',
+            'children' => [
+                ['label'=>'All Users','route'=>'admin.users.index','match'=>'admin.users.*','icon'=>'users','perm'=>'admin.users.manage'],
+                ['label'=>'Affiliate Requests','route'=>'admin.affiliate.requests.index','match'=>'admin.affiliate.requests.*','icon'=>'user-check','perm'=>'admin.affiliate.requests.manage'],
+                ['label'=>'Affiliate Orders','route'=>'admin.affiliate.orders.index','match'=>'admin.affiliate.orders.*','icon'=>'shopping-bag','perm'=>'admin.affiliate.orders.manage'],
+                ['label'=>'Affiliate Withdrawals','route'=>'admin.affiliate.withdrawals.index','match'=>'admin.affiliate.withdrawals.*','icon'=>'wallet','perm'=>'admin.affiliate.withdrawals.manage'],
+                ['label'=>'Affiliate Users','route'=>'admin.users.affiliate.index','match'=>'admin.users.affiliate.*','icon'=>'users','perm'=>'admin.affiliate.users.manage'],
+            ],
+        ],
 
-    ],
-],
-// GROUP: Partner
-[
-    'label' => 'Partner',
-    'icon'  => 'handshake',
-    'children' => [
-        ['label'=>'Partner Applications','route'=>'admin.partners.applications.index','match'=>'admin.partners.applications.*','icon'=>'user-check'],
-        ['label'=>'Partner Users','route'=>'admin.partners.users.index','match'=>'admin.partners.users.*','icon'=>'users'],
-        ['label'=>'Produk Partner','route'=>'admin.partners.products.index','match'=>'admin.partners.products.*','icon'=>'package'],
-['label'=>'Partner Withdrawals','route'=>'admin.partner_withdrawals.index','match'=>'admin.partner_withdrawals.*','icon'=>'wallet'],
+        // GROUP: Partners
+        [
+            'label' => 'Partners',
+            'icon'  => 'handshake',
+            'children' => [
+                ['label'=>'Partner Applications','route'=>'admin.partners.applications.index','match'=>'admin.partners.applications.*','icon'=>'user-check','perm'=>'admin.partners.applications.manage'],
+                ['label'=>'Partner Users','route'=>'admin.partners.users.index','match'=>'admin.partners.users.*','icon'=>'users','perm'=>'admin.partners.users.manage'],
+                ['label'=>'Produk Partner','route'=>'admin.partners.products.index','match'=>'admin.partners.products.*','icon'=>'package','perm'=>'admin.partners.products.manage'],
+                ['label'=>'Partner Withdrawals','route'=>'admin.partner_withdrawals.index','match'=>'admin.partner_withdrawals.*','icon'=>'wallet','perm'=>'admin.partner_withdrawals.manage'],
+            ],
+        ],
 
-    ],
-],
-
-
-
-        ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings'],
-        ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user'],
+        ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings','perm'=>'admin.settings.manage'],
+        ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user','perm'=>'admin.profile.manage'],
     ];
+
 @endphp
 
 
             <nav class="px-3 py-3 space-y-1 overflow-y-auto" style="max-height:calc(100vh - 4rem)">
+       @php
+        $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+    @endphp
+
     @foreach($nav as $n)
 
         {{-- CASE 1: GROUP / HAS CHILDREN --}}
-        @if(isset($n['children']) && is_array($n['children']))
+        @if(isset($n['children']))
             @php
                 $childActive = false;
+                $hasVisibleChild = false;
+
                 foreach($n['children'] as $c){
-                    if(request()->routeIs($c['match'])){
-                        $childActive = true;
-                        break;
+                    $needPerm = $c['perm'] ?? null;
+                    $allowed = $isAdmin || !$needPerm || auth()->user()->can($needPerm);
+
+                    if ($allowed) {
+                        $hasVisibleChild = true;
+                        if (request()->routeIs($c['match'])) {
+                            $childActive = true;
+                        }
                     }
                 }
             @endphp
 
+            @if(!$hasVisibleChild)
+                @continue
+            @endif
+
             <div x-data="{ open: {{ $childActive ? 'true' : 'false' }} }" class="space-y-1">
-                {{-- Parent button --}}
                 <button type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition
-                           {{ $childActive ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
-                    style="{{ $childActive ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
-                >
-                    <span class="flex items-center gap-3 min-w-0">
-                        <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
-                              style="{{ $childActive ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.10);border-color:rgba(148,163,184,0.20);' }}">
-                            <i data-lucide="{{ $n['icon'] }}" class="w-5 h-5"
-                               style="{{ $childActive ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
-                        </span>
-
-                        <span class="font-bold text-sm truncate">{{ $n['label'] }}</span>
+                        class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-slate-100 transition"
+                        @click="open = !open">
+                    <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
+                          style="{{ $childActive ? 'background:#0194F3;color:white;border-color:#0194F3;' : 'background:white;color:#64748b;border-color:#e2e8f0;' }}">
+                        <i data-lucide="{{ $n['icon'] }}" class="h-5 w-5"></i>
                     </span>
-
-                    <span class="shrink-0">
-                        <i data-lucide="chevron-down"
-                           class="w-4 h-4 transition-transform"
-                           :class="open ? 'rotate-180' : ''"
-                           style="{{ $childActive ? 'color:#0194F3;' : 'color:#94a3b8;' }}"
-                        ></i>
-                    </span>
+                    <span class="flex-1 text-left text-sm font-extrabold text-slate-900">{{ $n['label'] }}</span>
+                    <i data-lucide="chevron-down" class="h-4 w-4 text-slate-500"
+                       :style="open ? 'transform: rotate(180deg);' : ''"></i>
                 </button>
 
-                {{-- Children --}}
-                <div x-show="open" x-collapse class="pl-3">
-                    <div class="space-y-1 border-l border-slate-200 ml-3 pl-3">
-                        @foreach($n['children'] as $c)
-                            @php $active = request()->routeIs($c['match']); @endphp
+                <div x-show="open" x-cloak class="pl-3 space-y-1">
+                    @foreach($n['children'] as $c)
+                        @php
+                            $needPerm = $c['perm'] ?? null;
+                            $allowed = $isAdmin || !$needPerm || auth()->user()->can($needPerm);
+                        @endphp
 
-                            <a href="{{ route($c['route']) }}"
-                               @click="sidebarOpen=false"
-                               class="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border transition
-                                      {{ $active ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
-                               style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
-                            >
-                                <span class="flex items-center gap-3 min-w-0">
-                                    <span class="h-8 w-8 rounded-xl grid place-items-center border shrink-0"
-                                          style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.08);border-color:rgba(148,163,184,0.16);' }}">
-                                        <i data-lucide="{{ $c['icon'] ?? 'dot' }}" class="w-4 h-4"
-                                           style="{{ $active ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
-                                    </span>
+                        @if(!$allowed)
+                            @continue
+                        @endif
 
-                                    <span class="font-bold text-sm truncate">{{ $c['label'] }}</span>
-                                </span>
-
-                                <span class="text-xs font-extrabold shrink-0"
-                                      style="{{ $active ? 'color:#0194F3;' : 'color:#94a3b8;' }}">
-                                    →
-                                </span>
-                            </a>
-                        @endforeach
-                    </div>
+                        @php $active = request()->routeIs($c['match']); @endphp
+                        <a href="{{ route($c['route']) }}"
+                           class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl border transition
+                                  {{ $active ? 'bg-slate-100 border-slate-200' : 'bg-white border-transparent hover:bg-slate-50' }}">
+                            <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
+                                  style="{{ $active ? 'background:#0194F3;color:white;border-color:#0194F3;' : 'background:white;color:#64748b;border-color:#e2e8f0;' }}">
+                                <i data-lucide="{{ $c['icon'] }}" class="h-5 w-5"></i>
+                            </span>
+                            <span class="text-sm font-extrabold text-slate-900">{{ $c['label'] }}</span>
+                        </a>
+                    @endforeach
                 </div>
             </div>
 
-        {{-- CASE 2: NORMAL ITEM --}}
+        {{-- CASE 2: SINGLE --}}
         @else
+            @php
+                $needPerm = $n['perm'] ?? null;
+                $allowed = $isAdmin || !$needPerm || auth()->user()->can($needPerm);
+            @endphp
+
+            @if(!$allowed)
+                @continue
+            @endif
+
             @php $active = request()->routeIs($n['match']); @endphp
 
             <a href="{{ route($n['route']) }}"
-               @click="sidebarOpen=false"
-               class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border transition
-                      {{ $active ? 'text-slate-900' : 'text-slate-700 hover:bg-slate-50' }}"
-               style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'border-color:transparent;' }}"
-            >
-                <span class="flex items-center gap-3 min-w-0">
-                    <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
-                          style="{{ $active ? 'background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22);' : 'background:rgba(148,163,184,0.10);border-color:rgba(148,163,184,0.20);' }}">
-                        <i data-lucide="{{ $n['icon'] }}" class="w-5 h-5"
-                           style="{{ $active ? 'color:#0194F3;' : 'color:#64748b;' }}"></i>
-                    </span>
-
-                    <span class="font-bold text-sm truncate">{{ $n['label'] }}</span>
+               class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl border transition
+                      {{ $active ? 'bg-slate-100 border-slate-200' : 'bg-white border-transparent hover:bg-slate-50' }}">
+                <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"
+                      style="{{ $active ? 'background:#0194F3;color:white;border-color:#0194F3;' : 'background:white;color:#64748b;border-color:#e2e8f0;' }}">
+                    <i data-lucide="{{ $n['icon'] }}" class="h-5 w-5"></i>
                 </span>
-
-                <span class="text-xs font-extrabold shrink-0"
-                      style="{{ $active ? 'color:#0194F3;' : 'color:#94a3b8;' }}">
-                    →
-                </span>
+                <span class="text-sm font-extrabold text-slate-900">{{ $n['label'] }}</span>
             </a>
         @endif
 
     @endforeach
+
 </nav>
 
         </aside>

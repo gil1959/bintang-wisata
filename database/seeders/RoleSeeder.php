@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $userRole  = Role::firstOrCreate(['name' => 'user',  'guard_name' => 'web']);
         $partnerRole = Role::firstOrCreate(['name' => 'partner', 'guard_name' => 'web']);
+        $siteModeratorRole = Role::firstOrCreate(['name' => 'site_moderator', 'guard_name' => 'web']);
 
         // bikin user admin pertama (kalau belum ada)
         $admin = User::firstOrCreate(

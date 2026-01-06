@@ -51,7 +51,11 @@ class RentCarCategoryController extends Controller
     public function edit(RentCarCategory $rent_car_category)
     {
         $this->guardTourPartner();
-        abort_unless($rent_car_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $rent_car_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.rent-car-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk edit kategori ini.');
+}
 
         $category = $rent_car_category;
         return view('partner.rentcar-categories.edit', compact('category'));
@@ -60,7 +64,11 @@ class RentCarCategoryController extends Controller
     public function update(Request $request, RentCarCategory $rent_car_category)
     {
         $this->guardTourPartner();
-        abort_unless($rent_car_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $rent_car_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.rent-car-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk update kategori ini.');
+}
 
         $request->validate([
             'name' => ['required','string','max:190'],
@@ -76,7 +84,11 @@ class RentCarCategoryController extends Controller
     public function destroy(RentCarCategory $rent_car_category)
     {
         $this->guardTourPartner();
-        abort_unless($rent_car_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $rent_car_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.rent-car-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk menghapus kategori ini.');
+}
 
         if ($rent_car_category->packages()->exists()) {
             return back()->with('error', 'Kategori tidak bisa dihapus karena masih digunakan paket rent car.');

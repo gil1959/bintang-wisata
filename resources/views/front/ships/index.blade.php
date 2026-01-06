@@ -210,7 +210,7 @@
   <div class="flex items-end justify-between gap-4 mb-6" data-aos="fade-up">
     <div>
       <h2 class="text-xl lg:text-2xl font-extrabold text-slate-900">
-        Daftar Paket Sewa Kapal
+        Daftar Private Charter
       </h2>
       <p class="mt-1 text-slate-600 text-sm">
         Menampilkan {{ $packages->total() }} paket.

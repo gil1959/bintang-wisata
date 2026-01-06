@@ -63,188 +63,188 @@ use App\Http\Controllers\Front\ArticleController as FrontArticleController;
 
 Route::prefix('bw-admin')
     ->name('admin.')
-    ->middleware(['auth', 'role:admin'])
+    ->middleware(['auth', 'role:admin|site_moderator'])
 
     ->group(function () {
 
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:admin.dashboard.view');
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('permission:admin.dashboard.view');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('permission:admin.dashboard.view');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password')->middleware('permission:admin.dashboard.view');
         Route::prefix('partners')->name('partners.')->group(function () {
 
-    Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/applications/{application}', [PartnerApplicationController::class, 'show'])->name('applications.show');
+    Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index')->middleware('permission:admin.dashboard.view');
+    Route::get('/applications/{application}', [PartnerApplicationController::class, 'show'])->name('applications.show')->middleware('permission:admin.dashboard.view');
 
-    Route::post('/applications/{application}/approve', [PartnerApplicationController::class, 'approve'])->name('applications.approve');
-    Route::post('/applications/{application}/reject', [PartnerApplicationController::class, 'reject'])->name('applications.reject');
-Route::delete('/users/{user}', [PartnerApplicationController::class, 'destroyPartner'])->name('users.destroy');
+    Route::post('/applications/{application}/approve', [PartnerApplicationController::class, 'approve'])->name('applications.approve')->middleware('permission:admin.dashboard.view');
+    Route::post('/applications/{application}/reject', [PartnerApplicationController::class, 'reject'])->name('applications.reject')->middleware('permission:admin.dashboard.view');
+Route::delete('/users/{user}', [PartnerApplicationController::class, 'destroyPartner'])->name('users.destroy')->middleware('permission:admin.dashboard.view');
 
-    Route::get('/users', [PartnerApplicationController::class, 'partnerUsers'])->name('users.index');
-    Route::post('/users/{user}/suspend', [PartnerApplicationController::class, 'suspend'])->name('users.suspend');
-    Route::post('/users/{user}/unsuspend', [PartnerApplicationController::class, 'unsuspend'])->name('users.unsuspend');
-    Route::post('/users/{user}/tax', [PartnerApplicationController::class, 'setTax'])->name('users.tax');
+    Route::get('/users', [PartnerApplicationController::class, 'partnerUsers'])->name('users.index')->middleware('permission:admin.dashboard.view');
+    Route::post('/users/{user}/suspend', [PartnerApplicationController::class, 'suspend'])->name('users.suspend')->middleware('permission:admin.dashboard.view');
+    Route::post('/users/{user}/unsuspend', [PartnerApplicationController::class, 'unsuspend'])->name('users.unsuspend')->middleware('permission:admin.dashboard.view');
+    Route::post('/users/{user}/tax', [PartnerApplicationController::class, 'setTax'])->name('users.tax')->middleware('permission:admin.dashboard.view');
 Route::get('/users/{user}', [PartnerApplicationController::class, 'showPartnerUser'])
-    ->name('users.show');
+    ->name('users.show')->middleware('permission:admin.dashboard.view');
 
 Route::get('/users/{user}/edit', [PartnerApplicationController::class, 'editPartnerUser'])
-    ->name('users.edit');
+    ->name('users.edit')->middleware('permission:admin.dashboard.view');
 
 Route::put('/users/{user}', [PartnerApplicationController::class, 'updatePartnerUser'])
-    ->name('users.update');
+    ->name('users.update')->middleware('permission:admin.dashboard.view');
 
     Route::prefix('products')->name('products.')->group(function () {
-    Route::get('/', [PartnerProductReviewController::class, 'index'])->name('index');
+    Route::get('/', [PartnerProductReviewController::class, 'index'])->name('index')->middleware('permission:admin.dashboard.view');
 
     Route::post('/approve/{type}/{id}', [PartnerProductReviewController::class, 'approve'])
-        ->name('approve');
+        ->name('approve')->middleware('permission:admin.dashboard.view');
 
     Route::post('/reject/{type}/{id}', [PartnerProductReviewController::class, 'reject'])
-        ->name('reject');
+        ->name('reject')->middleware('permission:admin.dashboard.view');
 
     Route::post('/disable/{type}/{id}', [PartnerProductReviewController::class, 'disable'])
-        ->name('disable');
+        ->name('disable')->middleware('permission:admin.dashboard.view');
 });
 });
         // Tour
-        Route::resource('tour-packages', TourPackageController::class);
+        Route::resource('tour-packages', TourPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::delete('tour-packages/photo/{photo}', [TourPackageController::class, 'deletePhoto'])
-            ->name('tour-packages.delete-photo');
-        Route::get('seo', [SeoController::class, 'edit'])->name('seo.edit');
-        Route::post('seo', [SeoController::class, 'update'])->name('seo.update');
+            ->name('tour-packages.delete-photo')->middleware('permission:admin.dashboard.view');
+        Route::get('seo', [SeoController::class, 'edit'])->name('seo.edit')->middleware('permission:admin.dashboard.view');
+        Route::post('seo', [SeoController::class, 'update'])->name('seo.update')->middleware('permission:admin.dashboard.view');
         Route::get('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'edit'])
-            ->name('legal-pages.edit');
-             Route::get('/partner-withdrawals', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'index'])->name('partner_withdrawals.index');
-    Route::get('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'show'])->name('partner_withdrawals.show');
-    Route::put('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'update'])->name('partner_withdrawals.update');
-    Route::delete('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'destroy'])->name('partner_withdrawals.destroy');
-Route::resource('umrah-packages', \App\Http\Controllers\Admin\UmrahPackageController::class);
+            ->name('legal-pages.edit')->middleware('permission:admin.dashboard.view');
+             Route::get('/partner-withdrawals', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'index'])->name('partner_withdrawals.index')->middleware('permission:admin.dashboard.view');
+    Route::get('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'show'])->name('partner_withdrawals.show')->middleware('permission:admin.dashboard.view');
+    Route::put('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'update'])->name('partner_withdrawals.update')->middleware('permission:admin.dashboard.view');
+    Route::delete('/partner-withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\PartnerWithdrawalController::class, 'destroy'])->name('partner_withdrawals.destroy')->middleware('permission:admin.dashboard.view');
+Route::resource('umrah-packages', \App\Http\Controllers\Admin\UmrahPackageController::class)->middleware('permission:admin.dashboard.view');
 Route::delete('umrah-packages/photo/{photo}', [\App\Http\Controllers\Admin\UmrahPackageController::class, 'deletePhoto'])
-    ->name('umrah-packages.delete-photo');
+    ->name('umrah-packages.delete-photo')->middleware('permission:admin.dashboard.view');
 Route::get('categories/{category}/subcategories', [\App\Http\Controllers\Admin\TourCategoryController::class, 'subcategories'])
-    ->name('categories.subcategories');
+    ->name('categories.subcategories')->middleware('permission:admin.dashboard.view');
     // MICE
-Route::resource('mice-packages', \App\Http\Controllers\Admin\MicePackageController::class);
+Route::resource('mice-packages', \App\Http\Controllers\Admin\MicePackageController::class)->middleware('permission:admin.dashboard.view');
 Route::delete('mice-packages/photo/{photo}', [\App\Http\Controllers\Admin\MicePackageController::class, 'deletePhoto'])
-    ->name('mice-packages.delete-photo');
+    ->name('mice-packages.delete-photo')->middleware('permission:admin.dashboard.view');
 
-Route::resource('mice-categories', \App\Http\Controllers\Admin\MiceCategoryController::class);
+Route::resource('mice-categories', \App\Http\Controllers\Admin\MiceCategoryController::class)->middleware('permission:admin.dashboard.view');
 Route::prefix('affiliate')->name('affiliate.')->group(function () {
     Route::get('/requests', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'index'])
-        ->name('requests.index');
+        ->name('requests.index')->middleware('permission:admin.dashboard.view');
     Route::get('/requests/{user}', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'show'])
-        ->name('requests.show');
+        ->name('requests.show')->middleware('permission:admin.dashboard.view');
         Route::get('/orders', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'index'])
-    ->name('orders.index');
+    ->name('orders.index')->middleware('permission:admin.dashboard.view');
 Route::get('/orders/{order}', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'show'])
-    ->name('orders.show');
+    ->name('orders.show')->middleware('permission:admin.dashboard.view');
     Route::get('/withdrawals', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'index'])
-    ->name('withdrawals.index');
+    ->name('withdrawals.index')->middleware('permission:admin.dashboard.view');
 Route::get('/withdrawals/{requestModel}', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'show'])
-    ->name('withdrawals.show');
+    ->name('withdrawals.show')->middleware('permission:admin.dashboard.view');
 Route::post('/withdrawals/{requestModel}/status', [\App\Http\Controllers\Admin\AffiliateWithdrawalController::class, 'updateStatus'])
-    ->name('withdrawals.status');
+    ->name('withdrawals.status')->middleware('permission:admin.dashboard.view');
 
 Route::post('/orders/{order}/commission', [\App\Http\Controllers\Admin\AffiliateOrderController::class, 'setCommission'])
-    ->name('orders.commission');
+    ->name('orders.commission')->middleware('permission:admin.dashboard.view');
 
 
 
     Route::post('/requests/{user}/approve', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'approve'])
-        ->name('requests.approve');
+        ->name('requests.approve')->middleware('permission:admin.dashboard.view');
     Route::post('/requests/{user}/decline', [\App\Http\Controllers\Admin\AffiliateApprovalController::class, 'decline'])
-        ->name('requests.decline');
+        ->name('requests.decline')->middleware('permission:admin.dashboard.view');
 });
 
 
 Route::resource('umrah-categories', \App\Http\Controllers\Admin\UmrahCategoryController::class);
         Route::post('legal-pages', [\App\Http\Controllers\Admin\LegalPagesController::class, 'update'])
-            ->name('legal-pages.update');
+            ->name('legal-pages.update')->middleware('permission:admin.dashboard.view');
 Route::get('/reviews/packages', [AdminReviewController::class, 'packages'])
-    ->name('reviews.packages');
+    ->name('reviews.packages')->middleware('permission:admin.dashboard.view');
 
 Route::get('users/affiliate', [AffiliateUserController::class, 'index'])
-    ->name('users.affiliate.index');
+    ->name('users.affiliate.index')->middleware('permission:admin.dashboard.view');
 
 Route::post('users/affiliate/{user}', [AffiliateUserController::class, 'update'])
-    ->name('users.affiliate.update');
+    ->name('users.affiliate.update')->middleware('permission:admin.dashboard.view');
 
-    Route::resource('users', AdminUserController::class)->except(['create', 'store']);
+    Route::resource('users', AdminUserController::class);
         // Rent Car Package CRUD
-        Route::resource('rent-car-packages', RentCarPackageController::class);
+        Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
-            ->name('system.clear-cache');
-            Route::resource('ship-packages', ShipPackageController::class);
+            ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
+            Route::resource('ship-packages', ShipPackageController::class)->middleware('permission:admin.dashboard.view');
 
         // Payments
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
-        Route::post('/payments/bank', [PaymentController::class, 'addBank'])->name('bank.add');
-        Route::delete('/payments/bank/{bank}', [PaymentController::class, 'deleteBank'])->name('bank.delete');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index')->middleware('permission:admin.dashboard.view');
+        Route::post('/payments/bank', [PaymentController::class, 'addBank'])->name('bank.add')->middleware('permission:admin.dashboard.view');
+        Route::delete('/payments/bank/{bank}', [PaymentController::class, 'deleteBank'])->name('bank.delete')->middleware('permission:admin.dashboard.view');
         Route::post('/payments/gateway/{gateway}', [PaymentController::class, 'toggleGateway'])
-            ->name('payments.toggleGateway');
+            ->name('payments.toggleGateway')->middleware('permission:admin.dashboard.view');
         Route::put('/payments/unique-code-setting', [PaymentController::class, 'updateUniqueCodeSetting'])
-            ->name('payments.unique-code-setting');
+            ->name('payments.unique-code-setting')->middleware('permission:admin.dashboard.view');
 
-        Route::resource('client-logos', \App\Http\Controllers\Admin\ClientLogoController::class);
+        Route::resource('client-logos', \App\Http\Controllers\Admin\ClientLogoController::class)->middleware('permission:admin.dashboard.view');
 
         // Promo Admin
-        Route::resource('promos', PromoController::class)->except(['show']);
+        Route::resource('promos', PromoController::class)->except(['show'])->middleware('permission:admin.dashboard.view');
 
         // Bank Account Admin
-        Route::resource('bank-accounts', BankAccountController::class)->except(['show']);
+        Route::resource('bank-accounts', BankAccountController::class)->except(['show'])->middleware('permission:admin.dashboard.view');
 
-        Route::resource('articles', ArticleController::class);
+        Route::resource('articles', ArticleController::class)->middleware('permission:admin.dashboard.view');
         Route::get('home-sections/promo-tours', [\App\Http\Controllers\Admin\HomePromoToursController::class, 'edit'])
-            ->name('home-sections.promo-tours.edit');
+            ->name('home-sections.promo-tours.edit')->middleware('permission:admin.dashboard.view');
 
         Route::post('home-sections/promo-tours', [\App\Http\Controllers\Admin\HomePromoToursController::class, 'update'])
-            ->name('home-sections.promo-tours.update');
+            ->name('home-sections.promo-tours.update')->middleware('permission:admin.dashboard.view');
             
         // Settings
-        Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
-        Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save');
+        Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general')->middleware('permission:admin.dashboard.view');
+        Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save')->middleware('permission:admin.dashboard.view');
 
         // Orders (sistem baru)
         Route::get('orders/approved', [AdminOrderController::class, 'approved'])
-            ->name('orders.approved');
+            ->name('orders.approved')->middleware('permission:admin.dashboard.view');
 
         Route::get('orders/rejected', [AdminOrderController::class, 'rejected'])
-            ->name('orders.rejected');
+            ->name('orders.rejected')->middleware('permission:admin.dashboard.view');
 
         // ✅ taruh rekap dulu
         Route::get('orders/rekap', [AdminOrderController::class, 'rekap'])
-            ->name('orders.rekap');
+            ->name('orders.rekap')->middleware('permission:admin.dashboard.view');
 
         Route::get('orders/rekap/print', [AdminOrderController::class, 'printRekap'])
-            ->name('orders.rekap.print');
+            ->name('orders.rekap.print')->middleware('permission:admin.dashboard.view');
 
         // ✅ resource terakhir, hanya sekali
         Route::resource('orders', AdminOrderController::class)
             ->only(['index', 'show', 'update', 'destroy']);
 
 
-        Route::get('/reviews/create', [AdminReviewController::class, 'create'])->name('reviews.create');
-        Route::post('/reviews', [AdminReviewController::class, 'store'])->name('reviews.store');
+        Route::get('/reviews/create', [AdminReviewController::class, 'create'])->name('reviews.create')->middleware('permission:admin.dashboard.view');
+        Route::post('/reviews', [AdminReviewController::class, 'store'])->name('reviews.store')->middleware('permission:admin.dashboard.view');
 
 
         // Categories
-        Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class);
-Route::resource('ship-categories', \App\Http\Controllers\Admin\ShipCategoryController::class);
+        Route::resource('categories', \App\Http\Controllers\Admin\TourCategoryController::class)->middleware('permission:admin.dashboard.view');
+    Route::resource('ship-categories', \App\Http\Controllers\Admin\ShipCategoryController::class)->middleware('permission:admin.dashboard.view');
 
-        Route::resource('rent-car-categories', \App\Http\Controllers\Admin\RentCarCategoryController::class);
+        Route::resource('rent-car-categories', \App\Http\Controllers\Admin\RentCarCategoryController::class)->middleware('permission:admin.dashboard.view');
         Route::resource(
             'destination-inspirations',
             \App\Http\Controllers\Admin\DestinationInspirationController::class
-        );
+        )->middleware('permission:admin.dashboard.view');
 
-        Route::resource('documentations', AdminDocumentationController::class);
+        Route::resource('documentations', AdminDocumentationController::class)->middleware('permission:admin.dashboard.view');
         //review
-        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
-        Route::patch('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
-        Route::patch('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
-        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.delete');
-        Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit');
-        Route::patch('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update');
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index')->middleware('permission:admin.dashboard.view');
+        Route::patch('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve')->middleware('permission:admin.dashboard.view');
+        Route::patch('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject')->middleware('permission:admin.dashboard.view');
+        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.delete')->middleware('permission:admin.dashboard.view');
+        Route::get('/reviews/{review}/edit', [AdminReviewController::class, 'edit'])->name('reviews.edit')->middleware('permission:admin.dashboard.view');
+        Route::patch('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update')->middleware('permission:admin.dashboard.view');
     });
 
 /*

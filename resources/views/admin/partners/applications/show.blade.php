@@ -87,13 +87,21 @@
             </div>
 
             <div class="rounded-2xl border border-slate-200 p-5 bg-white">
-                <div class="text-xs font-extrabold text-slate-600 uppercase">Selfie + Identitas</div>
-                <p class="mt-1 text-sm text-slate-600">Klik untuk melihat selfie verifikasi.</p>
-                <a class="inline-flex mt-3 px-4 py-2 rounded-2xl border border-slate-200 font-extrabold text-slate-800 hover:bg-slate-50"
-                   target="_blank" href="{{ asset('storage/'.$application->selfie_file_path) }}">
-                    Buka Selfie
-                </a>
+        <div class="text-xs font-extrabold text-slate-600 uppercase">Dokumen Legalitas (PDF)</div>
+        <p class="mt-1 text-sm text-slate-600">Klik untuk melihat dokumen legalitas.</p>
+
+        @if($application->legal_document_path)
+            <a class="inline-flex mt-3 px-4 py-2 rounded-2xl border border-slate-200 font-extrabold text-slate-800 hover:bg-slate-50"
+               target="_blank" href="{{ asset('storage/'.$application->legal_document_path) }}">
+                Buka Dokumen
+            </a>
+        @else
+            {{-- fallback untuk aplikasi lama --}}
+            <div class="mt-3 text-sm text-slate-500">
+                Dokumen legalitas belum tersedia (data lama).
             </div>
+        @endif
+    </div>
         </div>
 
         @if($application->review_note)

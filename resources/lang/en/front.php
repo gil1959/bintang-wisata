@@ -13,7 +13,7 @@ return [
         'rental' => 'Car Rental',
         'mice'  => 'MICE',
 
-        'ship' => 'Boat Rental',
+        'ship' => 'Private Charter',
  'umrah' => 'Umrah',
         'docs' => 'Documentation',
         'about' => 'About',

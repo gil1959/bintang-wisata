@@ -40,7 +40,9 @@ class PartnerRegistrationController extends Controller
         'bank_account_holder' => ['required', 'string', 'max:100'],
             'identity_type' => ['required', 'string', 'in:KTP,SIM,PASPOR,KK'],
             'identity_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'selfie_file' => ['required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+            
+            'legal_document' => ['required', 'file', 'mimes:pdf', 'max:10240'], // 10MB
+
         ]);
 
         // Cegah double submit untuk email yang sama (kalau masih pending)
@@ -55,8 +57,8 @@ class PartnerRegistrationController extends Controller
         // Upload
         // NOTE: pastikan sudah `php artisan storage:link`
         $identityPath = $request->file('identity_file')->store('partners/identity', 'public');
-        $selfiePath   = $request->file('selfie_file')->store('partners/selfie', 'public');
-
+       
+$legalPath = $request->file('legal_document')->store('partners/legal-documents', 'public');
         $app = PartnerApplication::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -65,8 +67,8 @@ class PartnerRegistrationController extends Controller
             'reason' => $data['reason'],
             'identity_type' => $data['identity_type'],
             'identity_file_path' => $identityPath,
-            'selfie_file_path' => $selfiePath,
-
+            
+'legal_document_path' => $legalPath,
             'password_hash' => Hash::make($data['password']),
             'password_enc'  => Crypt::encryptString($data['password']),
 

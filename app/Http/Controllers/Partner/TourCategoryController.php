@@ -73,7 +73,11 @@ class TourCategoryController extends Controller
     {
         $this->guardTourPartner();
 
-        abort_unless($tour_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $tour_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.tour-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk edit kategori ini.');
+}
 
         $category = $tour_category;
 
@@ -90,7 +94,11 @@ class TourCategoryController extends Controller
     public function update(Request $request, TourCategory $tour_category)
     {
         $this->guardTourPartner();
-        abort_unless($tour_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $tour_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.tour-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk update kategori ini.');
+}
 
         $request->validate([
             'name' => ['required','string','max:190'],
@@ -102,7 +110,12 @@ class TourCategoryController extends Controller
             $ok = TourCategory::where('id', $request->parent_id)
                 ->where('created_by_partner_id', auth()->id())
                 ->exists();
-            abort_unless($ok, 403);
+            if (!$ok) {
+    return redirect()
+        ->back()
+        ->withInput()
+        ->with('error', 'Parent kategori tidak valid (bukan milik kamu).');
+}
         }
 
         $tour_category->update([
@@ -118,7 +131,11 @@ class TourCategoryController extends Controller
     public function destroy(TourCategory $tour_category)
     {
         $this->guardTourPartner();
-        abort_unless($tour_category->created_by_partner_id === auth()->id(), 403);
+        if ((int) $tour_category->created_by_partner_id !== (int) auth()->id()) {
+    return redirect()
+        ->route('partner.tour-categories.index')
+        ->with('error', 'Kamu tidak punya akses untuk menghapus kategori ini.');
+}
 
         // kalau dipakai di paket -> block
         $isUsed = $tour_category->packages()->exists() || $tour_category->packagesAsSubcategory()->exists();

@@ -167,6 +167,8 @@ public function updatePartnerUser(Request $request, User $user)
 'partner_bank_name' => $application->bank_name,
 'partner_bank_account_number' => $application->bank_account_number,
 'partner_bank_account_holder' => $application->bank_account_holder,
+'partner_legal_document_path' => $application->legal_document_path,
+
 
         ]);
 

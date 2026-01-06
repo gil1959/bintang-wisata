@@ -15,9 +15,11 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call(PaymentGatewaySeeder::class);
-        $this->call([
-            RoleSeeder::class,
-        ]);
+$this->call([
+    RoleSeeder::class,
+    PermissionSeeder::class,
+]);
+
         $admin = User::where('email', 'admin@admin.com')->first();
         if ($admin && !$admin->hasRole('admin')) {
             $admin->assignRole('admin');

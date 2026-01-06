@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\Setting;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Gate;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Gate::before(function ($user, $ability) {
+    if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+        return true;
+    }
+    return null;
+});
+
         View::composer('*', function ($view) {
 
             $keys = [

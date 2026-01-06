@@ -182,22 +182,26 @@
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             <div class="md:col-span-7">
               <label class="block text-xs font-extrabold text-slate-600 mb-1">Teks</label>
-              <input type="text"
-                     class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                     placeholder="Contoh: Kapal A (max 10 orang) / 4 jam"
-                     :name="`tiers[${row.__idx}][label_text]`"
-                     x-model="row.label_text"
-                     required>
+             <input type="text"
+       class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+       placeholder="Contoh: Kapal A (max 10 orang) / 4 jam"
+       :name="`tiers[${row.__idx}][label_text]`"
+       x-model="row.label_text"
+       :disabled="row.type !== active"
+       :required="row.type === active">
+
             </div>
 
             <div class="md:col-span-4">
               <label class="block text-xs font-extrabold text-slate-600 mb-1">Harga</label>
               <input type="number"
-                     class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                     :name="`tiers[${row.__idx}][price]`"
-                     x-model.number="row.price"
-                     min="0"
-                     required>
+       class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+       :name="`tiers[${row.__idx}][price]`"
+       x-model.number="row.price"
+       min="0"
+       :disabled="row.type !== active"
+       :required="row.type === active">
+
             </div>
 
             <div class="md:col-span-1 md:text-right">
@@ -211,7 +215,10 @@
               </button>
             </div>
 
-            <input type="hidden" :name="`tiers[${row.__idx}][type]`" :value="row.type">
+            <input type="hidden"
+       :name="`tiers[${row.__idx}][type]`"
+       :value="row.type"
+       :disabled="row.type !== active">
           </div>
         </div>
       </template>

@@ -13,7 +13,7 @@ return [
         'mice'  => 'Paket MICE',
 
         'rental' => 'Rental',
-        'ship' => 'Sewa Kapal',
+        'ship' => 'Private Charter',
  'umrah' => 'Umrah',
         'docs' => 'Dokumentasi',
         'about' => 'About',

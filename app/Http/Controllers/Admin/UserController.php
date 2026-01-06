@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -38,13 +39,111 @@ class UserController extends Controller
     return view('admin.users.show', compact('user'));
 }
 
+public function create()
+{
+    // jangan kasih opsi admin dari sini
+    $roles = Role::query()
+        ->whereIn('name', ['user', 'partner', 'site_moderator'])
+        ->orderBy('name')
+        ->pluck('name');
+
+    $permissionMap = config('admin_permissions', []);
+    $permissions = collect($permissionMap)->map(function ($v, $k) {
+        return [
+            'name' => $k,
+            'label' => $v['label'] ?? $k,
+        ];
+    })->values();
+
+    return view('admin.users.create', compact('roles', 'permissions'));
+}
+
+public function store(Request $request)
+{
+    $data = $request->validate([
+        'name'     => ['required', 'string', 'max:255'],
+        'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+        'phone'    => ['nullable', 'string', 'max:30'],
+        'address'  => ['nullable', 'string'],
+        'sub_district' => ['nullable', 'string', 'max:120'],
+        'password' => ['required', 'string', 'min:6'],
+
+        'role'     => ['required', 'in:user,partner,site_moderator'],
+        'is_verified' => ['nullable', 'boolean'],
+
+        // permissions untuk site moderator
+        'permissions'   => ['nullable', 'array'],
+        'permissions.*' => ['string', 'exists:permissions,name'],
+
+        // partner fields (wajib kalau role partner)
+        'partner_type' => ['nullable', 'in:agency_paket_tour,agency_kapal'],
+        'partner_bank_name' => ['nullable', 'string', 'max:100'],
+        'partner_bank_account_number' => ['nullable', 'string', 'max:50'],
+        'partner_bank_account_holder' => ['nullable', 'string', 'max:100'],
+    ]);
+
+    if ($data['role'] === 'partner') {
+        $request->validate([
+            'partner_type' => ['required', 'in:agency_paket_tour,agency_kapal'],
+            'partner_bank_name' => ['required', 'string', 'max:100'],
+            'partner_bank_account_number' => ['required', 'string', 'max:50'],
+            'partner_bank_account_holder' => ['required', 'string', 'max:100'],
+        ]);
+    }
+
+    $isVerified = (bool)($data['is_verified'] ?? false);
+
+    $user = User::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone' => $data['phone'] ?? null,
+        'address' => $data['address'] ?? null,
+        'full_address' => $data['address'] ?? null,
+        'sub_district' => $data['sub_district'] ?? null,
+        'email_verified_at' => $isVerified ? now() : null,
+        'password' => Hash::make($data['password']),
+
+        // partner fields (kalau ada kolomnya di users)
+        'partner_type' => $data['partner_type'] ?? null,
+        'partner_bank_name' => $data['partner_bank_name'] ?? null,
+        'partner_bank_account_number' => $data['partner_bank_account_number'] ?? null,
+        'partner_bank_account_holder' => $data['partner_bank_account_holder'] ?? null,
+    ]);
+
+    $user->syncRoles([$data['role']]);
+
+    if ($data['role'] === 'site_moderator') {
+        $user->syncPermissions($data['permissions'] ?? []);
+    } else {
+        $user->syncPermissions([]);
+    }
+
+    return redirect()
+        ->route('admin.users.show', $user)
+        ->with('success', 'User berhasil dibuat.');
+}
 
     public function edit(User $user)
 {
-    $roles = Role::query()->orderBy('name')->pluck('name');
-    $currentRole = $user->roles->pluck('name')->first(); // asumsi 1 role utama
+   $roles = Role::query()
+    ->whereIn('name', ['user', 'partner', 'site_moderator'])
+    ->orderBy('name')
+    ->pluck('name');
 
-    return view('admin.users.edit', compact('user', 'roles', 'currentRole'));
+$currentRole = $user->roles->pluck('name')->first();
+
+$permissionMap = config('admin_permissions', []);
+$permissions = collect($permissionMap)->map(function ($v, $k) {
+    return [
+        'name' => $k,
+        'label' => $v['label'] ?? $k,
+    ];
+})->values();
+
+$currentPermissions = $user->permissions->pluck('name')->toArray();
+
+return view('admin.users.edit', compact('user', 'roles', 'currentRole', 'permissions', 'currentPermissions'));
+
 }
 
 
@@ -61,6 +160,8 @@ class UserController extends Controller
     'address'      => ['nullable', 'string'],
     'sub_district' => ['nullable', 'string', 'max:120'],
     'password'     => ['nullable', 'string', 'min:6'],
+'permissions'   => ['nullable', 'array'],
+'permissions.*' => ['string', 'exists:permissions,name'],
 
     // role (1 role utama)
     'role'         => ['required', 'string', 'exists:roles,name'],
@@ -98,6 +199,13 @@ $user->update($data);
 
 // Update role
 $user->syncRoles([$data['role']]);
+if ($data['role'] === 'site_moderator') {
+    $perms = $request->input('permissions', []);
+    $user->syncPermissions($perms);
+} else {
+    $user->syncPermissions([]);
+}
+
 
 return redirect()
     ->route('admin.users.show', $user)

@@ -6,6 +6,11 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Illuminate\Auth\AuthenticationException;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
 
 class Handler extends ExceptionHandler
 {
@@ -36,21 +41,56 @@ class Handler extends ExceptionHandler
      */
     public function register()
 {
-    // redirect 404 frontend ke homepage (SEO safe)
-    $this->renderable(function (NotFoundHttpException $e, Request $request) {
-
-        // JANGAN ganggu admin, api, asset
-        if (
-            $request->is('admin/*') ||
-            $request->is('api/*') ||
-            $request->expectsJson()
-        ) {
-            return null; // biarin Laravel handle normal
+    $this->renderable(function (Throwable $e, Request $request) {
+        // JSON/API jangan diganggu
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return null;
         }
 
-        return redirect('/')
-            ->setStatusCode(302); // TEMPORARY (AMAN SEO)
+        $user = auth()->user();
+        $isAdmin = $user && method_exists($user, 'hasRole') && $user->hasRole('admin');
+        $isPartner = $user && method_exists($user, 'hasRole') && $user->hasRole('partner');
+
+        $goAdminHome = fn($msg) => redirect()->route('admin.dashboard')->with('error', $msg);
+        $goPartnerHome = fn($msg) => redirect()->route('partner.dashboard')->with('error', $msg);
+        $goPublicHome = fn($msg) => redirect()->route('home')->with('error', $msg);
+
+        // 419 Page Expired
+        if ($e instanceof TokenMismatchException) {
+            $msg = 'Sesi kamu sudah expired. Silakan login ulang / refresh dan coba lagi.';
+            if ($isAdmin) return $goAdminHome($msg);
+            if ($isPartner) return $goPartnerHome($msg);
+            return $goPublicHome($msg);
+        }
+
+        // 403 Forbidden
+        if ($e instanceof AuthorizationException || $e instanceof AccessDeniedHttpException) {
+            $msg = 'Akses ditolak (403). Kamu tidak punya hak untuk membuka halaman itu.';
+            if ($isAdmin) return $goAdminHome($msg);
+            if ($isPartner) return $goPartnerHome($msg);
+            return $goPublicHome($msg);
+        }
+
+        // 404 Not Found
+        if ($e instanceof NotFoundHttpException) {
+            $msg = 'Halaman tidak ditemukan (404).';
+            if ($isAdmin) return $goAdminHome($msg);
+            if ($isPartner) return $goPartnerHome($msg);
+            // buat guest: biarin normal 404 atau redirect home (lu maunya redirect)
+            return redirect()->route('home')->with('error', $msg);
+        }
+
+        // Role/permission misconfig
+        if ($e instanceof RoleDoesNotExist) {
+            $msg = 'Role/permission belum lengkap. Hubungi admin.';
+            if ($isAdmin) return $goAdminHome($msg);
+            if ($isPartner) return $goPartnerHome($msg);
+            return $goPublicHome($msg);
+        }
+
+        return null;
     });
 }
+
 
 }

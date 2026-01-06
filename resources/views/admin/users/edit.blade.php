@@ -4,7 +4,7 @@
 @section('page-title', 'Edit User')
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-5" x-data="userEditUI()">
 
     <div class="flex items-center justify-between gap-3">
         <div>
@@ -64,7 +64,7 @@
             </div>
             <div>
   <label class="text-xs font-extrabold text-slate-600 uppercase">Role</label>
-  <select name="role"
+  <select name="role" x-model="role"
           class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800">
       @foreach($roles as $r)
           <option value="{{ $r }}" {{ old('role', $currentRole) === $r ? 'selected' : '' }}>
@@ -98,6 +98,33 @@
             <input type="text" name="sub_district" value="{{ old('sub_district', $user->sub_district) }}"
                    class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800">
         </div>
+        <div x-show="role === 'site_moderator'" x-cloak class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
+    <div class="text-sm font-extrabold text-slate-900">Akses Site Moderator</div>
+    <div class="text-xs text-slate-600 font-semibold">Centang fitur admin yang boleh diakses.</div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+        @foreach($permissions as $p)
+            <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <input type="checkbox" name="permissions[]" value="{{ $p['name'] }}"
+                       {{ in_array($p['name'], old('permissions', $currentPermissions)) ? 'checked' : '' }}
+                       class="w-5 h-5">
+                <div class="min-w-0">
+                    <div class="text-sm font-extrabold text-slate-900">{{ $p['label'] }}</div>
+                    <div class="text-[11px] font-semibold text-slate-500">{{ $p['name'] }}</div>
+                </div>
+            </label>
+        @endforeach
+    </div>
+</div>
+
+<script>
+function userEditUI() {
+    return {
+        role: @json(old('role', $currentRole)),
+    }
+}
+</script>
+
 
         <div class="flex items-center justify-end gap-2 pt-2">
             <a href="{{ route('admin.users.show', $user) }}"

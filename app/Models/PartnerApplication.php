@@ -17,7 +17,8 @@ class PartnerApplication extends Model
         'reason',
         'identity_type',
         'identity_file_path',
-        'selfie_file_path',
+       
+        'legal_document_path',
         'password_hash',
         'password_enc',
         'status',

@@ -115,6 +115,20 @@
                         {{ $user->partner_bank_account_holder ?? '-' }}
                     </div>
                 </div>
+                <div class="md:col-span-2 mt-4">
+    <div class="text-xs font-extrabold text-slate-600 uppercase">Dokumen Legalitas</div>
+
+    @if($user->partner_legal_document_path)
+        <a class="inline-flex mt-2 px-4 py-2 rounded-2xl border border-slate-200 font-extrabold text-slate-800 hover:bg-slate-50"
+           target="_blank"
+           href="{{ asset('storage/'.$user->partner_legal_document_path) }}">
+            Lihat PDF Legalitas
+        </a>
+    @else
+        <div class="mt-2 text-sm text-slate-500">Belum ada dokumen legalitas.</div>
+    @endif
+</div>
+
             </div>
 
         </div>
