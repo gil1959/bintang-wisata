@@ -12,7 +12,7 @@
   <img
     src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
     alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
-    class="h-7 lg:h-7 w-auto object-contain shrink-0"
+    class="h-7 lg:h-7 w-12 object-contain shrink-0"
   />
 </a>
 
@@ -130,7 +130,7 @@
   @php
     $u = auth()->user();
 
-    if ($u->hasRole('admin')) {
+    if ($u->hasRole('admin') || $u->hasRole('site_moderator')) {
         $to = route('admin.dashboard');
     } elseif ($u->hasRole('partner')) {
         $to = route('partner.dashboard');
@@ -151,6 +151,7 @@
     Login
   </a>
 @endauth
+
 
   </div>
 </div>

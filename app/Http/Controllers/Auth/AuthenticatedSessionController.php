@@ -15,30 +15,31 @@ class AuthenticatedSessionController extends Controller
     }
 
     public function store(LoginRequest $request)
-    {
-        $request->authenticate();
-        $request->session()->regenerate();
+{
+    $request->authenticate();
+    $request->session()->regenerate();
 
-        $user = Auth::user();
+    $user = Auth::user();
 
-        // IMPORTANT:
-        // intended URL sering nyangkut ke /user/dashboard dari session lama
-        // jadi kita bersihin biar redirect role ga ketimpa.
-        $request->session()->forget('url.intended');
+    // IMPORTANT:
+    // intended URL sering nyangkut ke /user/dashboard dari session lama
+    // jadi kita bersihin biar redirect role ga ketimpa.
+    $request->session()->forget('url.intended');
 
-        // ADMIN → ADMIN PANEL
-        if ($user && $user->hasRole('admin')) {
-            return redirect('/bw-admin');
-        }
-
-        // PARTNER → PARTNER DASHBOARD (JANGAN intended)
-        if ($user && $user->hasRole('partner')) {
-            return redirect('/partner/dashboard');
-        }
-
-        // USER → USER DASHBOARD (JANGAN intended)
-        return redirect('/user/dashboard');
+    // ADMIN / SITE MODERATOR → ADMIN PANEL
+    if ($user && ($user->hasRole('admin') || $user->hasRole('site_moderator'))) {
+        return redirect('/bw-admin');
     }
+
+    // PARTNER → PARTNER DASHBOARD (JANGAN intended)
+    if ($user && $user->hasRole('partner')) {
+        return redirect('/partner/dashboard');
+    }
+
+    // USER → USER DASHBOARD (JANGAN intended)
+    return redirect('/user/dashboard');
+}
+
 
     public function destroy(Request $request)
     {
