@@ -228,84 +228,69 @@
 {{-- ================= GRID ================= --}}
 <section class="bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 pb-14">
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
             @forelse ($packages as $package)
-                <article class="group card overflow-hidden flex flex-col">
-                    {{-- IMAGE --}}
-                    <div class="relative h-52 overflow-hidden bg-slate-100">
-                        <img
-                            src="{{ asset('storage/' . $package->thumbnail_path) }}"
-                            alt="{{ $package->title }}"
-                            class="h-full w-full object-cover group-hover:scale-105 transition duration-500"
-                            loading="lazy"
-                        >
-@if(!empty($package->label))
-  <div class="absolute top-3 right-3">
-    <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
-      {{ $package->label }}
-    </span>
-  </div>
-@endif
+               <a href="{{ route('rentcar.show', $package->slug) }}"
+   class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
 
-                        {{-- BADGE --}}
-                        <div class="absolute top-3 left-3">
-                            <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
-                                <i data-lucide="car" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
-                                Rent Car
-                            </span>
-                        </div>
+    <div class="relative h-44 overflow-hidden bg-slate-100">
+        <img
+            src="{{ asset('storage/' . $package->thumbnail_path) }}"
+            alt="{{ $package->title }}"
+            class="h-full w-full object-cover"
+            loading="lazy"
+        >
 
-                        {{-- Accent --}}
-                        <svg class="absolute bottom-2 right-2 w-24 h-24 opacity-70" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-                            <path d="M18 82c18-18 38-28 60-28 14 0 26 4 40 12" stroke="#0194F3" stroke-opacity="0.30" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M86 30l8 8-8 8" stroke="#0194F3" stroke-opacity="0.30" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+        {{-- badge kiri --}}
+        <div class="absolute top-3 left-3">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
+                <i data-lucide="car" class="w-4 h-4" style="color:#0194F3;"></i>
+                Rental Mobil
+            </span>
+        </div>
 
-                    {{-- CONTENT --}}
-                    <div class="p-5 flex flex-col flex-1">
-                        <h3 class="text-lg font-extrabold text-slate-900 leading-snug">
-                            {{ $package->title }}
-                        </h3>
+        {{-- label kanan --}}
+        @if(!empty($package->label))
+            <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
+                    {{ $package->label }}
+                </span>
+            </div>
+        @endif
+    </div>
 
-                        {{-- PRICE --}}
-                        <div class="mt-2 flex items-end gap-1">
-                            <div class="text-2xl font-extrabold" style="color:#0194F3;">
-                                Rp{{ number_format($package->price_per_day, 0, ',', '.') }}
-                            </div>
-                            <div class="text-sm text-slate-500 mb-0.5">/ hari</div>
-                        </div>
+    <div class="px-4 pt-4 pb-3">
+        <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
+            {{ $package->title }}
+        </div>
 
-                        {{-- FEATURES --}}
-                        @if(!empty($package->features))
-                            <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                                @foreach(array_slice($package->features, 0, 4) as $f)
-                                    <li class="flex items-center gap-2">
-                                        @if(!empty($f['available']))
-                                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
-                                        @else
-                                            <i data-lucide="x-circle" class="w-4 h-4 text-red-400"></i>
-                                        @endif
-                                        <span>{{ $f['name'] ?? '' }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
+        <div class="mt-2 text-sm">
+            <span class="text-slate-600">Mulai </span>
+            <span class="font-extrabold text-rose-600">
+                Rp {{ number_format((int)$package->price_per_day, 0, ',', '.') }}
+            </span>
+            <span class="text-slate-500">/hari</span>
+        </div>
+    </div>
 
-                        {{-- CTA pinned bottom --}}
-                        <div class="mt-6 pt-2 mt-auto">
-                            <a href="{{ route('rentcar.show', $package->slug) }}"
-                               class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-extrabold text-white transition shadow-sm hover:shadow-md"
-                               style="background:#0194F3;"
-                               onmouseover="this.style.background='#0186DB'"
-                               onmouseout="this.style.background='#0194F3'">
-                                <i data-lucide="calendar-check" class="w-4 h-4"></i>
-                                Booking Sekarang
-                            </a>
-                        </div>
-                    </div>
-                </article>
+    <div class="border-t border-slate-200 px-4 pt-3 pb-4">
+        {{-- ambil 1 feature biar “sesuai isi paket” tanpa bikin card jadi rame --}}
+        <div class="flex items-center gap-2 text-xs text-slate-600">
+            <i data-lucide="info" class="w-4 h-4" style="color:#0194F3;"></i>
+            <span class="line-clamp-1">
+                {{ !empty($package->features[0]['name']) ? $package->features[0]['name'] : 'Unit tersedia untuk booking' }}
+            </span>
+        </div>
+
+        <div class="mt-3">
+            <div class="btn btn-primary w-full justify-center !rounded-md !py-2">
+                Booking Sekarang
+            </div>
+        </div>
+    </div>
+</a>
+
 
             @empty
                 <div class="col-span-full">

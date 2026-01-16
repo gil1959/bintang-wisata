@@ -77,7 +77,8 @@
     </div>
 
     <span class="font-semibold">{{ number_format($avg, 1) }}/5</span>
-    <span class="text-slate-500">· {{ $count }} ulasan</span>
+    <span class="text-slate-500">, {{ $count }} ulasan</span>
+
 </div>
 
             <div class="mt-2 text-sm text-gray-500 flex flex-wrap items-center gap-4">
@@ -101,10 +102,10 @@
         @if($package->long_description)
             <section class="bg-white rounded-xl shadow-sm p-5">
                 <h2 class="text-lg font-semibold mb-3 text-[#0194F3]">Tentang Paket</h2>
-                <div class="text-sm leading-relaxed text-gray-700">
-                    {!! $package->long_description !!}
+                <div class="prose max-w-none break-words">
+  {!! $package->long_description !!}
+</div>
 
-                </div>
             </section>
         @endif
 

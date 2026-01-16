@@ -10,14 +10,41 @@ use App\Models\TourPackage;
 use App\Models\TourPackagePhoto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class TourPackageController extends Controller
 {
-    public function index()
-    {
-        $packages = TourPackage::orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.tour-packages.index', compact('packages'));
+    public function index(Request $request)
+{
+    $q        = trim((string) $request->query('q', ''));
+    $category = $request->query('category');
+    $status   = $request->query('status'); // active | inactive | (kosong)
+
+    $query = TourPackage::query()->with('category');
+
+    if ($q !== '') {
+        $query->where(function ($qq) use ($q) {
+            $qq->where('title', 'like', "%{$q}%")
+               ->orWhere('slug', 'like', "%{$q}%");
+        });
     }
+
+    if (!empty($category)) {
+        $query->where('category_id', $category);
+    }
+
+    if ($status === 'active') {
+        $query->where('is_active', 1);
+    } elseif ($status === 'inactive') {
+        $query->where('is_active', 0);
+    }
+
+    $packages = $query->latest()->paginate(20)->withQueryString();
+    $categories = TourCategory::whereNull('parent_id')->orderBy('name')->get();
+
+    return view('admin.tour-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
+}
+
 
     public function create()
     {
@@ -34,7 +61,7 @@ $excludes = $this->htmlToLines($request->input('exclude_text'));
             $package = TourPackage::create([
                 'title'            => $request->title,
                 'label' => $request->label,
-
+'is_active'        => (int) $request->input('is_active', 1),
                 'rating_value' => $request->rating_value ?? 5,
                 'rating_count' => $request->rating_count ?? 0,
                 'slug'             => $request->slug,
@@ -95,6 +122,7 @@ $excludes = $this->htmlToLines($request->input('exclude_text'));
                 'title'            => $request->title,
                 'label' => $request->label,
 'subcategory_id' => $request->subcategory_id,
+'is_active'        => (int) $request->input('is_active', $tour_package->is_active ? 1 : 0),
                 'rating_value' => $request->rating_value ?? $tour_package->rating_value ?? 5,
                 'rating_count' => $request->rating_count ?? $tour_package->rating_count ?? 0,
                 'slug'             => $request->slug,

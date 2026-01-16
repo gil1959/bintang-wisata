@@ -11,7 +11,7 @@ class UmrahController extends Controller
     public function index()
     {
         $categories = UmrahCategory::orderBy('name')->get();
-        $packages = UmrahPackage::with(['category'])
+        $packages = UmrahPackage::with(['category', 'tiers'])
             ->where('is_active', 1)
             ->latest()
             ->paginate(12);

@@ -17,7 +17,7 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap gap-2 items-center">
+                       <div class="flex flex-wrap gap-2 items-center">
                 @include('user.partials.order-status-badge', ['status' => $order->order_status])
                 @include('user.partials.payment-status-badge', ['status' => $order->payment_status])
 
@@ -25,17 +25,28 @@
                     <i data-lucide="arrow-left" class="w-4 h-4" style="color:#0194F3;"></i>
                     Back
                 </a>
-               @php
-    $partnerUser = \App\Support\OrderPartnerResolver::resolvePartnerUser($order);
-    $label = ($partnerUser && !empty($partnerUser->phone)) ? 'Hubungi Admin' : 'Konfirmasi ke Admin';
-@endphp
 
-<a href="{{ route('user.orders.confirm-admin', $order) }}"
-   target="_blank"
-   class="btn btn-gateway px-4 py-2.5">
-    <i data-lucide="message-circle" class="w-4 h-4"></i>
-    {{ $label }}
-</a>
+                @if($order->payment_status === 'waiting_payment')
+                    <a href="{{ route('checkout.show', $order->id) }}"
+                       class="btn btn-primary px-4 py-2.5">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i>
+                        Bayar Sekarang
+                    </a>
+                @endif
+
+                @php
+                    $partnerUser = \App\Support\OrderPartnerResolver::resolvePartnerUser($order);
+                    $label = ($partnerUser && !empty($partnerUser->phone)) ? 'Hubungi Admin' : 'Konfirmasi ke Admin';
+                @endphp
+
+                <a href="{{ route('user.orders.confirm-admin', $order) }}"
+                   target="_blank"
+                   class="btn btn-gateway px-4 py-2.5">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    {{ $label }}
+                </a>
+            </div>
+
 
 
             </div>

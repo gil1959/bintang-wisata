@@ -362,86 +362,92 @@
         </div>
 
         <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3" data-aos="fade-up" data-aos-delay="120">
-            @forelse($packages as $package)
-                <a href="{{ route('tour.show', $package) }}"
-                   class="group card overflow-hidden">
+           @forelse($packages as $package)
+    @php
+        $minPrice = ($package->tiers ?? collect())->min('price');
+        $ratingCount = (int)($package->rating_count ?? 0);
+        $durationText = $package->duration_text ?? '';
+    @endphp
 
-                    {{-- Thumbnail --}}
-                    <div class="relative h-52 overflow-hidden bg-slate-100">
-                        @if($package->thumbnail_path)
-                            <img
-                                src="{{ asset('storage/'.$package->thumbnail_path) }}"
-                                alt="{{ $package->title }}"
-                                class="h-full w-full object-cover group-hover:scale-105 transition duration-500"
-                            >
-                        @else
-                            <div class="absolute inset-0 bg-gradient-to-tr from-slate-100 via-white to-white"></div>
-                            <div class="absolute inset-0 grid place-items-center text-slate-500 text-sm">
-                                <div class="text-center">
-                                    <i data-lucide="image" class="w-8 h-8 mx-auto mb-2" style="color:#0194F3;"></i>
-                                    No Image
-                                </div>
-                            </div>
-                        @endif
-                        
+    <a href="{{ route('tour.show', $package) }}"
+   class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
 
-                        {{-- Badge destination --}}
-                        @if($package->destination)
-                            <div class="absolute top-3 left-3">
-                                <div class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
-                                    <i data-lucide="map-pin" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
-                                    {{ $package->destination }}
-                                </div>
-                            </div>
-                        @endif
+    <div class="relative h-44 overflow-hidden bg-slate-100">
+        @if($package->thumbnail_path)
+            <img
+                src="{{ asset('storage/'.$package->thumbnail_path) }}"
+                alt="{{ $package->title }}"
+                class="h-full w-full object-cover"
+            >
+        @else
+            <div class="absolute inset-0 bg-gradient-to-tr from-slate-100 via-white to-white"></div>
+            <div class="absolute inset-0 grid place-items-center text-slate-500 text-sm">
+                <div class="text-center">
+                    <i data-lucide="image" class="w-8 h-8 mx-auto mb-2" style="color:#0194F3;"></i>
+                    No Image
+                </div>
+            </div>
+        @endif
 
-                        {{-- subtle svg route line --}}
-                        <svg class="absolute bottom-2 right-2 w-24 h-24 opacity-70" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-                            <path d="M15 85c18-26 36-38 54-38 14 0 26 5 36 14" stroke="#0194F3" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M86 26l8 8-8 8" stroke="#0194F3" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+        @if($package->destination)
+            <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
+                    {{ $package->destination }}
+                </span>
+            </div>
+        @endif
 
-                    {{-- Content --}}
-                    <div class="p-5">
-                        <h3 class="text-lg font-extrabold text-slate-900 group-hover:text-azure transition">
-                            {{ $package->title }}
-                        </h3>
+        @if(!empty($package->label))
+            <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
+                    {{ $package->label }}
+                </span>
+            </div>
+        @endif
+    </div>
 
-                        @if($package->duration_text)
-                            <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
-                                <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
-                                Durasi: {{ $package->duration_text }}
-                            </div>
-                        @endif
-<div class="mt-3 flex items-center gap-2 text-sm text-slate-700">
-    {{-- 1 bintang full kuning --}}
-    <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 24 24"
-         fill="#FBBF24"
-         class="w-4 h-4">
-        <path d="M12 17.27L18.18 21l-1.64-7.03
-                 L22 9.24l-7.19-.61L12 2
-                 9.19 8.63 2 9.24l5.46 4.73
-                 L5.82 21z"/>
-    </svg>
+    <div class="px-4 pt-4 pb-3">
+        <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
+            {{ $package->title }}
+        </div>
 
-    <span class="font-semibold">
-    {{ number_format((float)($package->rating_value ?? 5), 1) }}/5
-</span>
-<span class="text-slate-500">
-    · {{ (int)($package->rating_count ?? 0) }} ulasan
-</span>
+        <div class="mt-2 text-sm">
+            <span class="text-slate-600">Mulai </span>
+            <span class="font-extrabold text-rose-600">
+                @if($minPrice !== null)
+                    Rp {{ number_format((int) $minPrice, 0, ',', '.') }}
+                @else
+                    -
+                @endif
+            </span>
+            <span class="text-slate-500">/orang</span>
+        </div>
 
-</div>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+            <div class="flex items-center gap-0.5" aria-label="Rating">
+                @for($i=0; $i<5; $i++)
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FBBF24" class="w-4 h-4">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                @endfor
+            </div>
+            <span>({{ $ratingCount }})</span>
+        </div>
+    </div>
 
-                        <div class="mt-4 inline-flex items-center gap-2 text-sm font-extrabold" style="color:#0194F3;">
-                            Lihat Detail
-                            <span class="transition group-hover:translate-x-1">→</span>
-                        </div>
-                    </div>
+    <div class="border-t border-slate-200 px-4 pt-3 pb-4">
+        <div class="flex items-center gap-2 text-xs text-slate-600">
+            <i data-lucide="calendar" class="w-4 h-4" style="color:#0194F3;"></i>
+            <span class="line-clamp-1">{{ $durationText }}</span>
+        </div>
 
-                </a>
+        <div class="mt-3">
+            <div class="btn btn-primary w-full justify-center !rounded-md !py-2">Lihat Detail</div>
+        </div>
+    </div>
+</a>
+
             @empty
                 <div class="text-slate-500">
                     Belum ada paket wisata.

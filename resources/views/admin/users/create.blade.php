@@ -105,7 +105,7 @@
                         class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800">
                     <option value="">-- pilih --</option>
                     <option value="agency_paket_tour" {{ old('partner_type')==='agency_paket_tour'?'selected':'' }}>Agency Paket Tour</option>
-                    <option value="agency_kapal" {{ old('partner_type')==='agency_kapal'?'selected':'' }}>Agency Sewa Kapal</option>
+                    <option value="agency_rental_mobil" {{ old('partner_type')==='agency_rental_mobil'?'selected':'' }}>Agency Rental Mobil</option>
                 </select>
             </div>
 

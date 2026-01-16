@@ -14,7 +14,7 @@ class RentCarPackageController extends Controller
 {
     public function index()
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
 
         $packages = RentCarPackage::query()
             ->where('created_by_partner_id', auth()->id())
@@ -26,7 +26,7 @@ class RentCarPackageController extends Controller
 
     public function create()
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
 
         $categories = RentCarCategory::query()
     ->where(function ($q) {
@@ -42,7 +42,7 @@ return view('partner.rentcar.create', compact('categories'));
 
     public function store(StoreRentCarPackageRequest $request)
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
 
         $data = $request->validated();
         $data['slug'] = Str::slug($data['title']);
@@ -73,7 +73,8 @@ return view('partner.rentcar.create', compact('categories'));
 
     public function edit(RentCarPackage $rent_car_package)
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
+
         abort_unless((int)$rent_car_package->created_by_partner_id === (int)auth()->id(), 403);
 
         $package = $rent_car_package;
@@ -91,7 +92,7 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
 
     public function update(UpdateRentCarPackageRequest $request, RentCarPackage $rent_car_package)
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
         abort_unless((int)$rent_car_package->created_by_partner_id === (int)auth()->id(), 403);
 
         $data = $request->validated();
@@ -130,7 +131,7 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
 
     public function destroy(RentCarPackage $rent_car_package)
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
         abort_unless((int)$rent_car_package->created_by_partner_id === (int)auth()->id(), 403);
 
         if ($rent_car_package->thumbnail_path) {

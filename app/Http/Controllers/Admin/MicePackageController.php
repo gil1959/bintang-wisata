@@ -10,17 +10,41 @@ use App\Models\MicePackage;
 use App\Models\MicePackagePhoto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class MicePackageController extends Controller
 {
-    public function index()
-    {
-        $packages = MicePackage::with('category')
-            ->latest()
-            ->paginate(20);
+    public function index(Request $request)
+{
+    $q        = trim((string) $request->query('q', ''));
+    $category = $request->query('category');
+    $status   = $request->query('status');
 
-        return view('admin.mice-packages.index', compact('packages'));
+    $query = MicePackage::query()->with('category')->latest();
+
+    if ($q !== '') {
+        $query->where(function ($qq) use ($q) {
+            $qq->where('title', 'like', "%{$q}%")
+               ->orWhere('slug', 'like', "%{$q}%");
+        });
     }
+
+    if (!empty($category)) {
+        $query->where('category_id', $category);
+    }
+
+    if ($status === 'active') {
+        $query->where('is_active', 1);
+    } elseif ($status === 'inactive') {
+        $query->where('is_active', 0);
+    }
+
+    $packages = $query->paginate(20)->withQueryString();
+    $categories = MiceCategory::orderBy('name')->get();
+
+    return view('admin.mice-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
+}
+
 
     public function create()
     {

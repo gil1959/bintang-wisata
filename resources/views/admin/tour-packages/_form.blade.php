@@ -76,6 +76,27 @@
                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                        placeholder="contoh: 3D2N">
             </div>
+<div class="md:col-span-4">
+    <label class="block text-sm font-bold text-slate-800 mb-1">Status Paket</label>
+    <select name="is_active"
+            class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+
+        <option value="1"
+            {{ (int) old('is_active', $pkg->is_active ?? 1) === 1 ? 'selected' : '' }}>
+            Aktif
+        </option>
+
+        <option value="0"
+            {{ (int) old('is_active', $pkg->is_active ?? 1) === 0 ? 'selected' : '' }}>
+            Nonaktif
+        </option>
+
+    </select>
+
+    @error('is_active')
+        <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+    @enderror
+</div>
 
             <div class="md:col-span-4">
                 <label class="block text-sm font-bold text-slate-800 mb-1">Destinasi</label>

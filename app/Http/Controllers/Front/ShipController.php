@@ -16,7 +16,7 @@ class ShipController extends Controller
         $sort = $request->query('sort', 'latest');
 
         $query = ShipPackage::query()
-            ->with('category')
+              ->with(['category', 'tiers']) 
             ->where('is_active', 1);
 
         if ($q !== '') {

@@ -54,6 +54,10 @@
             ],
         ];
 
+    }
+
+   if (auth()->user()->partner_type === 'agency_rental_mobil') {
+       
         // GROUP: Rental
         $nav[] = [
             'label' => 'Rental',
@@ -61,18 +65,6 @@
             'children' => [
                 ['label'=>'Paket Travel (Rent Car)','route'=>'partner.rent-car-packages.index','match'=>'partner.rent-car-packages.*','icon'=>'car'],
                 ['label'=>'Kategori Rental','route'=>'partner.rent-car-categories.index','match'=>'partner.rent-car-categories.*','icon'=>'tags'],
-            ],
-        ];
-    }
-
-    if (auth()->user()->partner_type === 'agency_kapal') {
-        // GROUP: Sewa Kapal
-        $nav[] = [
-            'label' => 'Sewa Kapal',
-            'icon'  => 'ship',
-            'children' => [
-                ['label'=>'Paket Sewa Kapal','route'=>'partner.ship-packages.index','match'=>'partner.ship-packages.*','icon'=>'ship'],
-                ['label'=>'Kategori Sewa Kapal','route'=>'partner.ship-categories.index','match'=>'partner.ship-categories.*','icon'=>'tags'],
             ],
         ];
     }

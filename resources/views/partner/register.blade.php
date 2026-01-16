@@ -70,9 +70,10 @@
                 <option value="agency_paket_tour" {{ old('partner_type')==='agency_paket_tour' ? 'selected' : '' }}>
                     Agency Paket Tour
                 </option>
-                <option value="agency_kapal" {{ old('partner_type')==='agency_kapal' ? 'selected' : '' }}>
-                    Agency Sewa Kapal
+               <option value="agency_rental_mobil" {{ old('partner_type')==='agency_rental_mobil' ? 'selected' : '' }}>
+                    Agency Rental Mobil
                 </option>
+
             </select>
         </div>
 

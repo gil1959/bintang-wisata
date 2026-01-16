@@ -218,85 +218,85 @@
     </div>
 
     @if($packages->count())
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-aos="fade-up" data-aos-delay="120">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="120">
             @foreach($packages as $package)
-                <a href="{{ route('umrah.show', $package) }}"
-                   class="group card overflow-hidden hover:shadow-xl transition">
-                    <div class="relative">
-                        @if($package->thumbnail_path)
-                            <img src="{{ asset('storage/' . $package->thumbnail_path) }}"
-                                 class="w-full h-52 object-cover"
-                                 alt="{{ $package->title }}">
-                        @else
-                            <div class="w-full h-52 bg-slate-100"></div>
-                        @endif
-
-                        @if($package->label)
-                            <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-extrabold text-white"
-                                  style="background:#0194F3;">
-                                {{ $package->label }}
-                            </span>
-                        @endif
-                    </div>
-
-                    <div class="p-5">
-                        <h3 class="font-extrabold text-slate-900 group-hover:text-slate-950 leading-snug">
-                            {{ $package->title }}
-                        </h3>
-@php
-  $ratingValue = (float)($package->rating_value ?? 0);
-  $ratingCount = (int)($package->rating_count ?? 0);
-  $rounded = (int) round($ratingValue);
+                @php
+    $minPrice = ($package->tiers ?? collect())->min('price');
+    $ratingCount = (int)($package->rating_count ?? 0);
+    $durationText = $package->duration_text ?? '';
 @endphp
 
-<div class="mt-2 flex items-center gap-2">
-  <div class="flex items-center gap-0.5 text-amber-500">
-    @for($i=1; $i<=5; $i++)
-      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="{{ $i <= $rounded ? 'currentColor' : 'none' }}" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.367 2.447a1 1 0 00-.364 1.118l1.286 3.957c.3.921-.755 1.688-1.539 1.118l-3.367-2.447a1 1 0 00-1.176 0l-3.367 2.447c-.783.57-1.838-.197-1.539-1.118l1.286-3.957a1 1 0 00-.364-1.118L2.075 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/>
-      </svg>
-    @endfor
-  </div>
+<a href="{{ route('umrah.show', $package) }}"
+   class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
 
-  <div class="text-xs text-slate-600">
-    <span class="font-bold">{{ number_format($ratingValue, 1) }}</span>
-    <span class="text-slate-400">({{ $ratingCount }})</span>
-  </div>
-</div>
+    <div class="relative h-44 overflow-hidden bg-slate-100">
+        @if($package->thumbnail_path)
+            <img src="{{ asset('storage/' . $package->thumbnail_path) }}"
+                 class="h-full w-full object-cover"
+                 alt="{{ $package->title }}">
+        @else
+            <div class="absolute inset-0 bg-slate-100"></div>
+        @endif
 
-                        <div class="mt-2 text-sm text-slate-600 flex flex-wrap items-center gap-4">
-                            @if($package->duration_text)
-                                <span class="flex items-center gap-2">
-                                    <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
-                                    <span>{{ $package->duration_text }}</span>
-                                </span>
-                            @endif
+        {{-- kategori kiri --}}
+        <div class="absolute top-3 left-3">
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
+                <i data-lucide="tag" class="w-4 h-4" style="color:#0194F3;"></i>
+                {{ $package->category?->name ?? 'Umrah' }}
+            </span>
+        </div>
 
-                            @if($package->destination)
-                                <span class="flex items-center gap-2">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-slate-500"></i>
-                                    <span>{{ $package->destination }}</span>
-                                </span>
-                            @endif
-                        </div>
+        {{-- label kanan --}}
+        @if(!empty($package->label))
+            <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
+                    {{ $package->label }}
+                </span>
+            </div>
+        @endif
+    </div>
 
-                        @php
-                            $minPrice = $package->tiers?->min('price');
-                        @endphp
+    <div class="px-4 pt-4 pb-3">
+        <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
+            {{ $package->title }}
+        </div>
 
-                        <div class="mt-4 flex items-end justify-between">
-                            <div class="text-xs text-slate-500">Mulai dari</div>
-                            <div class="text-lg font-extrabold" style="color:#0194F3;">
-                                @if($minPrice !== null)
-                                    Rp {{ number_format((int)$minPrice, 0, ',', '.') }}
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </a>
+        <div class="mt-2 text-sm">
+            <span class="text-slate-600">Mulai </span>
+            <span class="font-extrabold text-rose-600">
+                @if($minPrice !== null)
+                    Rp {{ number_format((int)$minPrice, 0, ',', '.') }}
+                @else
+                    -
+                @endif
+            </span>
+            <span class="text-slate-500">/orang</span>
+        </div>
+
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+            <div class="flex items-center gap-0.5" aria-label="Rating">
+                @for($i=0; $i<5; $i++)
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FBBF24" class="w-4 h-4">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                @endfor
+            </div>
+            <span>({{ $ratingCount }})</span>
+        </div>
+    </div>
+
+    <div class="border-t border-slate-200 px-4 pt-3 pb-4">
+        <div class="flex items-center gap-2 text-xs text-slate-600">
+            <i data-lucide="calendar" class="w-4 h-4" style="color:#0194F3;"></i>
+            <span class="line-clamp-1">{{ $durationText }}</span>
+        </div>
+
+        <div class="mt-3">
+            <div class="btn btn-primary w-full justify-center !rounded-md !py-2">Lihat Detail</div>
+        </div>
+    </div>
+</a>
+
             @endforeach
         </div>
 

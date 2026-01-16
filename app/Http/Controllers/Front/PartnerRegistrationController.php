@@ -34,7 +34,7 @@ class PartnerRegistrationController extends Controller
             'address' => ['required', 'string'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'reason' => ['required', 'string', 'min:10'],
-'partner_type' => ['required', 'in:agency_paket_tour,agency_kapal'],
+'partner_type' => ['required', 'in:agency_paket_tour,agency_rental_mobil'],
         'bank_name' => ['required', 'string', 'max:100'],
         'bank_account_number' => ['required', 'string', 'max:50'],
         'bank_account_holder' => ['required', 'string', 'max:100'],

@@ -10,7 +10,7 @@ class RentCarCategoryController extends Controller
 {
     private function guardTourPartner(): void
     {
-        abort_unless(auth()->user()->partner_type === 'agency_paket_tour', 403);
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
     }
 
     public function index()

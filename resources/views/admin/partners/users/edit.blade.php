@@ -100,9 +100,10 @@
         <option value="agency_paket_tour" {{ $pt == 'agency_paket_tour' ? 'selected' : '' }}>
             AGENCY PAKET TOUR
         </option>
-        <option value="agency_kapal" {{ $pt == 'agency_kapal' ? 'selected' : '' }}>
-            AGENCY SEWA KAPAL
-        </option>
+        <option value="agency_rental_mobil" {{ $pt == 'agency_rental_mobil' ? 'selected' : '' }}>
+    AGENCY RENTAL MOBIL
+</option>
+
     </select>
 
     @error('partner_type') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror

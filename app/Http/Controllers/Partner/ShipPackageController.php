@@ -184,6 +184,14 @@ return view('partner.ship-packages.edit', compact('package', 'categories'));
 
         return back()->with('success', 'Paket sewa kapal berhasil dihapus.');
     }
+public function show(ShipPackage $ship_package)
+{
+    abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
+    abort_unless((int)$ship_package->created_by_partner_id === (int)auth()->id(), 403);
+
+    // Karena tidak ada halaman detail "show", arahkan ke halaman edit
+    return redirect()->route('partner.ship-packages.edit', $ship_package->id);
+}
 
     private function normalizeFeatures(array $features): array
     {

@@ -10,14 +10,41 @@ use App\Models\UmrahPackage;
 use App\Models\UmrahPackagePhoto;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class UmrahPackageController extends Controller
 {
-    public function index()
-    {
-        $packages = UmrahPackage::with('category')->latest()->paginate(20);
-        return view('admin.umrah-packages.index', compact('packages'));
+    public function index(Request $request)
+{
+    $q        = trim((string) $request->query('q', ''));
+    $category = $request->query('category');
+    $status   = $request->query('status');
+
+    $query = UmrahPackage::query()->with('category');
+
+    if ($q !== '') {
+        $query->where(function ($qq) use ($q) {
+            $qq->where('title', 'like', "%{$q}%")
+               ->orWhere('slug', 'like', "%{$q}%");
+        });
     }
+
+    if (!empty($category)) {
+        $query->where('category_id', $category);
+    }
+
+    if ($status === 'active') {
+        $query->where('is_active', 1);
+    } elseif ($status === 'inactive') {
+        $query->where('is_active', 0);
+    }
+
+    $packages = $query->latest()->paginate(20)->withQueryString();
+    $categories = \App\Models\UmrahCategory::orderBy('name')->get();
+
+    return view('admin.umrah-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
+}
+
 
     public function create()
     {

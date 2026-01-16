@@ -60,7 +60,7 @@
         </div>
 
         <span class="font-semibold">{{ number_format($avg, 1) }}/5</span>
-        <span class="text-slate-500">· {{ $count }} ulasan</span>
+        <span class="text-slate-500"> {{ $count }} ulasan</span>
       </div>
     </div>
 
@@ -88,9 +88,10 @@
     @if(!empty($package->long_description))
       <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="text-lg font-extrabold text-slate-900 mb-4">Deskripsi</div>
-        <div class="prose max-w-none break-all overflow-hidden">
-          {!! $package->long_description !!}
-        </div>
+        <div class="prose max-w-none break-words">
+  {!! $package->long_description !!}
+</div>
+
       </div>
     @endif
 

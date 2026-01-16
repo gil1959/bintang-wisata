@@ -9,14 +9,42 @@ use App\Http\Requests\Admin\StoreRentCarPackageRequest;
 use App\Http\Requests\Admin\UpdateRentCarPackageRequest;
 use App\Models\RentCarCategory;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+
 
 class RentCarPackageController extends Controller
 {
-    public function index()
-    {
-        $packages = RentCarPackage::all();
-        return view('admin.rentcar.index', compact('packages'));
+    public function index(Request $request)
+{
+    $q        = trim((string) $request->query('q', ''));
+    $category = $request->query('category');
+    $status   = $request->query('status');
+
+    $query = RentCarPackage::query()->with('category');
+
+    if ($q !== '') {
+        $query->where(function ($qq) use ($q) {
+            $qq->where('title', 'like', "%{$q}%")
+               ->orWhere('slug', 'like', "%{$q}%");
+        });
     }
+
+    if (!empty($category)) {
+        $query->where('category_id', $category);
+    }
+
+    if ($status === 'active') {
+        $query->where('is_active', 1);
+    } elseif ($status === 'inactive') {
+        $query->where('is_active', 0);
+    }
+
+    $packages = $query->latest()->paginate(20)->withQueryString();
+    $categories = RentCarCategory::orderBy('name')->get();
+
+    return view('admin.rentcar.index', compact('packages', 'categories', 'q', 'category', 'status'));
+}
+
 
     public function create()
     {

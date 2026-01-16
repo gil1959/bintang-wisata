@@ -31,6 +31,7 @@ class UpdateTourPackageRequest extends FormRequest
             'destination'      => ['nullable', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:tour_categories,id'],
             'long_description' => ['nullable', 'string'],
+'is_active' => ['nullable', 'in:0,1'],
 
 
             'itinerary_text'  => ['nullable', 'string'],

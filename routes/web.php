@@ -349,15 +349,14 @@ Route::delete('/withdraw/requests/{withdrawal}', [\App\Http\Controllers\Partner\
     Route::resource('rent-car-packages', \App\Http\Controllers\Partner\RentCarPackageController::class);
 
     // agency_kapal
-    Route::resource('ship-packages', \App\Http\Controllers\Partner\ShipPackageController::class);
+  
     Route::resource('tour-categories', \App\Http\Controllers\Partner\TourCategoryController::class)
     ->except(['show']); // tour categories CRUD
 
 Route::resource('rent-car-categories', \App\Http\Controllers\Partner\RentCarCategoryController::class)
     ->except(['show']);
 
-Route::resource('ship-categories', \App\Http\Controllers\Partner\ShipCategoryController::class)
-    ->except(['show']);
+
 
 });
 

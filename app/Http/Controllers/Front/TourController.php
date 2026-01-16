@@ -21,7 +21,7 @@ class TourController extends Controller
     {
         $query = TourPackage::query()
             ->where('is_active', true)
-            ->with('category');
+             ->with(['category', 'tiers']);
 
         $search = $request->get('q');
 
@@ -32,13 +32,13 @@ class TourController extends Controller
             });
         }
 
-       if ($request->filled('category')) {
-    $query->where('category_id', $request->category);
-}
+                if ($request->filled('category')) {
+                $query->where('category_id', $request->category);
+            }
 
-if ($request->filled('subcategory')) {
-    $query->where('subcategory_id', $request->subcategory);
-}
+            if ($request->filled('subcategory')) {
+                $query->where('subcategory_id', $request->subcategory);
+            }
 
 
 

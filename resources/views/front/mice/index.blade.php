@@ -172,7 +172,7 @@
 {{-- ================= PACKAGES GRID ================= --}}
 <section id="mice-list" class="max-w-7xl mx-auto px-4 pt-10 pb-16">
     @if($packages->count())
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-aos="fade-up" data-aos-delay="120">
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" data-aos="fade-up" data-aos-delay="120">
             @foreach($packages as $package)
                 @php
                     // min price dari tiers domestic (kalau ada)
@@ -182,21 +182,19 @@
                 @endphp
 
                 <a href="{{ route('mice.show', $package) }}"
-   class="group card overflow-hidden">
+   class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
 
-    {{-- thumbnail (SAMA TOUR) --}}
-    <div class="relative h-48 overflow-hidden bg-slate-100">
+    <div class="relative h-44 overflow-hidden bg-slate-100">
         @if($package->thumbnail_path)
             <img
                 src="{{ asset('storage/' . $package->thumbnail_path) }}"
                 alt="{{ $package->title }}"
-                class="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                class="h-full w-full object-cover"
             >
         @else
             <div class="absolute inset-0 bg-gradient-to-tr from-slate-100 via-white to-white"></div>
         @endif
 
-        {{-- label kanan atas (SAMA TOUR) --}}
         @if(!empty($package->label))
             <div class="absolute top-3 right-3">
                 <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
@@ -205,76 +203,55 @@
             </div>
         @endif
 
-        {{-- badge kategori kiri atas (SAMA TOUR) --}}
         <div class="absolute top-3 left-3">
             <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
                 <i data-lucide="tag" class="w-4 h-4" style="color:#0194F3;"></i>
                 {{ optional($package->category)->name ?? 'MICE' }}
             </span>
         </div>
-
-        {{-- svg decoration (SAMA TOUR) --}}
-        <svg class="absolute bottom-2 right-2 w-24 h-24 opacity-70" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-            <path d="M18 80c20-26 40-38 60-38 16 0 28 6 40 16" stroke="#0194F3" stroke-opacity="0.30" stroke-width="3" stroke-linecap="round"/>
-            <path d="M88 26l8 8-8 8" stroke="#0194F3" stroke-opacity="0.30" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
     </div>
 
-    {{-- content (SAMA TOUR) --}}
-    <div class="p-5">
-        <h3 class="text-lg font-extrabold text-slate-900 group-hover:text-azure transition line-clamp-2">
+    <div class="px-4 pt-4 pb-3">
+        <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
             {{ $package->title }}
-        </h3>
-
-        <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-            @if($package->destination)
-                <span class="inline-flex items-center gap-2">
-                    <i data-lucide="map-pin" class="w-4 h-4" style="color:#0194F3;"></i>
-                    {{ $package->destination }}
-                </span>
-            @endif
-
-            @if($package->duration_text)
-                <span class="inline-flex items-center gap-2">
-                    <i data-lucide="clock" class="w-4 h-4" style="color:#0194F3;"></i>
-                    {{ $package->duration_text }}
-                </span>
-            @endif
-
-            {{-- rating (SAMA TOUR: 1 star + text) --}}
-            <div class="flex items-center gap-2 text-sm text-slate-700">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 24 24"
-                     fill="#FBBF24"
-                     class="w-4 h-4">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03
-                             L22 9.24l-7.19-.61L12 2
-                             9.19 8.63 2 9.24l5.46 4.73
-                             L5.82 21z"/>
-                </svg>
-
-                <span class="font-semibold">
-                    {{ number_format((float)($package->rating_value ?? 5), 1) }}/5
-                </span>
-                <span class="text-slate-500">
-                    · {{ (int)($package->rating_count ?? 0) }} ulasan
-                </span>
-            </div>
         </div>
 
-        {{-- optional desc (kalau mau sama Tour, biarin kayak ini) --}}
-        @if(!empty($package->description))
-            <p class="mt-3 text-sm text-slate-600 line-clamp-2">
-                {{ \Illuminate\Support\Str::limit(strip_tags($package->description), 120) }}
-            </p>
-        @endif
+        <div class="mt-2 text-sm">
+            <span class="text-slate-600">Mulai </span>
+            <span class="font-extrabold text-rose-600">
+                @if($minDomestic !== null)
+                    Rp {{ number_format((int)$minDomestic, 0, ',', '.') }}
+                @else
+                    -
+                @endif
+            </span>
+            <span class="text-slate-500">/orang</span>
+        </div>
 
-        <div class="mt-5 inline-flex items-center gap-2 text-sm font-extrabold" style="color:#0194F3;">
-            Lihat Detail
-            <span class="translate-x-0 group-hover:translate-x-0.5 transition">→</span>
+        <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+            <div class="flex items-center gap-0.5" aria-label="Rating">
+                @for($i=0; $i<5; $i++)
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FBBF24" class="w-4 h-4">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                @endfor
+            </div>
+            <span>({{ (int)($package->rating_count ?? 0) }})</span>
+        </div>
+    </div>
+
+    <div class="border-t border-slate-200 px-4 pt-3 pb-4">
+        <div class="flex items-center gap-2 text-xs text-slate-600">
+            <i data-lucide="calendar" class="w-4 h-4" style="color:#0194F3;"></i>
+            <span class="line-clamp-1">{{ $package->duration_text ?? '' }}</span>
+        </div>
+
+        <div class="mt-3">
+            <div class="btn btn-primary w-full justify-center !rounded-md !py-2">Lihat Detail</div>
         </div>
     </div>
 </a>
+
 
             @endforeach
         </div>

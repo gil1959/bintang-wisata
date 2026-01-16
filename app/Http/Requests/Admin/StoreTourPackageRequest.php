@@ -36,6 +36,7 @@ class StoreTourPackageRequest extends FormRequest
             'itinerary_text'  => ['nullable', 'string'],
 'include_text'    => ['nullable', 'string'],
 'exclude_text'    => ['nullable', 'string'],
+'is_active' => ['nullable', 'in:0,1'],
 
 
 

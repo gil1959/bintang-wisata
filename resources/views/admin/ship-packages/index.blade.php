@@ -18,6 +18,57 @@
     Tambah Paket
   </a>
 </div>
+{{-- Filter --}}
+<form method="GET" action="{{ url()->current() }}"
+      class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+    <div class="grid gap-3 md:grid-cols-12 items-end">
+
+        <div class="md:col-span-5">
+            <label class="block text-sm font-extrabold text-slate-700 mb-2">Pencarian</label>
+            <input type="text"
+                   name="q"
+                   value="{{ request('q') }}"
+                   placeholder="Cari judul / slug..."
+                   class="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm">
+        </div>
+
+        <div class="md:col-span-3">
+            <label class="block text-sm font-extrabold text-slate-700 mb-2">Kategori</label>
+            <select name="category" class="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm">
+                <option value="">Semua</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>
+                        {{ $cat->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="block text-sm font-extrabold text-slate-700 mb-2">Status</label>
+            <select name="status" class="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm">
+                <option value="">Semua</option>
+                <option value="active" @selected(request('status') === 'active')>Aktif</option>
+                <option value="inactive" @selected(request('status') === 'inactive')>Nonaktif</option>
+            </select>
+        </div>
+
+        <div class="md:col-span-2 flex gap-2">
+            <button type="submit" class="w-full rounded-xl px-4 py-2.5 text-sm font-extrabold text-white"
+                    style="background:#0194F3;"
+                    onmouseover="this.style.background='#0186DB'"
+                    onmouseout="this.style.background='#0194F3'">
+                Terapkan
+            </button>
+
+            <a href="{{ url()->current() }}"
+               class="w-full rounded-xl px-4 py-2.5 text-sm font-extrabold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-center">
+                Reset
+            </a>
+        </div>
+
+    </div>
+</form>
 
 <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
   <div class="overflow-x-auto">
