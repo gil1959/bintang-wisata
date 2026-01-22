@@ -21,6 +21,7 @@ class TourPackage extends Model
         'long_description',
         'includes',
         'excludes',
+        
         'flight_info',
         'thumbnail_path',
         'is_active',

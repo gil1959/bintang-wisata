@@ -29,7 +29,8 @@ class SettingController extends Controller
             'footer_whatsapp'  => ['nullable', 'string', 'max:30'],
             'tour_cta_secondary_button' => ['nullable', 'string', 'max:60'],
             'tour_cta_secondary_link'   => ['nullable', 'string', 'max:255'],
-
+'tracking_head' => ['nullable', 'string'],
+'tracking_body' => ['nullable', 'string'],
             // Email notif
             'invoice_admin_email' => ['nullable', 'email', 'max:255'],
 
@@ -210,6 +211,50 @@ class SettingController extends Controller
 'umrah_tip4_title' => ['nullable', 'string', 'max:60'],
 'umrah_tip4_desc'  => ['nullable', 'string', 'max:80'],
 
+// HOME: Logo wall header
+'home_logos_badge' => ['nullable', 'string', 'max:60'],
+'home_logos_title' => ['nullable', 'string', 'max:140'],
+'home_logos_desc'  => ['nullable', 'string', 'max:240'],
+
+// HOME: Final CTA (Rencanakan Perjalanan...)
+'home_final_cta_title'          => ['nullable', 'string', 'max:140'],
+'home_final_cta_desc'           => ['nullable', 'string', 'max:240'],
+'home_final_cta_primary_text'   => ['nullable', 'string', 'max:60'],
+'home_final_cta_primary_url'    => ['nullable', 'string', 'max:255'],
+'home_final_cta_secondary_text' => ['nullable', 'string', 'max:60'],
+'home_final_cta_secondary_url'  => ['nullable', 'string', 'max:255'],
+
+// HOME: Partner CTA
+'home_partner_badge'       => ['nullable', 'string', 'max:60'],
+'home_partner_title'       => ['nullable', 'string', 'max:140'],
+'home_partner_desc'        => ['nullable', 'string', 'max:300'],
+'home_partner_button_text' => ['nullable', 'string', 'max:60'],
+'home_partner_button_url'  => ['nullable', 'string', 'max:255'],
+
+'home_partner_card1_title' => ['nullable', 'string', 'max:80'],
+'home_partner_card1_desc'  => ['nullable', 'string', 'max:200'],
+'home_partner_card2_title' => ['nullable', 'string', 'max:80'],
+'home_partner_card2_desc'  => ['nullable', 'string', 'max:200'],
+'home_partner_card3_title' => ['nullable', 'string', 'max:80'],
+'home_partner_card3_desc'  => ['nullable', 'string', 'max:200'],
+'home_partner_card4_title' => ['nullable', 'string', 'max:80'],
+'home_partner_card4_desc'  => ['nullable', 'string', 'max:200'],
+
+// MICE: Hero + tips (section yang lu tandain)
+'mice_hero_badge' => ['nullable', 'string', 'max:60'],
+'mice_hero_title' => ['nullable', 'string', 'max:140'],
+'mice_hero_desc'  => ['nullable', 'string', 'max:500'],
+'mice_cta_button' => ['nullable', 'string', 'max:60'],
+
+'mice_tip1_title' => ['nullable', 'string', 'max:60'],
+'mice_tip1_desc'  => ['nullable', 'string', 'max:120'],
+'mice_tip2_title' => ['nullable', 'string', 'max:60'],
+'mice_tip2_desc'  => ['nullable', 'string', 'max:120'],
+'mice_tip3_title' => ['nullable', 'string', 'max:60'],
+'mice_tip3_desc'  => ['nullable', 'string', 'max:120'],
+'mice_tip4_title' => ['nullable', 'string', 'max:60'],
+'mice_tip4_desc'  => ['nullable', 'string', 'max:120'],
+
 // Dokumentasi per kategori (Ship & Umrah)
 'docs_ship_hero_badge' => ['nullable', 'string', 'max:60'],
 'docs_ship_hero_title' => ['nullable', 'string', 'max:120'],
@@ -232,6 +277,18 @@ class SettingController extends Controller
         ]);
 
         // HERO
+        // TRACKING
+Setting::updateOrCreate(
+    ['key' => 'tracking_head'],
+    ['value' => $data['tracking_head'] ?? '']
+);
+
+Setting::updateOrCreate(
+    ['key' => 'tracking_body'],
+    ['value' => $data['tracking_body'] ?? '']
+);
+
+
         Setting::updateOrCreate(['key' => 'hero_title'], ['value' => $data['hero_title']]);
         Setting::updateOrCreate(['key' => 'hero_subtitle'], ['value' => $data['hero_subtitle']]);
 
@@ -439,6 +496,46 @@ Setting::updateOrCreate(['key' => 'docs_umrah_hero_desc'],  ['value' => $data['d
             Setting::updateOrCreate(['key' => "home_flow{$i}_title"], ['value' => $data["home_flow{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "home_flow{$i}_desc"],  ['value' => $data["home_flow{$i}_desc"] ?? '']);
         }
+// HOME: Logos header
+foreach (['home_logos_badge','home_logos_title','home_logos_desc'] as $k) {
+    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+}
+
+// HOME: Final CTA
+foreach ([
+    'home_final_cta_title',
+    'home_final_cta_desc',
+    'home_final_cta_primary_text',
+    'home_final_cta_primary_url',
+    'home_final_cta_secondary_text',
+    'home_final_cta_secondary_url',
+] as $k) {
+    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+}
+
+// HOME: Partner CTA + cards
+foreach ([
+    'home_partner_badge',
+    'home_partner_title',
+    'home_partner_desc',
+    'home_partner_button_text',
+    'home_partner_button_url',
+    'home_partner_card1_title','home_partner_card1_desc',
+    'home_partner_card2_title','home_partner_card2_desc',
+    'home_partner_card3_title','home_partner_card3_desc',
+    'home_partner_card4_title','home_partner_card4_desc',
+] as $k) {
+    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+}
+
+// MICE: Hero + tips
+foreach (['mice_hero_badge','mice_hero_title','mice_hero_desc','mice_cta_button'] as $k) {
+    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+}
+for ($i = 1; $i <= 4; $i++) {
+    Setting::updateOrCreate(['key' => "mice_tip{$i}_title"], ['value' => $data["mice_tip{$i}_title"] ?? '']);
+    Setting::updateOrCreate(['key' => "mice_tip{$i}_desc"],  ['value' => $data["mice_tip{$i}_desc"] ?? '']);
+}
 
         return back()->with('success', 'Settings berhasil disimpan.');
     }

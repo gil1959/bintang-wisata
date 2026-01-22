@@ -1545,6 +1545,245 @@
     </div>
   </div>
 </div>
+{{-- Tracking / Analytics --}}
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 mt-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-sm font-extrabold text-slate-900">Tracking / Analytics</div>
+      <div class="text-xs text-slate-600 mt-1">
+        Tempel kode Google Tag Manager / gtag.js di sini. Disimpan di DB dan di-render ke halaman depan.
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 mt-4">
+    <div>
+      <label class="block text-xs font-extrabold text-slate-700 mb-2">
+        Script di &lt;head&gt; (contoh: gtag.js)
+      </label>
+      <textarea
+        name="tracking_head"
+        rows="6"
+        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25"
+        placeholder="Tempel kode tracking untuk HEAD di sini..."
+      >{{ old('tracking_head', $settings['tracking_head'] ?? '') }}</textarea>
+      <div class="text-[11px] text-slate-500 mt-1">Akan di-inject sebelum penutup <code>&lt;/head&gt;</code>.</div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-extrabold text-slate-700 mb-2">
+        Script setelah &lt;body&gt; dibuka (opsional: GTM noscript)
+      </label>
+      <textarea
+        name="tracking_body"
+        rows="6"
+        class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25"
+        placeholder="Tempel kode tracking untuk BODY di sini..."
+      >{{ old('tracking_body', $settings['tracking_body'] ?? '') }}</textarea>
+      <div class="text-[11px] text-slate-500 mt-1">Akan di-inject tepat setelah tag <code>&lt;body&gt;</code>.</div>
+    </div>
+  </div>
+</div>
+
+{{-- ================= HOME: LOGOS HEADER + FINAL CTA + PARTNER CTA ================= --}}
+<div class="p-6 lg:p-8">
+  <h2 class="text-lg font-extrabold text-slate-900">Home Page — CTA & Partner & Logo Header</h2>
+  <p class="text-sm text-slate-600 mt-1">Mengatur teks di bagian yang kamu tandai (Home).</p>
+
+  {{-- Logo Header --}}
+  <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
+    <div class="text-sm font-extrabold text-slate-900">Kepercayaan Pelanggan (Header)</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Badge</label>
+        <input name="home_logos_badge"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_logos_badge', $settings['home_logos_badge'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+        <input name="home_logos_title"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_logos_title', $settings['home_logos_title'] ?? '') }}" />
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Description</label>
+        <textarea name="home_logos_desc" rows="2"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        >{{ old('home_logos_desc', $settings['home_logos_desc'] ?? '') }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  {{-- Final CTA --}}
+  <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
+    <div class="text-sm font-extrabold text-slate-900">CTA Bawah (Rencanakan Perjalanan)</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+        <input name="home_final_cta_title"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_title', $settings['home_final_cta_title'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Description</label>
+        <input name="home_final_cta_desc"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_desc', $settings['home_final_cta_desc'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Primary Button Text</label>
+        <input name="home_final_cta_primary_text"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_primary_text', $settings['home_final_cta_primary_text'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Primary Button URL</label>
+        <input name="home_final_cta_primary_url"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_primary_url', $settings['home_final_cta_primary_url'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Secondary Button Text</label>
+        <input name="home_final_cta_secondary_text"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_secondary_text', $settings['home_final_cta_secondary_text'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Secondary Button URL</label>
+        <input name="home_final_cta_secondary_url"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_final_cta_secondary_url', $settings['home_final_cta_secondary_url'] ?? '') }}" />
+      </div>
+    </div>
+  </div>
+
+  {{-- Partner CTA --}}
+  <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
+    <div class="text-sm font-extrabold text-slate-900">CTA Partner</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Badge</label>
+        <input name="home_partner_badge"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_partner_badge', $settings['home_partner_badge'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+        <input name="home_partner_title"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_partner_title', $settings['home_partner_title'] ?? '') }}" />
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Description</label>
+        <textarea name="home_partner_desc" rows="2"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        >{{ old('home_partner_desc', $settings['home_partner_desc'] ?? '') }}</textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Button Text</label>
+        <input name="home_partner_button_text"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_partner_button_text', $settings['home_partner_button_text'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Button URL</label>
+        <input name="home_partner_button_url"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('home_partner_button_url', $settings['home_partner_button_url'] ?? '') }}" />
+      </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+      @for ($i = 1; $i <= 4; $i++)
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <div class="text-sm font-extrabold text-slate-900 mb-3">Card {{ $i }}</div>
+
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+          <input name="home_partner_card{{ $i }}_title"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                 value="{{ old('home_partner_card'.$i.'_title', $settings['home_partner_card'.$i.'_title'] ?? '') }}" />
+
+          <label class="block text-xs font-semibold text-slate-700 mt-4 mb-2">Description</label>
+          <input name="home_partner_card{{ $i }}_desc"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                 value="{{ old('home_partner_card'.$i.'_desc', $settings['home_partner_card'.$i.'_desc'] ?? '') }}" />
+        </div>
+      @endfor
+    </div>
+  </div>
+</div>
+
+{{-- ================= MICE: HERO SETTINGS ================= --}}
+<div class="p-6 lg:p-8">
+  <h2 class="text-lg font-extrabold text-slate-900">MICE Page — Hero</h2>
+  <p class="text-sm text-slate-600 mt-1">Mengatur hero + 4 poin benefit pada halaman Paket MICE (yang kamu tandai).</p>
+
+  <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Badge</label>
+        <input name="mice_hero_badge"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('mice_hero_badge', $settings['mice_hero_badge'] ?? '') }}" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-2">CTA Button Text</label>
+        <input name="mice_cta_button"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('mice_cta_button', $settings['mice_cta_button'] ?? '') }}" />
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+        <input name="mice_hero_title"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+               value="{{ old('mice_hero_title', $settings['mice_hero_title'] ?? '') }}" />
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-semibold text-slate-700 mb-2">Description</label>
+        <textarea name="mice_hero_desc" rows="3"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        >{{ old('mice_hero_desc', $settings['mice_hero_desc'] ?? '') }}</textarea>
+      </div>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+      @for ($i = 1; $i <= 4; $i++)
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <div class="text-sm font-extrabold text-slate-900 mb-3">Benefit {{ $i }}</div>
+
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Title</label>
+          <input name="mice_tip{{ $i }}_title"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                 value="{{ old('mice_tip'.$i.'_title', $settings['mice_tip'.$i.'_title'] ?? '') }}" />
+
+          <label class="block text-xs font-semibold text-slate-700 mt-4 mb-2">Description</label>
+          <input name="mice_tip{{ $i }}_desc"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                 value="{{ old('mice_tip'.$i.'_desc', $settings['mice_tip'.$i.'_desc'] ?? '') }}" />
+        </div>
+      @endfor
+    </div>
+  </div>
+</div>
+
 
     {{-- Sticky Footer Actions --}}
     <div class="sticky bottom-0 z-10 border-t  px-6 lg:px-8 py-4 rounded-b-3xl">

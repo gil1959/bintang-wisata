@@ -52,6 +52,7 @@ use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\PromoValidatorController;
 use App\Http\Controllers\Front\DocumentationController as FrontDocumentationController;
 use App\Http\Controllers\Front\ArticleController as FrontArticleController;
+use App\Http\Controllers\Admin\HomeSettingController;
 
 
 
@@ -71,6 +72,7 @@ Route::prefix('bw-admin')
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('permission:admin.dashboard.view');
         Route::put('profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('permission:admin.dashboard.view');
         Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password')->middleware('permission:admin.dashboard.view');
+        
         Route::prefix('partners')->name('partners.')->group(function () {
 
     Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index')->middleware('permission:admin.dashboard.view');
@@ -189,7 +191,15 @@ Route::post('users/affiliate/{user}', [AffiliateUserController::class, 'update']
 
         // Promo Admin
         Route::resource('promos', PromoController::class)->except(['show'])->middleware('permission:admin.dashboard.view');
+Route::prefix('promos/home-banners')->name('promos.home-banners.')->middleware('permission:admin.dashboard.view')->group(function () {
+    Route::get('{section}', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'index'])->name('index');
+    Route::get('{section}/create', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'create'])->name('create');
+    Route::post('{section}', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'store'])->name('store');
 
+    Route::get('{section}/{banner}/edit', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'edit'])->name('edit');
+    Route::put('{section}/{banner}', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'update'])->name('update');
+    Route::delete('{section}/{banner}', [\App\Http\Controllers\Admin\HomePromoBannerController::class, 'destroy'])->name('destroy');
+});
         // Bank Account Admin
         Route::resource('bank-accounts', BankAccountController::class)->except(['show'])->middleware('permission:admin.dashboard.view');
 
@@ -203,6 +213,17 @@ Route::post('users/affiliate/{user}', [AffiliateUserController::class, 'update']
         // Settings
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general')->middleware('permission:admin.dashboard.view');
         Route::post('settings/general', [SettingController::class, 'saveGeneral'])->name('settings.general.save')->middleware('permission:admin.dashboard.view');
+Route::get('settings/home', [HomeSettingController::class, 'edit'])
+    ->name('settings.home')
+    ->middleware('permission:admin.dashboard.view');
+
+Route::get('settings/home/articles/search', [HomeSettingController::class, 'searchArticles'])
+    ->name('settings.home.articles.search')
+    ->middleware('permission:admin.dashboard.view');
+
+Route::post('settings/home', [HomeSettingController::class, 'update'])
+    ->name('settings.home.save')
+    ->middleware('permission:admin.dashboard.view');
 
         // Orders (sistem baru)
         Route::get('orders/approved', [AdminOrderController::class, 'approved'])
@@ -217,6 +238,8 @@ Route::post('users/affiliate/{user}', [AffiliateUserController::class, 'update']
 
         Route::get('orders/rekap/print', [AdminOrderController::class, 'printRekap'])
             ->name('orders.rekap.print')->middleware('permission:admin.dashboard.view');
+Route::get('orders/{order}/invoice/print', [AdminOrderController::class, 'printInvoice'])
+    ->name('orders.invoice.print')->middleware('permission:admin.dashboard.view');
 
         // ✅ resource terakhir, hanya sekali
         Route::resource('orders', AdminOrderController::class)
@@ -305,6 +328,9 @@ Route::post('/coupons', [\App\Http\Controllers\User\AffiliateController::class, 
             ->name('orders');
             Route::get('/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])
     ->name('orders.show');
+    Route::get('/orders/{order}/invoice/print', [\App\Http\Controllers\User\OrderController::class, 'printInvoice'])
+    ->name('orders.invoice.print');
+
 
         Route::get('/profile', [\App\Http\Controllers\User\ProfileController::class, 'edit'])
             ->name('profile.edit');

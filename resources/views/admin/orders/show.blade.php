@@ -24,6 +24,15 @@
                 <i data-lucide="arrow-left" class="w-4 h-4" style="color:#0194F3;"></i>
                 Kembali
             </a>
+
+            <a href="{{ route('admin.orders.invoice.print', $order) }}" 
+       class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+       style="background:#0194F3;"
+       onmouseover="this.style.background='#0186DB'"
+       onmouseout="this.style.background='#0194F3'">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        Cetak Invoice
+    </a>
         </div>
     </div>
 

@@ -120,4 +120,23 @@ return redirect()->away(\App\Support\OrderPartnerResolver::buildWaLink($targetWa
 
 }
 
+public function printInvoice(Order $order)
+{
+    // Security: jangan sampai user bisa print invoice orang lain
+    $authUser = auth()->user();
+
+    $canView =
+        ($order->user_id !== null && $order->user_id === $authUser->id)
+        || ($order->user_id === null
+            && !empty($order->customer_email)
+            && $order->customer_email === $authUser->email);
+
+    abort_unless($canView, 403);
+
+    $order->load('payments');
+
+    return view('shared.invoice-print', compact('order'));
+}
+
+
 }

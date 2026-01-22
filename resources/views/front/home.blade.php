@@ -44,38 +44,296 @@
 
     {{-- content --}}
     <div class="relative max-w-4xl mx-auto px-4" data-aos="fade-up">
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-5 py-2 text-white text-xs tracking-wide">
-            <span class="h-2 w-2 rounded-full bg-white/80"></span>
-           {{ __('front.home.badge') }}
-
-        </div>
+        
 
         <h1 class="mt-6 text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white">
             {{ $siteSettings['hero_title'] ?? 'Perjalanan Nyaman & Terpercaya' }}
         </h1>
 
-        <p class="mt-5 text-base md:text-lg text-white/90 max-w-2xl mx-auto">
+        <p class="mt-5 text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-14">
             {{ $siteSettings['hero_subtitle'] ?? 'Kami membantu Anda merencanakan perjalanan dengan layanan profesional dan harga transparan.' }}
         </p>
 
        
 
-        <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-            <a href="{{ route('tours.index') }}" class="btn btn-primary px-8 py-3">
-                <i data-lucide="map" class="w-5 h-5"></i>
-             {{ __('front.home.cta_view_tours') }}
+       
+@php
+  $homeTabs = $siteSettings['home_tabs'] ?? [];
+  $homeTabs = is_array($homeTabs) ? $homeTabs : [];
 
-            </a>
-            <a href="{{ route('rentcar.index') }}" class="btn btn-ghost px-8 py-3">
-                <i data-lucide="car" class="w-5 h-5"></i>
-                {{ __('front.home.cta_rental') }}
+  $tabsWithId = [];
+  foreach ($homeTabs as $t) {
+      $label = (string)($t['label'] ?? '');
+      $id = \Illuminate\Support\Str::slug($label ?: 'tab');
 
-            </a>
+      $iconImage = (string)($t['icon_image'] ?? '');
+      $iconSrc = $iconImage ? asset('storage/'.$iconImage) : null;
+
+      $tabsWithId[] = [
+          'id'        => $id,
+          'label'     => $label,
+          'url'       => (string)($t['url'] ?? '#'),
+          'icon'      => (string)($t['icon'] ?? 'sparkles'),
+          'icon_image'=> $iconImage,
+          'icon_src'  => $iconSrc,
+          'is_todo'   => (mb_strtolower(trim($label)) === 'to do') || ($id === 'to-do'),
+      ];
+  }
+@endphp
+
+
+@if(count($tabsWithId) > 0)
+<div class="mt-8">
+  <div
+   x-data="{
+  tabs: @js($tabsWithId),
+  active: (@js(($tabsWithId[0]['id'] ?? ''))),
+
+  canPrev: false,
+  canNext: false,
+
+  init() {
+    // default aktif: To Do kalau ada
+    const todo = this.tabs.find(t => t.is_todo);
+    if (todo) this.active = todo.id;
+
+    this.$nextTick(() => {
+      if (window.lucide) window.lucide.createIcons();
+      this.syncArrows();
+      window.addEventListener('resize', () => this.syncArrows());
+    });
+  },
+
+  clickTab(e, t) {
+    if (t.is_todo) {
+      e.preventDefault();
+      this.active = t.id;
+      this.$nextTick(() => {
+        if (window.lucide) window.lucide.createIcons();
+      });
+      return;
+    }
+    // selain To Do: navigasi normal via href
+  },
+
+  scrollTabs(dir) {
+    const el = this.$refs.tabsScroller;
+    if (!el) return;
+
+    const step = Math.max(240, Math.floor(el.clientWidth * 0.65));
+    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+
+    // update arrow state setelah animasi scroll
+    setTimeout(() => this.syncArrows(), 220);
+  },
+
+  syncArrows() {
+    const el = this.$refs.tabsScroller;
+    if (!el) return;
+
+    const maxLeft = el.scrollWidth - el.clientWidth;
+
+    this.canPrev = el.scrollLeft > 4;
+    this.canNext = el.scrollLeft < (maxLeft - 4);
+  }
+}"
+
+    class="relative mx-auto max-w-6xl"
+  >
+    {{-- TABS BAR --}}
+    {{-- TABS BAR (NO SCROLLBAR + ARROWS) --}}
+<div class="absolute -top-7 left-1/2 -translate-x-1/2 w-[min(100%,980px)] px-3">
+  <div class="relative rounded-full bg-white/95 backdrop-blur border border-white/70 shadow-[0_16px_40px_rgba(2,6,23,0.18)] px-3 py-2">
+
+    {{-- Left Arrow --}}
+    <button
+      type="button"
+      class="absolute left-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white shadow border border-slate-200 grid place-items-center z-10"
+      x-show="canPrev"
+      x-cloak
+      @click="scrollTabs(-1)"
+      aria-label="Sebelumnya"
+    >
+      <i data-lucide="chevron-left" class="w-5 h-5"></i>
+    </button>
+
+    {{-- Right Arrow --}}
+    <button
+      type="button"
+      class="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white shadow border border-slate-200 grid place-items-center z-10"
+      x-show="canNext"
+      x-cloak
+      @click="scrollTabs(1)"
+      aria-label="Berikutnya"
+    >
+      <i data-lucide="chevron-right" class="w-5 h-5"></i>
+    </button>
+
+    {{-- Viewport --}}
+    <div class="overflow-hidden px-11">
+      <div
+        class="flex items-center gap-2 no-scrollbar"
+        x-ref="tabsScroller"
+        style="overflow-x:auto; -webkit-overflow-scrolling:touch;"
+        @scroll.throttle.50ms="syncArrows()"
+      >
+        <template x-for="t in tabs" :key="t.id">
+          <a
+            :href="t.url"
+            @click="clickTab($event, t)"
+            class="group shrink-0 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold border transition-all duration-200"
+            :class="active === t.id
+              ? 'bg-[rgba(1,148,243,0.12)] border-[rgba(1,148,243,0.55)] text-[#055a93] shadow-[0_10px_18px_rgba(1,148,243,0.18)]'
+              : 'bg-white border-slate-200/70 text-slate-700 hover:-translate-y-[1px] hover:bg-[rgba(1,148,243,0.06)] hover:border-[rgba(1,148,243,0.45)] hover:text-[#055a93] hover:shadow-[0_10px_18px_rgba(1,148,243,0.16)]'
+            "
+          >
+            <span
+              class="h-9 w-9 rounded-full grid place-items-center border transition overflow-hidden"
+              :class="active === t.id
+                ? 'bg-white border-[rgba(1,148,243,0.35)]'
+                : 'bg-slate-50 border-slate-200/70 group-hover:bg-[rgba(1,148,243,0.10)] group-hover:border-[rgba(1,148,243,0.35)]'
+              "
+            >
+              {{-- ICON IMAGE (kalau ada) --}}
+              <template x-if="t.icon_src">
+                <img :src="t.icon_src" alt="" class="h-full w-full object-cover">
+              </template>
+
+              {{-- FALLBACK LUCIDE --}}
+              <template x-if="!t.icon_src">
+                <i :data-lucide="t.icon" class="w-4 h-4" style="color:#0194F3;"></i>
+              </template>
+            </span>
+
+            <span class="whitespace-nowrap" x-text="t.label"></span>
+          </a>
+        </template>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+    {{-- PANEL CARD: CUMA UNTUK TO DO --}}
+    <div class="pt-10">
+      <div class="rounded-[28px] bg-white/95 backdrop-blur border border-white/70 shadow-[0_18px_60px_rgba(2,6,23,0.22)] overflow-hidden">
+        <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
+          <div class="text-base font-extrabold text-slate-900">Cari Paket Wisata</div>
+          <div class="text-sm text-slate-600 mt-1">Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.</div>
         </div>
+
+        <div class="p-6">
+          <div x-show="tabs.find(x => x.id === active)?.is_todo" x-cloak>
+            <form method="GET" action="{{ route('tours.index') }}">
+              <div class="grid gap-3 md:grid-cols-12 items-end">
+
+                <div class="md:col-span-5">
+                  <label class="text-[11px] font-extrabold text-slate-600">Destinasi / Kata Kunci</label>
+                  <div class="mt-1 relative">
+                    <input type="text" name="q"
+                      placeholder="Contoh: Bali, Lombok, Jepang, Labuan Bajo..."
+                      class="w-full rounded-2xl border border-slate-200 pl-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <i data-lucide="search" class="w-5 h-5"></i>
+                    </span>
+                  </div>
+                </div>
+
+               <div class="md:col-span-3">
+  <label class="text-[11px] font-extrabold text-slate-600">Kategori</label>
+
+  {{-- hidden field yang tetap dipakai backend lu --}}
+  <input type="hidden" name="category" x-ref="catHidden" value="">
+  <input type="hidden" name="subcategory" x-ref="subHidden" value="">
+
+  <div
+    class="mt-1"
+    x-data="{
+      onChange(v){
+        // reset dulu
+        this.$refs.catHidden.value = '';
+        this.$refs.subHidden.value = '';
+
+        if(!v) return;
+
+        // format value: 'cat:ID' atau 'sub:ID'
+        const parts = v.split(':');
+        const type = parts[0];
+        const id   = parts[1] || '';
+
+        if(type === 'cat') this.$refs.catHidden.value = id;
+        if(type === 'sub') this.$refs.subHidden.value = id;
+      }
+    }"
+  >
+    <select
+      class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
+      @change="onChange($event.target.value)"
+    >
+      <option value="">Semua Kategori</option>
+
+      @foreach(($tourMainCategories ?? collect()) as $cat)
+        {{-- kategori utama bisa dipilih --}}
+        <option value="cat:{{ $cat->id }}">{{ strtoupper($cat->name) }}</option>
+
+        {{-- sub kategori tampil “ngikut” di bawahnya --}}
+        @foreach(($cat->children ?? collect()) as $sub)
+          <option value="sub:{{ $sub->id }}">ㅤㅤ{{ $sub->name }}</option>
+        @endforeach
+      @endforeach
+    </select>
+  </div>
+</div>
+
+
+                <div class="md:col-span-2">
+                  <label class="text-[11px] font-extrabold text-slate-600">Tanggal Berangkat</label>
+                  <input type="date" name="date"
+                    class="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
+                </div>
+
+                <div class="md:col-span-2">
+                  <button type="submit"
+                    class="w-full rounded-2xl px-5 py-3 text-sm font-extrabold text-white transition-all duration-200
+                           shadow-[0_14px_22px_rgba(1,148,243,0.30)] hover:-translate-y-[1px]
+                           hover:shadow-[0_18px_28px_rgba(1,148,243,0.36)]"
+                    style="background:#0194F3"
+                    onmouseover="this.style.background='#0186DB'"
+                    onmouseout="this.style.background='#0194F3'">
+                    Ayo Cari
+                  </button>
+                </div>
+
+              </div>
+
+              <div class="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <span class="mt-0.5">
+                  <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
+                </span>
+                <div class="text-xs text-slate-700">
+                  Pakai kata kunci yang spesifik agar hasil lebih relevan.
+                </div>
+              </div>
+            </form>
+          </div>
+
+          {{-- kalau aktif bukan To Do, panelnya gak usah tampil apa-apa (karena tab lain navigasi halaman) --}}
+          <div x-show="!tabs.find(x => x.id === active)?.is_todo" x-cloak class="hidden"></div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
 
        
     </div>
 </section>
+
+@include('front.partials.home-banner-discount')
+@include('front.partials.home-banner-missions')
 
 {{-- ================= STATS / HIGHLIGHTS ================= --}}
 <section class="bg-white">
@@ -261,6 +519,7 @@
 <section class="bg-slate-50">
    @include('front.partials.home-promo-tours')
    @include('front.partials.home-promo-ships')
+   @include('front.partials.home-inspiration-articles')
 
         {{-- ================= INSPIRASI DESTINASI ================= --}}
 <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 travel-grid shadow-soft" data-aos="fade-up" data-aos-delay="140">
@@ -561,19 +820,20 @@
 
     {{-- Header --}}
     <div class="text-center mb-12">
-      <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold mx-auto"
-           style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
-        <i data-lucide="shield-check" class="w-4 h-4" style="color:#0194F3;"></i>
-        Kepercayaan pelanggan
-      </div>
+     <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold mx-auto"
+     style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22); color:#055a93;">
+  <i data-lucide="shield-check" class="w-4 h-4" style="color:#0194F3;"></i>
+  {{ $siteSettings['home_logos_badge'] ?? 'Kepercayaan pelanggan' }}
+</div>
 
-      <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-        Kepercayaan Pelanggan Bintang Wisata
-      </h2>
+<h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+  {{ $siteSettings['home_logos_title'] ?? 'Kepercayaan Pelanggan Bintang Wisata' }}
+</h2>
 
-      <p class="mt-2 text-slate-600 max-w-2xl mx-auto">
-        Brand dan institusi yang telah mempercayakan perjalanan bersama kami
-      </p>
+<p class="mt-2 text-slate-600 max-w-2xl mx-auto">
+  {{ $siteSettings['home_logos_desc'] ?? 'Brand dan institusi yang telah mempercayakan perjalanan bersama kami' }}
+</p>
+
     </div>
 
     {{-- Logo wall --}}
@@ -639,23 +899,24 @@
         </svg>
 
         <div class="relative">
-            <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900">
-                Rencanakan Perjalanan Anda Sekarang
-            </h2>
-            <p class="mt-3 text-slate-600 max-w-xl mx-auto">
-                Hubungi tim kami untuk mendapatkan rekomendasi perjalanan terbaik sesuai kebutuhan Anda.
-            </p>
+           <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900">
+  {{ $siteSettings['home_final_cta_title'] ?? 'Rencanakan Perjalanan Anda Sekarang' }}
+</h2>
+<p class="mt-3 text-slate-600 max-w-xl mx-auto">
+  {{ $siteSettings['home_final_cta_desc'] ?? 'Hubungi tim kami untuk mendapatkan rekomendasi perjalanan terbaik sesuai kebutuhan Anda.' }}
+</p>
 
-            <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="{{ route('tours.index') }}" class="btn btn-primary px-8 py-3">
-                    <i data-lucide="map" class="w-5 h-5"></i>
-                    Lihat Paket Tour
-                </a>
-                <a href="#" class="btn btn-ghost px-8 py-3">
-                    <i data-lucide="messages-square" class="w-5 h-5"></i>
-                    Konsultasi Perjalanan
-                </a>
-            </div>
+<div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+  <a href="{{ $siteSettings['home_final_cta_primary_url'] ?? route('tours.index') }}" class="btn btn-primary px-8 py-3">
+    <i data-lucide="map" class="w-5 h-5"></i>
+    {{ $siteSettings['home_final_cta_primary_text'] ?? 'Lihat Paket Tour' }}
+  </a>
+  <a href="{{ $siteSettings['home_final_cta_secondary_url'] ?? '#' }}" class="btn btn-ghost px-8 py-3">
+    <i data-lucide="messages-square" class="w-5 h-5"></i>
+    {{ $siteSettings['home_final_cta_secondary_text'] ?? 'Konsultasi Perjalanan' }}
+  </a>
+</div>
+
         </div>
     </div>
 </section>
@@ -676,26 +937,26 @@
             <div class="relative grid gap-8 lg:grid-cols-12 lg:items-center">
                 {{-- LEFT --}}
                 <div class="lg:col-span-5">
-                    <div class="pill pill-azure">
-                        <i data-lucide="handshake" class="w-4 h-4"></i>
-                        Program Partner
-                    </div>
+                   <div class="pill pill-azure">
+  <i data-lucide="handshake" class="w-4 h-4"></i>
+  {{ $siteSettings['home_partner_badge'] ?? 'Program Partner' }}
+</div>
 
-                    <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-                        Mau jadi Partner Bintang Wisata?
-                    </h2>
+<h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+  {{ $siteSettings['home_partner_title'] ?? 'Mau jadi Partner Bintang Wisata?' }}
+</h2>
 
-                    <p class="mt-3 text-slate-600 leading-relaxed">
-                        Kembangkan jangkauan layanan kamu bersama Bintang Wisata. Dapatkan akses dashboard khusus partner
-                        untuk kebutuhan operasional.
-                    </p>
+<p class="mt-3 text-slate-600 leading-relaxed">
+  {{ $siteSettings['home_partner_desc'] ?? 'Kembangkan jangkauan layanan kamu bersama Bintang Wisata. Dapatkan akses dashboard khusus partner untuk kebutuhan operasional.' }}
+</p>
 
-                    <div class="mt-6">
-                        <a href="{{ route('partner.register') }}" class="btn btn-primary px-8 py-3">
-                            <i data-lucide="user-plus" class="w-5 h-5"></i>
-                            Daftar Partner
-                        </a>
-                    </div>
+<div class="mt-6">
+  <a href="{{ $siteSettings['home_partner_button_url'] ?? route('partner.register') }}" class="btn btn-primary px-8 py-3">
+    <i data-lucide="user-plus" class="w-5 h-5"></i>
+    {{ $siteSettings['home_partner_button_text'] ?? 'Daftar Partner' }}
+  </a>
+</div>
+
                 </div>
 
                 {{-- RIGHT --}}
@@ -707,10 +968,13 @@
                                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="text-slate-900 font-extrabold">Dashboard Partner</div>
-                                    <p class="mt-1 text-sm text-slate-600">
-                                        Akses halaman khusus partner untuk mengelola kebutuhan operasional.
-                                    </p>
+                                    <div class="text-slate-900 font-extrabold">
+  {{ $siteSettings['home_partner_card1_title'] ?? 'Dashboard Partner' }}
+</div>
+<p class="mt-1 text-sm text-slate-600">
+  {{ $siteSettings['home_partner_card1_desc'] ?? 'Akses halaman khusus partner untuk mengelola kebutuhan operasional.' }}
+</p>
+
                                 </div>
                             </div>
                         </div>
@@ -721,10 +985,12 @@
                                     <i data-lucide="settings" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="text-slate-900 font-extrabold">Pengaturan Fleksibel</div>
-                                    <p class="mt-1 text-sm text-slate-600">
-                                        Data akun partner dan konfigurasi layanan dapat dikelola dengan rapi.
-                                    </p>
+                                   <div class="text-slate-900 font-extrabold">
+  {{ $siteSettings['home_partner_card2_title'] ?? 'Pengaturan Fleksibel' }} 
+</div>
+<p class="mt-1 text-sm text-slate-600">
+  {{ $siteSettings['home_partner_card2_desc'] ?? ' Data akun partner dan konfigurasi layanan dapat dikelola dengan rapi.' }} 
+</p>
                                 </div>
                             </div>
                         </div>
@@ -735,10 +1001,12 @@
                                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="text-slate-900 font-extrabold">Ringkas & Terukur</div>
-                                    <p class="mt-1 text-sm text-slate-600">
-                                        Memudahkan pemantauan aktivitas dan pengelolaan kebutuhan harian.
-                                    </p>
+                                    <div class="text-slate-900 font-extrabold">
+  {{ $siteSettings['home_partner_card3_title'] ?? 'Ringkas & Terukur' }} 
+</div>
+<p class="mt-1 text-sm text-slate-600">
+  {{ $siteSettings['home_partner_card3_desc'] ?? 'Memudahkan pemantauan aktivitas dan pengelolaan kebutuhan harian.' }} 
+</p>
                                 </div>
                             </div>
                         </div>
@@ -749,10 +1017,12 @@
                                     <i data-lucide="headphones" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <div class="text-slate-900 font-extrabold">Dukungan Tim</div>
-                                    <p class="mt-1 text-sm text-slate-600">
-                                        Tim kami siap membantu untuk kelancaran kerja sama operasional.
-                                    </p>
+                                   <div class="text-slate-900 font-extrabold">
+  {{ $siteSettings['home_partner_card4_title'] ?? 'Dukungan Tim' }} 
+</div>
+<p class="mt-1 text-sm text-slate-600">
+  {{ $siteSettings['home_partner_card4_desc'] ?? 'Tim kami siap membantu untuk kelancaran kerja sama operasional.' }} 
+</p>
                                 </div>
                             </div>
                         </div>

@@ -77,7 +77,7 @@
     </div>
 
     <span class="font-semibold">{{ number_format($avg, 1) }}/5</span>
-    <span class="text-slate-500">, {{ $count }} ulasan</span>
+    <span class="text-slate-500"> {{ $count }} ulasan</span>
 
 </div>
 

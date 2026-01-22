@@ -197,6 +197,11 @@ function tourBooking(flightInfo, waAdmin, packageTitle, packageSlug, packageUrl,
       this.recalc();
       this.isOpen = true;
        const params = new URLSearchParams(window.location.search);
+       const dateQ = (params.get('date') || '').trim();
+if (dateQ) {
+  this.form.departure_date = dateQ;
+}
+
   const promoQ = (params.get('promo') || '').trim();
   if (promoQ) {
     this.promo.code = promoQ;

@@ -43,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
                 'seo_site_title',
                 'seo_meta_description',
                 'seo_keywords',
+                 'home_tabs',
 // ship packages page
 'ship_hero_badge',
 'ship_hero_title',
@@ -216,6 +217,39 @@ class AppServiceProvider extends ServiceProvider
                 'rentcar_note3_desc',
                 'rentcar_note4_title',
                 'rentcar_note4_desc',
+// HOME: logos header
+'home_logos_badge',
+'home_logos_title',
+'home_logos_desc',
+
+// HOME: final CTA
+'home_final_cta_title',
+'home_final_cta_desc',
+'home_final_cta_primary_text',
+'home_final_cta_primary_url',
+'home_final_cta_secondary_text',
+'home_final_cta_secondary_url',
+
+// HOME: partner CTA
+'home_partner_badge',
+'home_partner_title',
+'home_partner_desc',
+'home_partner_button_text',
+'home_partner_button_url',
+'home_partner_card1_title','home_partner_card1_desc',
+'home_partner_card2_title','home_partner_card2_desc',
+'home_partner_card3_title','home_partner_card3_desc',
+'home_partner_card4_title','home_partner_card4_desc',
+
+// MICE hero + tips
+'mice_hero_badge',
+'mice_hero_title',
+'mice_hero_desc',
+'mice_cta_button',
+'mice_tip1_title','mice_tip1_desc',
+'mice_tip2_title','mice_tip2_desc',
+'mice_tip3_title','mice_tip3_desc',
+'mice_tip4_title','mice_tip4_desc',
 
                 // docs page
                 'docs_hero_badge',
@@ -229,6 +263,8 @@ class AppServiceProvider extends ServiceProvider
                 'site_logo',
                 'tour_cta_secondary_button',
                 'tour_cta_secondary_link',
+                'tracking_head',
+'tracking_body',
                 // HOME: promo tours
                 'home_promo_enabled' => $settings['home_promo_enabled'] ?? '1',
                 'home_promo_badge'   => $settings['home_promo_badge'] ?? 'PROMO',
@@ -241,8 +277,45 @@ class AppServiceProvider extends ServiceProvider
             ];
 
             $settings = Setting::whereIn('key', $keys)->pluck('value', 'key');
+$rawHomeTabs = $settings['home_tabs'] ?? null;
+$decodedHomeTabs = is_string($rawHomeTabs) ? json_decode($rawHomeTabs, true) : null;
+
+$homeTabs = [];
+if (is_array($decodedHomeTabs)) {
+    foreach ($decodedHomeTabs as $t) {
+        if (!is_array($t)) continue;
+
+        $label = trim((string)($t['label'] ?? ''));
+        $url   = trim((string)($t['url'] ?? ''));
+        $icon  = trim((string)($t['icon'] ?? ''));
+
+        // minimal requirement
+        if ($label === '' || $url === '') continue;
+
+        $iconImage = trim((string)($t['icon_image'] ?? ''));
+
+$homeTabs[] = [
+    'label' => $label,
+    'url'   => $url,
+    'icon'  => $icon !== '' ? $icon : 'sparkles',
+    'icon_image' => $iconImage, // path relatif storage/public
+];
+    }
+}
+
+// fallback default (kalau DB kosong/invalid)
+if (count($homeTabs) === 0) {
+   $homeTabs = [
+    ['label' => 'To Do',            'icon' => 'clipboard-check', 'icon_image' => '', 'url' => route('tours.index')],
+    ['label' => 'Jemputan Bandara', 'icon' => 'plane',           'icon_image' => '', 'url' => '#'],
+    ['label' => 'Ferry',            'icon' => 'ship',            'icon_image' => '', 'url' => '#'],
+    ['label' => 'Travel',           'icon' => 'bus',             'icon_image' => '', 'url' => '#'],
+    ['label' => 'Sewa Mobil',       'icon' => 'car',             'icon_image' => '', 'url' => route('rentcar.index')],
+];
+}
 
             $view->with('siteSettings', [
+                'home_tabs' => $homeTabs,
                 // HERO
                 'hero_title' => $settings['hero_title'] ?? 'Paket Tour Spesial untuk Liburan Tak Terlupakan!',
                 'hero_subtitle' => $settings['hero_subtitle'] ?? 'Liburan Tanpa Batas! Jelajahi Destinasi Impian dengan Paket Tour Kami',
@@ -267,6 +340,50 @@ class AppServiceProvider extends ServiceProvider
 'ship_tip3_desc'  => $settings['ship_tip3_desc'] ?? 'Paket favorit pelanggan',
 'ship_tip4_title' => $settings['ship_tip4_title'] ?? 'Support',
 'ship_tip4_desc'  => $settings['ship_tip4_desc'] ?? 'Bisa konsultasi sebelum booking',
+
+// HOME: logos header
+'home_logos_badge' => $settings['home_logos_badge'] ?? 'Kepercayaan pelanggan',
+'home_logos_title' => $settings['home_logos_title'] ?? 'Kepercayaan Pelanggan Bintang Wisata',
+'home_logos_desc'  => $settings['home_logos_desc']  ?? 'Brand dan institusi yang telah mempercayakan perjalanan bersama kami',
+
+// HOME: final CTA
+'home_final_cta_title'          => $settings['home_final_cta_title'] ?? 'Rencanakan Perjalanan Anda Sekarang',
+'home_final_cta_desc'           => $settings['home_final_cta_desc'] ?? 'Hubungi tim kami untuk mendapatkan rekomendasi perjalanan terbaik sesuai kebutuhan Anda.',
+'home_final_cta_primary_text'   => $settings['home_final_cta_primary_text'] ?? 'Lihat Paket Tour',
+'home_final_cta_primary_url'    => $settings['home_final_cta_primary_url'] ?? '',
+'home_final_cta_secondary_text' => $settings['home_final_cta_secondary_text'] ?? 'Konsultasi Perjalanan',
+'home_final_cta_secondary_url'  => $settings['home_final_cta_secondary_url'] ?? '#',
+
+// HOME: partner CTA
+'home_partner_badge'       => $settings['home_partner_badge'] ?? 'Program Partner',
+'home_partner_title'       => $settings['home_partner_title'] ?? 'Mau jadi Partner Bintang Wisata?',
+'home_partner_desc'        => $settings['home_partner_desc'] ?? 'Kembangkan jangkauan layanan kamu bersama Bintang Wisata. Dapatkan akses dashboard khusus partner untuk kebutuhan operasional.',
+'home_partner_button_text' => $settings['home_partner_button_text'] ?? 'Daftar Partner',
+'home_partner_button_url'  => $settings['home_partner_button_url'] ?? '',
+
+'home_partner_card1_title' => $settings['home_partner_card1_title'] ?? 'Dashboard Partner',
+'home_partner_card1_desc'  => $settings['home_partner_card1_desc']  ?? 'Akses halaman khusus partner untuk mengelola kebutuhan operasional.',
+'home_partner_card2_title' => $settings['home_partner_card2_title'] ?? 'Pengaturan Fleksibel',
+'home_partner_card2_desc'  => $settings['home_partner_card2_desc']  ?? 'Data akun partner dan konfigurasi layanan dapat dikelola dengan rapi.',
+'home_partner_card3_title' => $settings['home_partner_card3_title'] ?? 'Ringkas & Terukur',
+'home_partner_card3_desc'  => $settings['home_partner_card3_desc']  ?? 'Memudahkan pemantauan aktivitas dan pengelolaan kebutuhan harian.',
+'home_partner_card4_title' => $settings['home_partner_card4_title'] ?? 'Dukungan Tim',
+'home_partner_card4_desc'  => $settings['home_partner_card4_desc']  ?? 'Tim kami siap membantu untuk kelancaran kerja sama operasional.',
+
+// MICE: hero + tips
+'mice_hero_badge' => $settings['mice_hero_badge'] ?? 'Paket MICE',
+'mice_hero_title' => $settings['mice_hero_title'] ?? 'Solusi Paket MICE untuk Event Perusahaan Anda',
+'mice_hero_desc'  => $settings['mice_hero_desc']  ?? 'Meetings, Incentives, Conferences, and Exhibitions. Pilih paket, lihat detail, dan lanjut checkout dengan mudah.',
+'mice_cta_button' => $settings['mice_cta_button'] ?? 'Lihat Paket',
+
+'mice_tip1_title' => $settings['mice_tip1_title'] ?? 'Event Ready',
+'mice_tip1_desc'  => $settings['mice_tip1_desc']  ?? 'Paket siap untuk meeting, conference, dan exhibition.',
+'mice_tip2_title' => $settings['mice_tip2_title'] ?? 'Terpercaya',
+'mice_tip2_desc'  => $settings['mice_tip2_desc']  ?? 'Pilihan paket jelas, detail lengkap, mudah dipilih.',
+'mice_tip3_title' => $settings['mice_tip3_title'] ?? 'Harga Fleksibel',
+'mice_tip3_desc'  => $settings['mice_tip3_desc']  ?? 'Tier harga Domestik & WNA bisa multi baris sesuai kebutuhan.',
+'mice_tip4_title' => $settings['mice_tip4_title'] ?? 'Support',
+'mice_tip4_desc'  => $settings['mice_tip4_desc']  ?? 'Bisa konsultasi kebutuhan event dan itinerary.',
 
 // UMRAH PACKAGES PAGE
 'umrah_hero_badge' => $settings['umrah_hero_badge'] ?? 'Paket Umrah',
@@ -442,6 +559,8 @@ class AppServiceProvider extends ServiceProvider
                 'rentcar_note4_title' => $settings['rentcar_note4_title'] ?? 'Fleksibel',
                 'rentcar_note4_desc'  => $settings['rentcar_note4_desc']  ?? 'Untuk wisata & kerja',
 
+                'tracking_head' => $settings['tracking_head'] ?? '',
+'tracking_body' => $settings['tracking_body'] ?? '',
                 // DOCUMENTATION PAGE
                 'docs_hero_badge' => $settings['docs_hero_badge'] ?? 'Dokumentasi Perjalanan',
                 'docs_hero_title' => $settings['docs_hero_title'] ?? 'Dokumentasi',

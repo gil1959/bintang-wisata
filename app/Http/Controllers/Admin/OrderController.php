@@ -246,4 +246,12 @@ class OrderController extends Controller
 
         return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
     }
+
+    public function printInvoice(Order $order)
+{
+    $order->load('payments');
+
+    return view('shared.invoice-print', compact('order'));
+}
+
 }

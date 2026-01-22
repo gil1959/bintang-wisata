@@ -150,21 +150,50 @@
                 </div>
             </div>
 
-            {{-- CATEGORY --}}
-            <div class="md:col-span-3">
-                <label class="block text-sm font-extrabold text-slate-700 mb-2">Kategori</label>
-                <select name="category"
-                        class="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm">
-                    <option value="">Semua Kategori</option>
+           {{-- CATEGORY --}}
+<div class="md:col-span-3"
+  x-data="{
+    onChange(v){
+      // reset dulu
+      this.$refs.catHidden.value = '';
+      this.$refs.subHidden.value = '';
 
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}"
-                            {{ request('category') == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+      if(!v) return;
+
+      const parts = v.split(':');
+      const type = parts[0];
+      const id   = parts[1] || '';
+
+      if(type === 'cat') this.$refs.catHidden.value = id;
+      if(type === 'sub') this.$refs.subHidden.value = id;
+    }
+  }"
+>
+  <label class="text-[11px] font-extrabold text-slate-600">Kategori</label>
+
+  {{-- hidden field yang tetap dipakai backend lu --}}
+  <input type="hidden" name="category" x-ref="catHidden" value="">
+  <input type="hidden" name="subcategory" x-ref="subHidden" value="">
+
+  <div class="mt-1">
+    <select
+      class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
+      @change="onChange($event.target.value)"
+    >
+      <option value="">Semua Kategori</option>
+
+      @foreach(($tourMainCategories ?? collect()) as $cat)
+        <option value="cat:{{ $cat->id }}">{{ strtoupper($cat->name) }}</option>
+
+        @foreach(($cat->children ?? collect()) as $sub)
+          <option value="sub:{{ $sub->id }}">ㅤㅤ{{ $sub->name }}</option>
+        @endforeach
+      @endforeach
+    </select>
+  </div>
+</div>
+
+
 
             {{-- SORT --}}
             <div class="md:col-span-2">

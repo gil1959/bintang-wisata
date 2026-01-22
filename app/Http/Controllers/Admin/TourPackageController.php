@@ -212,11 +212,19 @@ private function htmlToLines(?string $html): array
     // buang semua tag
     $text = strip_tags($text);
 
+    // FIX: decode entity HTML (biar &nbsp; jadi spasi beneran)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // FIX: normalisasi non-breaking space (NBSP) jadi spasi biasa
+    $text = str_replace("\xC2\xA0", ' ', $text);
+
     $lines = preg_split("/\r\n|\r|\n/", $text) ?: [];
-    $lines = array_values(array_filter(array_map(fn($l) => trim($l), $lines), fn($l) => $l !== ''));
+    $lines = array_map(fn($l) => trim(preg_replace('/\s+/', ' ', $l)), $lines);
+    $lines = array_values(array_filter($lines, fn($l) => $l !== ''));
 
     return $lines;
 }
+
 
 private function replaceItinerariesFromHtml(TourPackage $package, ?string $html): void
 {
@@ -253,6 +261,7 @@ private function replaceItinerariesFromHtml(TourPackage $package, ?string $html)
                     $package->tiers()->where('id', $row['id'])->update([
                         'type'       => $row['type'],
                         'is_custom'  => (bool)$row['is_custom'],
+                        'label_text' => $row['label_text'] ?? null,  
                         'min_people' => $row['is_custom'] ? 2 : $row['min_people'],
                         'max_people' => $row['is_custom'] ? null : $row['max_people'],
                         'price'      => $row['price'],
@@ -261,6 +270,7 @@ private function replaceItinerariesFromHtml(TourPackage $package, ?string $html)
                     $new = $package->tiers()->create([
                         'type'       => $row['type'],
                         'is_custom'  => (bool)$row['is_custom'],
+                        'label_text' => $row['label_text'] ?? null,  
                         'min_people' => $row['is_custom'] ? 2 : $row['min_people'],
                         'max_people' => $row['is_custom'] ? null : $row['max_people'],
                         'price'      => $row['price'],

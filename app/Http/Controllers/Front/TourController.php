@@ -11,7 +11,8 @@ use App\Models\ClientLogo;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use App\Models\ShipPackage;
-
+use Illuminate\Support\Collection;
+use App\Models\Article;
 class TourController extends Controller
 {
     /**
@@ -43,9 +44,16 @@ class TourController extends Controller
 
 
         $packages = $query->orderBy('title')->paginate(12)->withQueryString();
-        $categories = TourCategory::orderBy('name')->get();
+$categories = TourCategory::with('children')
+    ->whereNull('parent_id')
+    ->orderBy('name')
+    ->get();
 
-        return view('front.tours.index', compact('packages', 'search', 'categories'));
+// FIX: view lu pakai $tourMainCategories
+$tourMainCategories = $categories;
+
+return view('front.tours.index', compact('packages','categories','tourMainCategories'));
+
     }
 
     /**
@@ -112,6 +120,47 @@ class TourController extends Controller
                     ->get();
             }
         }
+
+
+$homeArticlesEnabled = (Setting::getValue('home_articles_enabled', '0') === '1');
+$homeArticlesTitle = Setting::getValue('home_articles_title', 'Baca dan bangkitkan semangat liburanmu');
+$homeArticlesDesc = Setting::getValue('home_articles_desc', '');
+$homeArticlesButtonText = Setting::getValue('home_articles_button_text', 'Baca Artikel Inspirasi');
+$homeArticlesButtonUrl = Setting::getValue('home_articles_button_url', route('articles'));
+$homeArticlesMode = Setting::getValue('home_articles_mode', 'custom');
+
+$homeArticles = collect();
+
+if ($homeArticlesEnabled) {
+    if ($homeArticlesMode === 'auto') {
+        $homeArticles = Article::query()
+            ->where('is_published', 1)
+            ->orderByDesc('published_at')
+            ->limit(4)
+            ->get();
+    } else {
+        $idsRaw = Setting::getValue('home_articles_custom_ids', '[]');
+        $ids = json_decode($idsRaw, true);
+        $ids = is_array($ids) ? array_values(array_unique(array_map('intval', $ids))) : [];
+        $ids = array_values(array_filter($ids, fn ($id) => $id > 0));
+        $ids = array_slice($ids, 0, 12);
+
+        if (count($ids) > 0) {
+            $rows = Article::query()
+                ->whereIn('id', $ids)
+                ->where('is_published', 1)
+                ->get()
+                ->keyBy('id');
+
+            $ordered = [];
+            foreach ($ids as $id) {
+                if (isset($rows[$id])) $ordered[] = $rows[$id];
+            }
+            $homeArticles = collect($ordered)->take(4);
+        }
+    }
+}
+
         // ===================== PROMO SHIP PACKAGES (Home Section) =====================
 $shipPromoEnabled = filter_var(Setting::getValue('home_ship_promo_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
 $shipPromoMode = Setting::getValue('home_ship_promo_mode', 'auto'); // auto | custom
@@ -141,7 +190,43 @@ if ($shipPromoEnabled) {
     }
 }
 
+$homeDiscountBanners = \App\Models\HomePromoBanner::query()
+    ->where('section', 'discount')
+    ->where('is_active', 1)
+    ->orderBy('sort_order')
+    ->orderBy('id')
+    ->get();
 
-        return view('front.home', compact('packages', 'inspirations', 'clientLogos', 'promoTours', 'promoShips'));
+$homeMissionBanners = \App\Models\HomePromoBanner::query()
+    ->where('section', 'missions')
+    ->where('is_active', 1)
+    ->orderBy('sort_order')
+    ->orderBy('id')
+    ->get();
+$tourMainCategories = TourCategory::query()
+    ->whereNull('parent_id')
+    ->with('children')
+    ->orderBy('name')
+    ->get();
+
+      return view('front.home', compact(
+    'packages',
+    'inspirations',
+    'clientLogos',
+    'promoTours',
+    'promoShips',
+    'homeDiscountBanners',
+    'homeMissionBanners',
+    'tourMainCategories'
+))->with([
+    'homeArticlesEnabled' => $homeArticlesEnabled,
+    'homeArticlesTitle' => $homeArticlesTitle,
+    'homeArticlesDesc' => $homeArticlesDesc,
+    'homeArticlesButtonText' => $homeArticlesButtonText,
+    'homeArticlesButtonUrl' => $homeArticlesButtonUrl,
+    'homeArticlesMode' => $homeArticlesMode,
+    'homeArticles' => $homeArticles,
+]);
+
     }
 }

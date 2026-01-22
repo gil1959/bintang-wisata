@@ -204,19 +204,32 @@ return view('partner.tour-packages.edit', compact('package', 'categories'));
     // ======= COPY MENTAH PRIVATE METHODS ADMIN =======
 
     private function htmlToLines(?string $html): array
-    {
-        if (!$html) return [];
+{
+    if (!$html) return [];
 
-        $text = $html;
-        $text = preg_replace('/<\s*br\s*\/?>/i', "\n", $text);
-        $text = preg_replace('/<\/\s*(p|div|li|h[1-6])\s*>/i', "\n", $text);
-        $text = strip_tags($text);
+    $text = $html;
 
-        $lines = preg_split("/\r\n|\r|\n/", $text) ?: [];
-        $lines = array_values(array_filter(array_map(fn($l) => trim($l), $lines), fn($l) => $l !== ''));
+    // br -> newline
+    $text = preg_replace('/<\s*br\s*\/?>/i', "\n", $text);
 
-        return $lines;
-    }
+    // penutup block -> newline
+    $text = preg_replace('/<\/\s*(p|div|li|h[1-6])\s*>/i', "\n", $text);
+
+    // buang semua tag
+    $text = strip_tags($text);
+
+    // FIX: decode entity HTML (biar &nbsp; jadi spasi beneran)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // FIX: normalisasi non-breaking space (NBSP) jadi spasi biasa
+    $text = str_replace("\xC2\xA0", ' ', $text);
+
+    $lines = preg_split("/\r\n|\r|\n/", $text) ?: [];
+    $lines = array_map(fn($l) => trim(preg_replace('/\s+/', ' ', $l)), $lines);
+    $lines = array_values(array_filter($lines, fn($l) => $l !== ''));
+
+    return $lines;
+}
 
     private function replaceItinerariesFromHtml(TourPackage $package, ?string $html): void
     {

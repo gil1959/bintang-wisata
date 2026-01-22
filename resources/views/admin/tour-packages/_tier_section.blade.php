@@ -34,6 +34,13 @@
                             Custom Tier (min 2 orang, tanpa batas)
                         </div>
                     </template>
+<div class="sm:col-span-3">
+  <label class="block text-sm font-bold text-slate-800 mb-1">Label</label>
+  <input type="text"
+         x-model="row.label_text"
+         :name="`tiers[{{ $type }}][${index}][label_text]`"
+         class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+</div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                         <div class="sm:col-span-4">

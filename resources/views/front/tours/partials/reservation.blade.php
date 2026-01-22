@@ -24,32 +24,44 @@
         </div>
 
         {{-- DAFTAR TIERS --}}
-        <div class="space-y-3">
-            <template x-for="tier in tiers[active]" :key="tier.id">
-                <div
-                    class="p-4 border rounded-xl cursor-pointer hover:border-[#0194F3] transition flex justify-between items-center"
-                    @click="selectedTier = tier"
-                    :class="selectedTier && selectedTier.id === tier.id ? 'border-[#0194F3] bg-[#0194F3]/5' : ''"
-                >
-                    <div class="text-sm">
-                        <p class="font-semibold text-gray-800"
-                           x-text="tier.is_custom
-                                ? 'Custom (min 2 pax)'
-                                : (tier.max_people
-                                    ? (tier.min_people + '-' + tier.max_people + ' Org')
-                                    : (tier.min_people + '+ Org'))">
-                        </p>
-                        <p class="text-xs text-gray-500 mt-1" x-text="active === 'domestic' ? 'Domestik' : 'WNA'"></p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[#0194F3] font-bold text-lg">
-                            Rp <span x-text="Number(tier.price || 0).toLocaleString('id-ID')"></span>
+       <div class="space-y-3">
+    <template x-for="tier in tiers[active]" :key="tier.id">
+        <div
+            class="p-4 border rounded-xl cursor-pointer hover:border-[#0194F3] transition flex justify-between items-center"
+            @click="selectedTier = tier"
+            :class="selectedTier && selectedTier.id === tier.id ? 'border-[#0194F3] bg-[#0194F3]/5' : ''"
+        >
+            <div class="text-sm">
+                {{-- 1) LABEL (default: Paket) --}}
+                <p
+                    class="font-semibold text-gray-800"
+                    x-text="(tier.label_text && tier.label_text.trim() !== '') ? tier.label_text : 'Paket'"
+                ></p>
 
-                        </p>
-                        <p class="text-[11px] text-gray-500">/ pax</p>
-                    </div>
-                </div>
-            </template>
+                {{-- 2) JUMLAH ORANG (misal 2-3 Org) --}}
+                <p
+                    class="text-xs text-gray-500 mt-1"
+                    x-text="(tier.min_people && tier.max_people)
+                        ? `${tier.min_people}-${tier.max_people} Org`
+                        : (tier.min_people ? `${tier.min_people}+ Org` : '')"
+                ></p>
+
+                {{-- 3) DOMESTIK / WNA --}}
+                <p
+                    class="text-xs text-gray-500 mt-1"
+                    x-text="active === 'domestic' ? 'Domestik' : 'WNA'"
+                ></p>
+            </div>
+
+            <div class="text-right">
+                <p class="text-[#0194F3] font-bold text-lg">
+                    Rp <span x-text="Number(tier.price || 0).toLocaleString('id-ID')"></span>
+                </p>
+                <p class="text-[11px] text-gray-500">/ pax</p>
+            </div>
+        </div>
+    </template>
+
 
            <template x-if="active === 'domestic' && (!tiers[active] || tiers[active].length === 0)">
     <p class="text-sm text-gray-500">Belum ada harga untuk kategori ini.</p>

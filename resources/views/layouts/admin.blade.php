@@ -104,12 +104,20 @@
                 ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags','perm'=>'admin.rent-car-categories.manage'],
             ],
         ],
-
-        ['label'=>'Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent','perm'=>'admin.promos.manage'],
+ ['label'=>'Kode Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent','perm'=>'admin.promos.manage'],
+        [
+  'label' => 'Section Promo',
+  'icon'  => 'ticket-percent',
+  'children' => [
+    ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles','perm'=>'admin.home-sections.manage'],
+    ['label'=>'Home Banner: Discount','route'=>'admin.promos.home-banners.index','params'=>['section'=>'discount'],'match'=>'admin.promos.home-banners.*','icon'=>'images','perm'=>'admin.promos.manage'],
+    ['label'=>'Home Banner: Missions','route'=>'admin.promos.home-banners.index','params'=>['section'=>'missions'],'match'=>'admin.promos.home-banners.*','icon'=>'images','perm'=>'admin.promos.manage'],
+  ],
+],
         ['label'=>'Dokumentasi','route'=>'admin.documentations.index','match'=>'admin.documentations.*','icon'=>'images','perm'=>'admin.documentations.manage'],
         ['label'=>'Inspirasi Destinasi','route'=>'admin.destination-inspirations.index','match'=>'admin.destination-inspirations.*','icon'=>'sparkles','perm'=>'admin.destination-inspirations.manage'],
         ['label'=>'Artikel','route'=>'admin.articles.index','match'=>'admin.articles.*','icon'=>'newspaper','perm'=>'admin.articles.manage'],
-        ['label'=>'Home Promo Tours','route'=>'admin.home-sections.promo-tours.edit','match'=>'admin.home-sections.promo-tours.*','icon'=>'sparkles','perm'=>'admin.home-sections.manage'],
+       
         ['label'=>'Halaman Legal','route'=>'admin.legal-pages.edit','match'=>'admin.legal-pages.*','icon'=>'file-text','perm'=>'admin.legal-pages.manage'],
 
         // GROUP: Sewa Kapal
@@ -172,7 +180,16 @@
             ],
         ],
 
-        ['label'=>'Settings','route'=>'admin.settings.general','match'=>'admin.settings.*','icon'=>'settings','perm'=>'admin.settings.manage'],
+       // GROUP: Settings
+[
+    'label' => 'Settings',
+    'icon'  => 'settings',
+    'children' => [
+        ['label'=>'General','route'=>'admin.settings.general','match'=>'admin.settings.general*','icon'=>'sliders','perm'=>'admin.settings.manage'],
+        ['label'=>'Home Setting','route'=>'admin.settings.home','match'=>'admin.settings.home*','icon'=>'layout-grid','perm'=>'admin.settings.manage'],
+    ],
+],
+
         ['label'=>'Profil','route'=>'admin.profile.edit','match'=>'admin.profile.*','icon'=>'user','perm'=>'admin.profile.manage'],
     ];
 
@@ -234,7 +251,7 @@
                         @endif
 
                         @php $active = request()->routeIs($c['match']); @endphp
-                        <a href="{{ route($c['route']) }}"
+                        <a href="{{ route($c['route'], $c['params'] ?? []) }}"
                            class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl border transition
                                   {{ $active ? 'bg-slate-100 border-slate-200' : 'bg-white border-transparent hover:bg-slate-50' }}">
                             <span class="h-9 w-9 rounded-xl grid place-items-center border shrink-0"

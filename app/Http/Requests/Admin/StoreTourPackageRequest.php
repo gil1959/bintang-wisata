@@ -45,6 +45,8 @@ class StoreTourPackageRequest extends FormRequest
 
             // Domestic tiers
             'tiers.domestic'            => ['required', 'array'],
+            'tiers.domestic.*.label_text' => ['nullable', 'string', 'max:255'],
+
             'tiers.domestic.*.min_people' => ['required', 'integer', 'min:1'],
             'tiers.domestic.*.max_people' => ['nullable', 'integer', 'gte:tiers.domestic.*.min_people'],
             'tiers.domestic.*.price'      => ['required', 'integer', 'min:0'],
@@ -53,6 +55,8 @@ class StoreTourPackageRequest extends FormRequest
 
             // International tiers
           'tiers.international'              => ['nullable', 'array'],
+          'tiers.international.*.label_text' => ['nullable', 'string', 'max:255'],
+
 'tiers.international.*.min_people' => ['required_with:tiers.international.*.price', 'integer', 'min:1'],
 'tiers.international.*.max_people' => ['nullable', 'integer', 'gte:tiers.international.*.min_people'],
 'tiers.international.*.price'      => ['nullable', 'integer', 'min:0'],

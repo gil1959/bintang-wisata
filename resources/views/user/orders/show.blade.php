@@ -26,6 +26,8 @@
                     Back
                 </a>
 
+                
+
                 @if($order->payment_status === 'waiting_payment')
                     <a href="{{ route('checkout.show', $order->id) }}"
                        class="btn btn-primary px-4 py-2.5">
@@ -45,6 +47,8 @@
                     <i data-lucide="message-circle" class="w-4 h-4"></i>
                     {{ $label }}
                 </a>
+
+                
             </div>
 
 
@@ -181,4 +185,12 @@
 
         </div>
     </div>
+    <div class="mt-10">
+ <a href="{{ route('user.orders.invoice.print', $order) }}"  class="btn btn-primary px-4 py-2.5">
+    <i data-lucide="printer" class="w-4 h-4"></i>
+    Cetak Invoice
+</a>
+    </div>
+   
+
 @endsection

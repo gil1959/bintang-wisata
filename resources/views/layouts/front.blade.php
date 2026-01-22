@@ -148,10 +148,18 @@
   }
 </style>
 
+{{-- Tracking (Admin > Settings > General) --}}
+@if(!empty($siteSettings['tracking_head']))
+    {!! $siteSettings['tracking_head'] !!}
+@endif
 
 </head>
 
 <body class="bg-slate-50 font-[Poppins] text-slate-800 antialiased">
+{{-- Tracking (Admin > Settings > General) --}}
+@if(!empty($siteSettings['tracking_body']))
+    {!! $siteSettings['tracking_body'] !!}
+@endif
 
     {{-- Decorative global background (subtle, travel vibe) --}}
     <div class="fixed inset-0 -z-10 pointer-events-none">
