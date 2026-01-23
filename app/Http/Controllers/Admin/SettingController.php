@@ -21,6 +21,10 @@ class SettingController extends Controller
             'hero_title'       => ['required', 'string', 'max:120'],
             'hero_subtitle'    => ['required', 'string', 'max:180'],
             'hero_image'       => ['nullable', 'image', 'max:2048'],
+// Home: teks di box "Cari Paket Wisata"
+'home_search_title' => ['nullable', 'string', 'max:255'],
+'home_search_desc'  => ['nullable', 'string', 'max:255'],
+'home_search_hint'  => ['nullable', 'string', 'max:255'],
 
             // Footer
             'footer_address'   => ['nullable', 'string', 'max:1000'],
@@ -291,7 +295,9 @@ Setting::updateOrCreate(
 
         Setting::updateOrCreate(['key' => 'hero_title'], ['value' => $data['hero_title']]);
         Setting::updateOrCreate(['key' => 'hero_subtitle'], ['value' => $data['hero_subtitle']]);
-
+Setting::updateOrCreate(['key' => 'home_search_title'], ['value' => $data['home_search_title'] ?? '']);
+Setting::updateOrCreate(['key' => 'home_search_desc'],  ['value' => $data['home_search_desc'] ?? '']);
+Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_search_hint'] ?? '']);
         if ($request->hasFile('hero_image')) {
             $old = Setting::where('key', 'hero_image')->value('value');
             if ($old && str_starts_with($old, '/storage/')) {

@@ -1783,6 +1783,56 @@
     </div>
   </div>
 </div>
+{{-- Home - Hero Search Box (Front/Home) --}}
+<div class="mt-10 ">
+  <div class="flex items-start justify-between gap-4">
+    <div >
+      <h3 class="text-lg font-extrabold text-slate-900">Home Search Box</h3>
+      <p class="text-sm text-slate-600 mt-1">
+        Teks di card pencarian (hero) halaman home.
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+    <div class="grid gap-5 md:grid-cols-2">
+
+      <div>
+        <label class="block text-sm font-extrabold text-slate-700 mb-2">Home Search Title</label>
+        <input
+          type="text"
+          name="home_search_title"
+          value="{{ old('home_search_title', $siteSettings['home_search_title'] ?? 'Cari Paket Wisata') }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
+          placeholder="Contoh: Cari Paket Wisata"
+        >
+      </div>
+
+      <div>
+        <label class="block text-sm font-extrabold text-slate-700 mb-2">Home Search Hint</label>
+        <input
+          type="text"
+          name="home_search_hint"
+          value="{{ old('home_search_hint', $siteSettings['home_search_hint'] ?? 'Pakai kata kunci yang spesifik agar hasil lebih relevan.') }}"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
+          placeholder="Contoh: Pakai kata kunci yang spesifik..."
+        >
+        <p class="text-xs text-slate-500 mt-2">Muncul di bar hint bagian bawah form.</p>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-sm font-extrabold text-slate-700 mb-2">Home Search Description</label>
+        <textarea
+          name="home_search_desc"
+          rows="2"
+          class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
+          placeholder="Contoh: Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan."
+        >{{ old('home_search_desc', $siteSettings['home_search_desc'] ?? 'Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.') }}</textarea>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 
     {{-- Sticky Footer Actions --}}

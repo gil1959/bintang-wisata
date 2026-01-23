@@ -221,7 +221,9 @@ class AppServiceProvider extends ServiceProvider
 'home_logos_badge',
 'home_logos_title',
 'home_logos_desc',
-
+'home_search_title',
+'home_search_desc',
+'home_search_hint',
 // HOME: final CTA
 'home_final_cta_title',
 'home_final_cta_desc',
@@ -345,6 +347,10 @@ if (count($homeTabs) === 0) {
 'home_logos_badge' => $settings['home_logos_badge'] ?? 'Kepercayaan pelanggan',
 'home_logos_title' => $settings['home_logos_title'] ?? 'Kepercayaan Pelanggan Bintang Wisata',
 'home_logos_desc'  => $settings['home_logos_desc']  ?? 'Brand dan institusi yang telah mempercayakan perjalanan bersama kami',
+// HOME: hero search box (Cari Paket Wisata)
+'home_search_title' => $settings['home_search_title'] ?? 'Cari Paket Wisata',
+'home_search_desc'  => $settings['home_search_desc'] ?? 'Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.',
+'home_search_hint'  => $settings['home_search_hint'] ?? 'Pakai kata kunci yang spesifik agar hasil lebih relevan.',
 
 // HOME: final CTA
 'home_final_cta_title'          => $settings['home_final_cta_title'] ?? 'Rencanakan Perjalanan Anda Sekarang',

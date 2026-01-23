@@ -153,7 +153,7 @@
         ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'image','perm'=>'admin.client-logos.manage'],
         ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-square','perm'=>'admin.reviews.manage'],
         ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'search','perm'=>'admin.seo.manage'],
-        ['label'=>'Bank Accounts','route'=>'admin.bank-accounts.index','match'=>'admin.bank-accounts.*','icon'=>'landmark','perm'=>'admin.bank-accounts.manage'],
+       
 
         // GROUP: Users & Affiliate
         [

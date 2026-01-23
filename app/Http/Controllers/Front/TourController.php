@@ -18,43 +18,74 @@ class TourController extends Controller
     /**
      * Halaman list paket (homepage)
      */
-    public function index(Request $request)
-    {
-        $query = TourPackage::query()
-            ->where('is_active', true)
-             ->with(['category', 'tiers']);
+   public function index(Request $request, ?string $categorySlug = null, ?string $subcategorySlug = null)
+{
+    $query = TourPackage::query()
+        ->where('is_active', true)
+        ->with(['category', 'tiers']);
 
-        $search = $request->get('q');
+    $search = $request->get('q');
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('destination', 'like', "%{$search}%");
-            });
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('destination', 'like', "%{$search}%");
+        });
+    }
+
+    // === NEW: kategori/subkategori via URL path (/paket-tour/{category}/{subcategory?}) ===
+    $activeCategory = null;
+    $activeSubcategory = null;
+
+    if ($categorySlug) {
+        $activeCategory = TourCategory::query()
+            ->whereNull('parent_id')
+            ->where('slug', $categorySlug)
+            ->firstOrFail();
+
+        $query->where('category_id', $activeCategory->id);
+    }
+
+    if ($subcategorySlug) {
+        if (!$activeCategory) {
+            abort(404);
         }
 
-                if ($request->filled('category')) {
-                $query->where('category_id', $request->category);
-            }
+        $activeSubcategory = TourCategory::query()
+            ->where('parent_id', $activeCategory->id)
+            ->where('slug', $subcategorySlug)
+            ->firstOrFail();
 
-            if ($request->filled('subcategory')) {
-                $query->where('subcategory_id', $request->subcategory);
-            }
-
-
-
-        $packages = $query->orderBy('title')->paginate(12)->withQueryString();
-$categories = TourCategory::with('children')
-    ->whereNull('parent_id')
-    ->orderBy('name')
-    ->get();
-
-// FIX: view lu pakai $tourMainCategories
-$tourMainCategories = $categories;
-
-return view('front.tours.index', compact('packages','categories','tourMainCategories'));
-
+        $query->where('subcategory_id', $activeSubcategory->id);
     }
+
+    // Backward-compat: masih terima filter lama via query string (ID), kalau route slug kosong.
+    if (!$categorySlug && $request->filled('category')) {
+        $query->where('category_id', $request->category);
+    }
+
+    if (!$subcategorySlug && $request->filled('subcategory')) {
+        $query->where('subcategory_id', $request->subcategory);
+    }
+
+    $packages = $query->orderBy('title')->paginate(12)->appends($request->except('page'));
+
+    $categories = TourCategory::with('children')
+        ->whereNull('parent_id')
+        ->orderBy('name')
+        ->get();
+
+    $tourMainCategories = $categories;
+
+    return view('front.tours.index', compact(
+        'packages',
+        'categories',
+        'tourMainCategories',
+        'activeCategory',
+        'activeSubcategory'
+    ));
+}
+
 
     /**
      * Halaman detail paket (pakai slug binding)
@@ -79,7 +110,7 @@ return view('front.tours.index', compact('packages','categories','tourMainCatego
             ->where('is_active', true)
             ->latest()
             ->with('category')
-            ->take(6)
+            ->take(10)
             ->get();
 
         $inspirations = DestinationInspiration::query()

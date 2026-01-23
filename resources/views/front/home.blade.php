@@ -216,22 +216,63 @@
 
 
     {{-- PANEL CARD: CUMA UNTUK TO DO --}}
-    <div class="pt-10">
+    <div class="pt-[43px]">
       <div class="rounded-[28px] bg-white/95 backdrop-blur border border-white/70 shadow-[0_18px_60px_rgba(2,6,23,0.22)] overflow-hidden">
-        <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
-          <div class="text-base font-extrabold text-slate-900">Cari Paket Wisata</div>
-          <div class="text-sm text-slate-600 mt-1">Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.</div>
-        </div>
+       <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
+  <div class="text-base font-extrabold text-slate-900">
+    {{ $siteSettings['home_search_title'] ?? 'Cari Paket Wisata' }}
+  </div>
+  <div class="text-sm text-slate-600 mt-1">
+    {{ $siteSettings['home_search_desc'] ?? 'Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.' }}
+  </div>
+</div>
+
 
         <div class="p-6">
           <div x-show="tabs.find(x => x.id === active)?.is_todo" x-cloak>
-            <form method="GET" action="{{ route('tours.index') }}">
+            <form method="GET" action="{{ route('tours.index') }}"
+              x-data="{
+                submit(){
+                  const base = '{{ url('/paket-tour') }}';
+                  const raw = (this.$refs.categorySelect?.value || '').trim();
+
+                  let path = base;
+
+                  if(raw){
+                    const parts = raw.split(':');
+                    const type = parts[0];
+                    const val  = parts[1] || '';
+
+                    if(type === 'cat' && val){
+                      path += '/' + encodeURIComponent(val);
+                    }
+
+                    if(type === 'sub' && val){
+                      const segs = val.split('/').filter(Boolean);
+                      path += '/' + segs.map(s => encodeURIComponent(s)).join('/');
+                    }
+                  }
+
+                  const params = new URLSearchParams();
+
+                  const q = (this.$refs.q?.value || '').trim();
+                  if(q) params.set('q', q);
+
+                  const date = (this.$refs.date?.value || '').trim();
+                  if(date) params.set('date', date);
+
+                  const qs = params.toString();
+                  window.location.href = qs ? (path + '?' + qs) : path;
+                }
+              }"
+              @submit.prevent="submit()">
+
               <div class="grid gap-3 md:grid-cols-12 items-end">
 
                 <div class="md:col-span-5">
                   <label class="text-[11px] font-extrabold text-slate-600">Destinasi / Kata Kunci</label>
                   <div class="mt-1 relative">
-                    <input type="text" name="q"
+                    <input type="text" name="q" x-ref="q"
                       placeholder="Contoh: Bali, Lombok, Jepang, Labuan Bajo..."
                       class="w-full rounded-2xl border border-slate-200 pl-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -243,43 +284,18 @@
                <div class="md:col-span-3">
   <label class="text-[11px] font-extrabold text-slate-600">Kategori</label>
 
-  {{-- hidden field yang tetap dipakai backend lu --}}
-  <input type="hidden" name="category" x-ref="catHidden" value="">
-  <input type="hidden" name="subcategory" x-ref="subHidden" value="">
-
-  <div
-    class="mt-1"
-    x-data="{
-      onChange(v){
-        // reset dulu
-        this.$refs.catHidden.value = '';
-        this.$refs.subHidden.value = '';
-
-        if(!v) return;
-
-        // format value: 'cat:ID' atau 'sub:ID'
-        const parts = v.split(':');
-        const type = parts[0];
-        const id   = parts[1] || '';
-
-        if(type === 'cat') this.$refs.catHidden.value = id;
-        if(type === 'sub') this.$refs.subHidden.value = id;
-      }
-    }"
-  >
+  <div class="mt-1">
     <select
+      x-ref="categorySelect"
       class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
-      @change="onChange($event.target.value)"
     >
       <option value="">Semua Kategori</option>
 
       @foreach(($tourMainCategories ?? collect()) as $cat)
-        {{-- kategori utama bisa dipilih --}}
-        <option value="cat:{{ $cat->id }}">{{ strtoupper($cat->name) }}</option>
+        <option value="cat:{{ $cat->slug }}">{{ strtoupper($cat->name) }}</option>
 
-        {{-- sub kategori tampil “ngikut” di bawahnya --}}
         @foreach(($cat->children ?? collect()) as $sub)
-          <option value="sub:{{ $sub->id }}">ㅤㅤ{{ $sub->name }}</option>
+          <option value="sub:{{ $cat->slug }}/{{ $sub->slug }}">ㅤㅤ{{ $sub->name }}</option>
         @endforeach
       @endforeach
     </select>
@@ -287,9 +303,10 @@
 </div>
 
 
+
                 <div class="md:col-span-2">
                   <label class="text-[11px] font-extrabold text-slate-600">Tanggal Berangkat</label>
-                  <input type="date" name="date"
+                  <input type="date" name="date" x-ref="date"
                     class="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
                 </div>
 
@@ -311,9 +328,10 @@
                 <span class="mt-0.5">
                   <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
                 </span>
-                <div class="text-xs text-slate-700">
-                  Pakai kata kunci yang spesifik agar hasil lebih relevan.
-                </div>
+               <span class="text-sm text-slate-600">
+  {{ $siteSettings['home_search_hint'] ?? 'Pakai kata kunci yang spesifik agar hasil lebih relevan.' }}
+</span>
+
               </div>
             </form>
           </div>
@@ -620,7 +638,8 @@
             </a>
         </div>
 
-        <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3" data-aos="fade-up" data-aos-delay="120">
+       <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-5" data-aos="fade-up" data-aos-delay="120">
+
            @forelse($packages as $package)
     @php
         $minPrice = ($package->tiers ?? collect())->min('price');

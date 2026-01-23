@@ -490,7 +490,9 @@ Route::get('/artikel', [FrontArticleController::class, 'index'])
 Route::get('/artikel/{slug}', [FrontArticleController::class, 'show'])
     ->name('article.show');
 Route::get('/', [TourController::class, 'home'])->name('home');
-Route::get('/paket-tour', [TourController::class, 'index'])->name('tours.index');
+Route::get('/paket-tour/{categorySlug?}/{subcategorySlug?}', [TourController::class, 'index'])
+    ->where(['categorySlug' => '[A-Za-z0-9\-]+', 'subcategorySlug' => '[A-Za-z0-9\-]+'])
+    ->name('tours.index');
 
 Route::get('/dokumentasi', [FrontDocumentationController::class, 'tour'])->name('docs');
 Route::get('/dokumentasi/sewa-kapal', [FrontDocumentationController::class, 'ship'])->name('docs.ship');
@@ -500,9 +502,7 @@ Route::view('/about', 'front.pages.about')->name('about');
 Route::post('/review', [ReviewController::class, 'store'])
     ->middleware('throttle:3,10')
     ->name('review.store');
-// Homepage
-Route::get('/', [TourController::class, 'home'])->name('home');
-Route::get('/paket-tour', [TourController::class, 'index'])->name('tours.index');
+
 
 // Tour detail
 Route::get('/paket/{tourPackage:slug}', [TourController::class, 'show'])

@@ -207,11 +207,16 @@
     <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
     <script> AOS.init({ once:true, duration:700, offset:80 }); </script>
 
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
-      }
-    </script>
+    @if(app()->environment('production'))
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js");
+      });
+    }
+  </script>
+@endif
+
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>

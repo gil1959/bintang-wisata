@@ -131,7 +131,42 @@
 {{-- ================= FILTER BAR ================= --}}
 <section class="max-w-7xl mx-auto px-4">
     <div class="card p-5 -mt-8 relative z-10" data-aos="fade-up" data-aos-delay="100">
-        <form method="GET" action="{{ route('tours.index') }}" class="grid gap-4 md:grid-cols-12 items-end">
+        <form method="GET" action="{{ route('tours.index') }}" class="grid gap-4 md:grid-cols-12 items-end"
+              x-data="{
+                submit(){
+                  const base = '{{ url('/paket-tour') }}';
+                  const raw = (this.$refs.categorySelect?.value || '').trim();
+
+                  let path = base;
+
+                  if(raw){
+                    const parts = raw.split(':');
+                    const type = parts[0];
+                    const val  = parts[1] || '';
+
+                    if(type === 'cat' && val){
+                      path += '/' + encodeURIComponent(val);
+                    }
+
+                    if(type === 'sub' && val){
+                      const segs = val.split('/').filter(Boolean);
+                      path += '/' + segs.map(s => encodeURIComponent(s)).join('/');
+                    }
+                  }
+
+                  const params = new URLSearchParams();
+
+                  const q = (this.$refs.q?.value || '').trim();
+                  if(q) params.set('q', q);
+
+                  const sort = (this.$refs.sort?.value || '').trim();
+                  if(sort) params.set('sort', sort);
+
+                  const qs = params.toString();
+                  window.location.href = qs ? (path + '?' + qs) : path;
+                }
+              }"
+              @submit.prevent="submit()">
 
             {{-- SEARCH --}}
             <div class="md:col-span-5">
@@ -140,6 +175,7 @@
                     <input
                         type="text"
                         name="q"
+                        
                         value="{{ request('q') }}"
                         placeholder="Contoh: Bali, Lombok, Jepang..."
                         class="w-full rounded-xl border-slate-200 pl-11"
@@ -151,47 +187,39 @@
             </div>
 
            {{-- CATEGORY --}}
-<div class="md:col-span-3"
-  x-data="{
-    onChange(v){
-      // reset dulu
-      this.$refs.catHidden.value = '';
-      this.$refs.subHidden.value = '';
 
-      if(!v) return;
-
-      const parts = v.split(':');
-      const type = parts[0];
-      const id   = parts[1] || '';
-
-      if(type === 'cat') this.$refs.catHidden.value = id;
-      if(type === 'sub') this.$refs.subHidden.value = id;
-    }
-  }"
->
+<div class="md:col-span-3">
   <label class="text-[11px] font-extrabold text-slate-600">Kategori</label>
-
-  {{-- hidden field yang tetap dipakai backend lu --}}
-  <input type="hidden" name="category" x-ref="catHidden" value="">
-  <input type="hidden" name="subcategory" x-ref="subHidden" value="">
 
   <div class="mt-1">
     <select
+      x-ref="categorySelect"
       class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white"
-      @change="onChange($event.target.value)"
     >
       <option value="">Semua Kategori</option>
 
       @foreach(($tourMainCategories ?? collect()) as $cat)
-        <option value="cat:{{ $cat->id }}">{{ strtoupper($cat->name) }}</option>
+  <option
+    value="cat:{{ $cat->slug }}"
+    {{ (($activeCategory && $activeCategory->id == $cat->id) && !$activeSubcategory) ? 'selected' : '' }}
+  >
+    {{ strtoupper($cat->name) }}
+  </option>
 
-        @foreach(($cat->children ?? collect()) as $sub)
-          <option value="sub:{{ $sub->id }}">ㅤㅤ{{ $sub->name }}</option>
-        @endforeach
-      @endforeach
+  @foreach(($cat->children ?? collect()) as $sub)
+    <option
+      value="sub:{{ $cat->slug }}/{{ $sub->slug }}"
+      {{ ($activeSubcategory && $activeSubcategory->id == $sub->id) ? 'selected' : '' }}
+    >
+      ㅤㅤ{{ $sub->name }}
+    </option>
+  @endforeach
+@endforeach
+
     </select>
   </div>
 </div>
+
 
 
 
@@ -200,6 +228,7 @@
                 <label class="block text-sm font-extrabold text-slate-700 mb-2">Urutkan</label>
                 <select
                     name="sort"
+                     
                     class="w-full rounded-xl border-slate-200"
                 >
                     <option value="title_asc" @selected(request('sort','title_asc') === 'title_asc')>Nama (A-Z)</option>
@@ -232,20 +261,24 @@
                     Kata kunci: <span class="font-extrabold">{{ request('q') }}</span>
                 </span>
             @endif
+@if($activeCategory)
+    <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1">
+        <i data-lucide="tag" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
+        Kategori: <span class="font-extrabold">{{ $activeCategory->name }}</span>
+    </span>
+@endif
 
-            @if(request('category'))
-                @php
-                    $activeCat = $categories->firstWhere('id', (int) request('category'));
-                @endphp
-                <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1">
-                    <i data-lucide="tag" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
-                    Kategori: <span class="font-extrabold">{{ $activeCat?->name ?? '—' }}</span>
-                </span>
-            @endif
+@if($activeSubcategory)
+    <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 border border-slate-200 px-3 py-1">
+        <i data-lucide="tag" class="w-3.5 h-3.5" style="color:#0194F3;"></i>
+        Sub Kategori: <span class="font-extrabold">{{ $activeSubcategory->name }}</span>
+    </span>
+@endif
 
-            @if(!request('q') && !request('category'))
-                <span class="text-slate-500">Tidak ada</span>
-            @endif
+@if(!request('q') && !$activeCategory && !$activeSubcategory)
+    <span class="text-slate-500">Tidak ada</span>
+@endif
+
         </div>
     </div>
 </section>
