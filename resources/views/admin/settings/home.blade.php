@@ -255,6 +255,37 @@
             </div>
         </div>
 
+        {{-- ================= HOME: Banner Titles ================= --}}
+<div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+    <div class="text-lg font-extrabold text-slate-900">Banner di Home</div>
+    <p class="mt-1 text-sm text-slate-600">Mengatur judul teks di section banner Discount & Missions.</p>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <div>
+            <label class="text-sm font-bold text-slate-700">Judul Banner Discount</label>
+            <input
+                type="text"
+                name="home_discount_banner_title"
+                value="{{ old('home_discount_banner_title', $siteSettings['home_discount_banner_title'] ?? '') }}"
+                class="mt-1 w-full rounded-xl border-slate-200"
+                placeholder="Discount up to 50% + instant cashback"
+            >
+        </div>
+
+        <div>
+            <label class="text-sm font-bold text-slate-700">Judul Banner Missions</label>
+            <input
+                type="text"
+                name="home_mission_banner_title"
+                value="{{ old('home_mission_banner_title', $siteSettings['home_mission_banner_title'] ?? '') }}"
+                class="mt-1 w-full rounded-xl border-slate-200"
+                placeholder="Earn up to IDR 850K from missions"
+            >
+        </div>
+    </div>
+</div>
+
+
         <div class="mt-6 flex justify-end">
             <button type="submit" class="btn btn-primary">
                 <i data-lucide="save" class="w-4 h-4"></i>

@@ -142,7 +142,7 @@
   >
     {{-- TABS BAR --}}
     {{-- TABS BAR (NO SCROLLBAR + ARROWS) --}}
-<div class="absolute -top-7 left-1/2 -translate-x-1/2 w-[min(100%,980px)] px-3">
+<div class="absolute left-1/2 -translate-x-1/2 w-[min(100%,980px)] px-3" style="top:-28px;">
   <div class="relative rounded-full bg-white/95 backdrop-blur border border-white/70 shadow-[0_16px_40px_rgba(2,6,23,0.18)] px-3 py-2">
 
     {{-- Left Arrow --}}
@@ -216,7 +216,7 @@
 
 
     {{-- PANEL CARD: CUMA UNTUK TO DO --}}
-    <div class="pt-[43px]">
+    <div class="pt-[45px]">
       <div class="rounded-[28px] bg-white/95 backdrop-blur border border-white/70 shadow-[0_18px_60px_rgba(2,6,23,0.22)] overflow-hidden">
        <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
   <div class="text-base font-extrabold text-slate-900">

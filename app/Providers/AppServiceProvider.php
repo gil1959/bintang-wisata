@@ -217,6 +217,9 @@ class AppServiceProvider extends ServiceProvider
                 'rentcar_note3_desc',
                 'rentcar_note4_title',
                 'rentcar_note4_desc',
+                'home_discount_banner_title',
+'home_mission_banner_title',
+
 // HOME: logos header
 'home_logos_badge',
 'home_logos_title',
@@ -331,6 +334,9 @@ if (count($homeTabs) === 0) {
 'ship_hero_badge' => $settings['ship_hero_badge'] ?? 'Sewa Kapal',
 'ship_hero_title' => $settings['ship_hero_title'] ?? 'Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda',
 'ship_hero_desc'  => $settings['ship_hero_desc'] ?? 'Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia.',
+// HOME: banner titles
+'home_discount_banner_title' => $settings['home_discount_banner_title'] ?? 'Discount up to 50% + instant cashback',
+'home_mission_banner_title'  => $settings['home_mission_banner_title'] ?? 'Earn up to IDR 850K from missions',
 
 'ship_tips_title' => $settings['ship_tips_title'] ?? 'Tips Cepat',
 'ship_tips_desc'  => $settings['ship_tips_desc'] ?? 'Cek detail paket untuk harga weekday/weekend & fitur yang tersedia.',

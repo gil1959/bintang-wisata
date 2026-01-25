@@ -103,6 +103,9 @@ if (count($customIds) > 0) {
 'home_articles_custom_ids' => ['nullable', 'string'],
  'tabs.*.icon_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
     'tabs.*.icon_image_existing' => ['nullable', 'string', 'max:255'],
+    'home_discount_banner_title' => ['nullable', 'string', 'max:120'],
+'home_mission_banner_title'  => ['nullable', 'string', 'max:120'],
+
 
         ]);
 
@@ -177,6 +180,12 @@ Setting::updateOrCreate(
     ['key' => 'home_articles_custom_ids'],
     ['value' => json_encode($ids, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)]
 );
+$discountTitle = trim((string)($validated['home_discount_banner_title'] ?? ''));
+$missionTitle  = trim((string)($validated['home_mission_banner_title'] ?? ''));
+
+Setting::updateOrCreate(['key' => 'home_discount_banner_title'], ['value' => $discountTitle]);
+Setting::updateOrCreate(['key' => 'home_mission_banner_title'],  ['value' => $missionTitle]);
+
         return back()->with('success', 'Home tabs berhasil disimpan.');
     }
 

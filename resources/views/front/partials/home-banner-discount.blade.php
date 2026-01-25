@@ -10,8 +10,9 @@
 
     <div class="flex items-center justify-between gap-4">
       <div class="text-xl lg:text-2xl font-extrabold text-slate-900">
-        Discount up to 50% + instant cashback
-      </div>
+  {{ $siteSettings['home_discount_banner_title'] ?? 'Discount up to 50% + instant cashback' }}
+</div>
+
 
       <div class="hidden md:flex items-center gap-2">
         <button type="button"
