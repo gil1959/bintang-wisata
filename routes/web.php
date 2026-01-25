@@ -238,6 +238,12 @@ Route::post('settings/home', [HomeSettingController::class, 'update'])
 
         Route::get('orders/rekap/print', [AdminOrderController::class, 'printRekap'])
             ->name('orders.rekap.print')->middleware('permission:admin.dashboard.view');
+            Route::get('orders/rekap/print-paid', [AdminOrderController::class, 'printRekapPaid'])
+    ->name('orders.rekap.printPaid')->middleware('permission:admin.dashboard.view');
+
+Route::post('orders/rekap/print-selected', [AdminOrderController::class, 'printRekapSelected'])
+    ->name('orders.rekap.printSelected')->middleware('permission:admin.dashboard.view');
+
 Route::get('orders/{order}/invoice/print', [AdminOrderController::class, 'printInvoice'])
     ->name('orders.invoice.print')->middleware('permission:admin.dashboard.view');
 

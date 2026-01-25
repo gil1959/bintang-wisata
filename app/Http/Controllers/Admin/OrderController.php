@@ -247,6 +247,65 @@ class OrderController extends Controller
         return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
     }
 
+    public function printRekapPaid(Request $request)
+{
+    $request->validate([
+        'from' => 'required|date',
+        'to'   => 'required|date|after_or_equal:from',
+    ]);
+
+    $from = $request->from;
+    $to   = $request->to;
+
+    $orders = Order::query()
+        ->whereBetween('created_at', [
+            $from . ' 00:00:00',
+            $to . ' 23:59:59',
+        ])
+        ->where('payment_status', 'paid')
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    $summary = [
+        'total_orders' => $orders->count(),
+        'total_amount' => $orders->sum('final_price'),
+    ];
+
+    return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
+}
+
+public function printRekapSelected(Request $request)
+{
+    $request->validate([
+        'from' => 'required|date',
+        'to'   => 'required|date|after_or_equal:from',
+        'order_ids'   => 'required|array|min:1',
+        'order_ids.*' => 'integer|exists:orders,id',
+    ]);
+
+    $from = $request->from;
+    $to   = $request->to;
+    $ids  = $request->order_ids;
+
+    $orders = Order::query()
+    ->whereBetween('created_at', [
+        $from . ' 00:00:00',
+        $to . ' 23:59:59',
+    ])
+    ->whereIn('id', $ids)
+    ->orderBy('created_at', 'asc')
+    ->get();
+
+
+    $summary = [
+        'total_orders' => $orders->count(),
+        'total_amount' => $orders->sum('final_price'),
+    ];
+
+    return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
+}
+
+
     public function printInvoice(Order $order)
 {
     $order->load('payments');
