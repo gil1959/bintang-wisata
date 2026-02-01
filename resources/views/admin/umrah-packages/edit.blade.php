@@ -44,5 +44,22 @@
     </form>
 
 </div>
+
+{{-- Hidden form khusus delete photo (biar gak nested form) --}}
+<form id="deletePhotoForm" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+    window.__bwDeletePhoto = function(actionUrl) {
+        if (!confirm('Hapus foto ini?')) return;
+        const f = document.getElementById('deletePhotoForm');
+        f.action = actionUrl;
+        f.submit();
+    }
+</script>
+
 @include('admin.partials.wysiwyg')
 @endsection
+

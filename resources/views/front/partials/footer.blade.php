@@ -124,11 +124,22 @@
 
     </div>
 
-    {{-- Floating WhatsApp --}}
-    <a href="https://wa.me/{{ $footerWhatsapp }}"
-       target="_blank"
-       class="fixed bottom-6 right-6 h-14 w-14 rounded-full grid place-items-center shadow-lg"
-       style="background: #0194F3;">
-        <span class="text-white text-xl">☎</span>
-    </a>
+{{-- Floating WhatsApp --}}
+<a href="https://wa.me/{{ $footerWhatsapp }}"
+   target="_blank"
+   rel="noopener"
+   class="fixed right-6 h-14 w-14 rounded-full grid place-items-center shadow-lg z-[60]
+          bottom-[calc(7.5rem+env(safe-area-inset-bottom))] lg:bottom-6"
+   style="background: #0194F3;">
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 32 32"
+     width="24"
+     height="24"
+     fill="white"
+     aria-hidden="true">
+  <path d="M16.02 3C9.4 3 4 8.38 4 14.98c0 2.64.87 5.2 2.47 7.28L4 29l6.98-2.3a12.03 12.03 0 0 0 5.04 1.08h.01c6.62 0 12.02-5.38 12.02-11.98C28.05 8.38 22.64 3 16.02 3zm0 21.9h-.01a9.92 9.92 0 0 1-4.74-1.2l-.34-.18-4.14 1.36 1.38-4.03-.22-.36a9.9 9.9 0 0 1-1.54-5.33c0-5.45 4.47-9.9 9.96-9.9 5.49 0 9.96 4.45 9.96 9.9 0 5.45-4.47 9.9-9.96 9.9zm5.44-7.41c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.66.15-.19.3-.76.97-.93 1.17-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.89-.8-1.49-1.78-1.67-2.08-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.66-1.59-.9-2.18-.24-.58-.48-.5-.66-.51l-.56-.01c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.52 0 1.49 1.08 2.93 1.23 3.13.15.2 2.13 3.25 5.16 4.56.72.31 1.29.5 1.73.64.73.23 1.4.2 1.93.12.59-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.27-.2-.57-.35z"/>
+</svg>
+
+</a>
+
 </footer>

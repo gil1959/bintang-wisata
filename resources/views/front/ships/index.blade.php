@@ -243,9 +243,9 @@
         {{-- label kanan --}}
         @if(!empty($p->label))
             <div class="absolute top-3 right-3">
-                <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
-                    {{ $p->label }}
-                </span>
+                <span class="inline-flex items-center rounded-full bg-red-600 border border-red-600 px-3 py-1 text-xs font-extrabold text-white shadow">
+            {{ $p->label }}
+        </span>
             </div>
         @endif
 

@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Models\PopupWidget;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -587,6 +589,17 @@ if (count($homeTabs) === 0) {
                 'docs_hint' => $settings['docs_hint'] ?? 'Gunakan tab untuk menavigasi dokumentasi. Konten tetap dimuat lengkap.',
 
             ]);
+
+                  $popupWidget = null;
+            try {
+                if (Schema::hasTable('popup_widgets')) {
+                    $popupWidget = PopupWidget::enabled()->first();
+                }
+            } catch (\Throwable $e) {
+                $popupWidget = null;
+            }
+
+            $view->with('popupWidget', $popupWidget);
         });
     }
 }

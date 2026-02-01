@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\BankAccountController;
 use App\Http\Controllers\Admin\TourReviewController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\PopupWidgetController;
+
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RentCarPackageController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -224,6 +226,14 @@ Route::get('settings/home/articles/search', [HomeSettingController::class, 'sear
 Route::post('settings/home', [HomeSettingController::class, 'update'])
     ->name('settings.home.save')
     ->middleware('permission:admin.dashboard.view');
+
+     Route::get('settings/popup', [PopupWidgetController::class, 'edit'])
+            ->name('settings.popup.edit')
+            ->middleware('permission:admin.dashboard.view');
+
+        Route::post('settings/popup', [PopupWidgetController::class, 'update'])
+            ->name('settings.popup.save')
+            ->middleware('permission:admin.dashboard.view');
 
         // Orders (sistem baru)
         Route::get('orders/approved', [AdminOrderController::class, 'approved'])

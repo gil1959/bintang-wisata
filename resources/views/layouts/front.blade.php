@@ -200,6 +200,8 @@
 {{-- ✅ Mobile Bottom Nav --}}
 @include('front.partials.mobile-bottom-nav')
 
+@include('shared.popup-widget')
+
     </div>
 
     @yield('scripts')

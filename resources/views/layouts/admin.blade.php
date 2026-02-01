@@ -187,6 +187,7 @@
     'children' => [
         ['label'=>'General','route'=>'admin.settings.general','match'=>'admin.settings.general*','icon'=>'sliders','perm'=>'admin.settings.manage'],
         ['label'=>'Home Setting','route'=>'admin.settings.home','match'=>'admin.settings.home*','icon'=>'layout-grid','perm'=>'admin.settings.manage'],
+        ['label'=>'Popup Widget','route'=>'admin.settings.popup.edit','match'=>'admin.settings.popup.*','icon'=>'message-square','perm'=>'admin.settings.manage'],
     ],
 ],
 
