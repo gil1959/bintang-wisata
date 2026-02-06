@@ -13,6 +13,11 @@
                 Jenis: <span class="text-slate-900">{{ $account->saving_type === 'haji_furoda' ? 'Haji Furoda' : 'Umroh Reguler' }}</span>
             </div>
         </div>
+<a href="{{ route('admin.tabungan-umrah.accounts.statement.print', $account) }}" target="_blank"
+   class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#0194F3] text-white font-extrabold hover:opacity-90">
+    <i data-lucide="printer" class="w-4 h-4"></i>
+    Cetak Rekening Koran
+</a>
 
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.tabungan-umrah.accounts.pending') }}"
@@ -119,7 +124,7 @@
             @if($account->status === 'verified')
                 <form method="POST" action="{{ route('admin.tabungan-umrah.accounts.suspend', $account->id) }}" class="mt-5">
                     @csrf
-                    <button class="w-full inline-flex items-center justify-center gap-2 rounded-2xl py-3 font-extrabold text-white bg-slate-800 hover:bg-slate-900">
+                    <button class="w-full inline-flex items-center justify-center gap-2 rounded-2xl py-3 font-extrabold text-white bg-[#ff0404] hover:bg-[#500202]">
                         <i data-lucide="pause-circle" class="w-4 h-4"></i>
                         Suspend Akun
                     </button>

@@ -131,6 +131,32 @@
             </div>
         </div>
 
+        {{-- Cetak rekening koran --}}
+<div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition relative overflow-hidden">
+    <div class="absolute -top-14 -right-14 w-40 h-40 rounded-full blur-2xl"
+         style="background: radial-gradient(circle, rgba(15,23,42,0.10) 0%, transparent 65%);"></div>
+
+    <div class="flex items-start justify-between relative">
+        <div class="min-w-0">
+            <div class="text-xs font-extrabold text-slate-500">Dokumen</div>
+            <div class="mt-2 text-sm font-extrabold text-slate-900">Rekening Koran</div>
+            <div class="mt-1 text-xs text-slate-500">Cetak mutasi tabungan (A4)</div>
+
+            <div class="mt-4">
+                <a href="{{ route('user.tabungan-umrah.statement.print') }}" target="_blank"
+                   class="text-xs font-extrabold hover:underline decoration-slate-900 text-slate-900">
+                    Cetak sekarang →
+                </a>
+            </div>
+        </div>
+
+        <div class="icon-badge">
+            <i data-lucide="printer" class="w-6 h-6"></i>
+        </div>
+    </div>
+</div>
+
+
     </div>
 
     {{-- Riwayat transaksi (ikut pattern tabel dashboard) --}}

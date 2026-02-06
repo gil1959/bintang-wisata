@@ -83,6 +83,8 @@ Route::prefix('bw-admin')
 
         Route::get('/tabungan-umrah/accounts/{account}', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'showAccount'])
             ->name('tabungan-umrah.accounts.show')->middleware('permission:admin.dashboard.view');
+        Route::get('/tabungan-umrah/accounts/{account}/statement/print', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'printStatement'])
+    ->name('tabungan-umrah.accounts.statement.print')->middleware('permission:admin.dashboard.view');
 
         Route::post('/tabungan-umrah/accounts/{account}/verify', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'verifyAccount'])
             ->name('tabungan-umrah.accounts.verify')->middleware('permission:admin.dashboard.view');
@@ -367,6 +369,9 @@ Route::post('/withdrawals', [\App\Http\Controllers\User\AffiliateController::cla
 
         Route::get('/tabungan-umrah/setoran/{deposit}', [\App\Http\Controllers\User\TabunganUmrahController::class, 'showDeposit'])
             ->name('tabungan-umrah.deposits.show');
+        Route::get('/tabungan-umrah/statement/print', [\App\Http\Controllers\User\TabunganUmrahController::class, 'printStatement'])
+    ->name('tabungan-umrah.statement.print');
+
 
         Route::prefix('affiliate')
     ->name('affiliate.')

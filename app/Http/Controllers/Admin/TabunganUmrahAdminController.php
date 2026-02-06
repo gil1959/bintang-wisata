@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 
 class TabunganUmrahAdminController extends Controller
@@ -175,6 +176,74 @@ class TabunganUmrahAdminController extends Controller
     $account->load('user');
 
     return view('admin.tabungan-umrah.account-edit', compact('account'));
+}
+public function printStatement(TabunganUmrahAccount $account, Request $request)
+{
+    $from = Carbon::parse($request->query('from', now()->startOfMonth()->toDateString()))->startOfDay();
+    $to   = Carbon::parse($request->query('to', now()->endOfMonth()->toDateString()))->endOfDay();
+
+    if ($from->gt($to)) {
+        abort(400, 'Range tanggal tidak valid.');
+    }
+
+    $openingBalance = (int) TabunganUmrahDeposit::where('account_id', $account->id)
+        ->where('status', 'approved')
+        ->whereNotNull('verified_at')
+        ->where('verified_at', '<', $from)
+        ->sum('amount');
+
+    $deposits = TabunganUmrahDeposit::with(['paymentMethod', 'verifier', 'user'])
+        ->where('account_id', $account->id)
+        ->whereBetween('submitted_at', [$from, $to])
+        ->orderBy('submitted_at', 'asc')
+        ->get();
+
+    $running = $openingBalance;
+
+    $rows = $deposits->map(function ($d) use (&$running) {
+        $credit = 0;
+        $debit = 0;
+
+        if ($d->status === 'approved') {
+            $credit = (int) $d->amount;
+            $running += $credit;
+        }
+
+        $method = optional($d->paymentMethod)->name ?: '—';
+        $desc = 'Setoran Tabungan Umrah ('.$method.')';
+        if (!empty($d->note)) {
+            $desc .= ' - '.$d->note;
+        }
+
+        return [
+            'date' => optional($d->submitted_at)->format('d/m/Y H:i'),
+            'desc' => $desc,
+            'status' => $d->status,
+            'debit' => $debit,
+            'credit' => $credit,
+            'balance' => $running,
+            'ref' => 'DEP-'.$d->id,
+        ];
+    });
+
+    $totals = [
+        'total_credit_approved' => (int) $deposits->where('status', 'approved')->sum('amount'),
+        'closing_balance' => (int) $running,
+    ];
+
+    $statementNo = 'STMT-UMR-'.$account->id.'-'.now()->format('YmdHis');
+
+    return view('shared.tabungan-umrah.statement-print', [
+        'account' => $account,
+        'from' => $from,
+        'to' => $to,
+        'openingBalance' => $openingBalance,
+        'rows' => $rows,
+        'totals' => $totals,
+        'statementNo' => $statementNo,
+        'printedBy' => auth()->user(),
+        'contextLabel' => 'Admin',
+    ]);
 }
 
 public function updateAccount(Request $request, TabunganUmrahAccount $account)
