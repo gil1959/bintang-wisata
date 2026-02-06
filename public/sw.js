@@ -21,7 +21,7 @@ const PRECACHE_URLS = [
     "/",
     "/dokumentasi",
     "/dokumentasi/sewa-kapal",
-  "/dokumentasi/umrah",
+    "/dokumentasi/umrah",
     "/about",
     "/artikel",
     "/paket-tour",
@@ -32,7 +32,8 @@ const PRECACHE_URLS = [
 // basic helpers
 const isNavigationRequest = (req) => req.mode === "navigate";
 const isHTML = (req) => req.headers.get("accept")?.includes("text/html");
-const isCSSJS = (req) => ["style", "script", "worker"].includes(req.destination);
+const isCSSJS = (req) =>
+    ["style", "script", "worker"].includes(req.destination);
 const isImage = (req) => req.destination === "image";
 
 // cache size limiter
@@ -40,7 +41,9 @@ async function trimCache(cacheName, maxItems) {
     const cache = await caches.open(cacheName);
     const keys = await cache.keys();
     if (keys.length <= maxItems) return;
-    const deletions = keys.slice(0, keys.length - maxItems).map((k) => cache.delete(k));
+    const deletions = keys
+        .slice(0, keys.length - maxItems)
+        .map((k) => cache.delete(k));
     await Promise.all(deletions);
 }
 
@@ -107,10 +110,12 @@ self.addEventListener("install", (event) => {
 
             // split: keep static + pages separated
             await staticCache.addAll(["/manifest.webmanifest"]);
-            await pageCache.addAll(PRECACHE_URLS.filter((u) => u !== "/manifest.webmanifest"));
+            await pageCache.addAll(
+                PRECACHE_URLS.filter((u) => u !== "/manifest.webmanifest"),
+            );
 
             self.skipWaiting();
-        })()
+        })(),
     );
 });
 
@@ -122,9 +127,14 @@ self.addEventListener("activate", (event) => {
             const keys = await caches.keys();
             await Promise.all(
                 keys.map((key) => {
-                    const keep = [CACHE_STATIC, CACHE_PAGES, CACHE_ASSETS, CACHE_IMAGES].includes(key);
+                    const keep = [
+                        CACHE_STATIC,
+                        CACHE_PAGES,
+                        CACHE_ASSETS,
+                        CACHE_IMAGES,
+                    ].includes(key);
                     return keep ? Promise.resolve() : caches.delete(key);
-                })
+                }),
             );
 
             // navigation preload
@@ -133,7 +143,7 @@ self.addEventListener("activate", (event) => {
             }
 
             self.clients.claim();
-        })()
+        })(),
     );
 });
 
@@ -166,7 +176,10 @@ self.addEventListener("fetch", (event) => {
             }
 
             // 3) IMAGES: Cache First + expiration
-            if (isImage(request) || request.url.match(/\.(png|jpg|jpeg|webp|gif|svg)$/i)) {
+            if (
+                isImage(request) ||
+                request.url.match(/\.(png|jpg|jpeg|webp|gif|svg)$/i)
+            ) {
                 const res = await cacheFirst(request, CACHE_IMAGES);
                 // keep images cache from growing forever
                 trimCache(CACHE_IMAGES, 80);
@@ -180,7 +193,7 @@ self.addEventListener("fetch", (event) => {
             // 4) Other requests: try SWR, fallback network
             const res = await staleWhileRevalidate(request, CACHE_ASSETS);
             return res || fetch(request);
-        })()
+        })(),
     );
 });
 
@@ -189,4 +202,43 @@ self.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
     }
+});
+
+self.addEventListener("push", function (event) {
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch (e) {}
+
+    const title = data.title || "Notifikasi";
+    const options = {
+        body: data.body || "",
+        icon: "/favicon.ico",
+        badge: "/favicon.ico",
+        data: { url: data.url || "/" },
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", function (event) {
+    event.notification.close();
+    const url =
+        event.notification &&
+        event.notification.data &&
+        event.notification.data.url
+            ? event.notification.data.url
+            : "/";
+
+    event.waitUntil(
+        clients
+            .matchAll({ type: "window", includeUncontrolled: true })
+            .then(function (clientList) {
+                for (const client of clientList) {
+                    if (client.url === url && "focus" in client)
+                        return client.focus();
+                }
+                if (clients.openWindow) return clients.openWindow(url);
+            }),
+    );
 });

@@ -46,6 +46,7 @@ return [
 
     // Users
     'admin.users.manage' => ['label' => 'Manajemen User', 'matches' => ['admin.users.*']],
+    'admin.notifications.manage' => ['label' => 'Kirim Notifikasi', 'matches' => ['admin.notifications.*']],
 
     // Affiliate (prefix admin.affiliate.* dan admin.users.affiliate.*)
     'admin.affiliate.requests.manage'     => ['label' => 'Affiliate Requests', 'matches' => ['admin.affiliate.requests.*']],

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\TourPackage;
 use App\Models\ShipPackage;
+use App\Models\UmrahPackage;
+use App\Models\MicePackage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -15,95 +17,139 @@ class HomePromoToursController extends Controller
     {
         $settings = Setting::pluck('value', 'key');
 
+        // ===== TOUR =====
         $promoCandidates = TourPackage::query()
             ->where('is_active', true)
             ->where('label', 'PROMO')
             ->orderBy('title')
             ->get(['id', 'title']);
 
-        // parse selected ids
-        $selectedIdsRaw = $settings['home_promo_custom_ids'] ?? '[]';
-        $selectedIds = is_array($selectedIdsRaw) ? $selectedIdsRaw : json_decode($selectedIdsRaw, true);
+        $selectedIds = json_decode($settings['home_promo_custom_ids'] ?? '[]', true);
         $selectedIds = is_array($selectedIds) ? array_values(array_unique(array_map('intval', $selectedIds))) : [];
-$promoShipCandidates = ShipPackage::query()
-    ->where('is_active', true)
-    ->where('label', 'PROMO')
-    ->orderBy('title')
-    ->get(['id', 'title']);
 
-// parse selected ship ids
-$selectedShipIdsRaw = $settings['home_ship_promo_custom_ids'] ?? '[]';
-$selectedShipIds = is_array($selectedShipIdsRaw) ? $selectedShipIdsRaw : json_decode($selectedShipIdsRaw, true);
-$selectedShipIds = is_array($selectedShipIds) ? array_values(array_unique(array_map('intval', $selectedShipIds))) : [];
+        // ===== SHIP =====
+        $promoShipCandidates = ShipPackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->orderBy('title')
+            ->get(['id', 'title']);
 
-        return view('admin.home-sections.promo-tours', [
-    'settings' => $settings,
-    'promoCandidates' => $promoCandidates,
-    'selectedIds' => $selectedIds,
+        $selectedShipIds = json_decode($settings['home_ship_promo_custom_ids'] ?? '[]', true);
+        $selectedShipIds = is_array($selectedShipIds) ? array_values(array_unique(array_map('intval', $selectedShipIds))) : [];
 
-    // NEW: ships
-    'promoShipCandidates' => $promoShipCandidates,
-    'selectedShipIds' => $selectedShipIds,
-]);
+        // ===== UMRAH (NEW) =====
+        $promoUmrahCandidates = UmrahPackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->orderBy('title')
+            ->get(['id', 'title']);
 
+        $selectedUmrahIds = json_decode($settings['home_umrah_promo_custom_ids'] ?? '[]', true);
+        $selectedUmrahIds = is_array($selectedUmrahIds) ? array_values(array_unique(array_map('intval', $selectedUmrahIds))) : [];
+
+        // ===== MICE (NEW) =====
+        $promoMiceCandidates = MicePackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        $selectedMiceIds = json_decode($settings['home_mice_promo_custom_ids'] ?? '[]', true);
+        $selectedMiceIds = is_array($selectedMiceIds) ? array_values(array_unique(array_map('intval', $selectedMiceIds))) : [];
+
+        return view('admin.home-sections.promo-tours', compact(
+            'settings',
+            'promoCandidates',
+            'selectedIds',
+            'promoShipCandidates',
+            'selectedShipIds',
+            'promoUmrahCandidates',
+            'selectedUmrahIds',
+            'promoMiceCandidates',
+            'selectedMiceIds'
+        ));
     }
 
     public function update(Request $request)
     {
         $data = $request->validate([
+            // ===== TOUR =====
             'home_promo_enabled' => ['nullable', 'boolean'],
-            'home_promo_badge'   => ['nullable', 'string', 'max:30'],
-            'home_promo_title'   => ['nullable', 'string', 'max:140'],
-            'home_promo_desc'    => ['nullable', 'string', 'max:240'],
-            'home_promo_mode'    => ['nullable', Rule::in(['auto', 'custom'])],
-
-            // FIX: jangan dibatasi 5, karena 5 itu hanya untuk tampilan per layar (CSS), bukan jumlah data
+            'home_promo_badge' => ['nullable', 'string', 'max:30'],
+            'home_promo_title' => ['nullable', 'string', 'max:140'],
+            'home_promo_desc' => ['nullable', 'string', 'max:240'],
+            'home_promo_mode' => ['nullable', Rule::in(['auto', 'custom'])],
             'home_promo_custom_ids' => ['nullable', 'array'],
             'home_promo_custom_ids.*' => ['integer', 'exists:tour_packages,id'],
-              'home_ship_promo_enabled' => ['nullable', 'boolean'],
-    'home_ship_promo_badge'   => ['nullable', 'string', 'max:30'],
-    'home_ship_promo_title'   => ['nullable', 'string', 'max:140'],
-    'home_ship_promo_desc'    => ['nullable', 'string', 'max:240'],
-    'home_ship_promo_mode'    => ['nullable', Rule::in(['auto', 'custom'])],
-    'home_ship_promo_custom_ids' => ['nullable', 'array'],
-    'home_ship_promo_custom_ids.*' => ['integer', 'exists:ship_packages,id'],
+
+            // ===== SHIP =====
+            'home_ship_promo_enabled' => ['nullable', 'boolean'],
+            'home_ship_promo_badge' => ['nullable', 'string', 'max:30'],
+            'home_ship_promo_title' => ['nullable', 'string', 'max:140'],
+            'home_ship_promo_desc' => ['nullable', 'string', 'max:240'],
+            'home_ship_promo_mode' => ['nullable', Rule::in(['auto', 'custom'])],
+            'home_ship_promo_custom_ids' => ['nullable', 'array'],
+            'home_ship_promo_custom_ids.*' => ['integer', 'exists:ship_packages,id'],
+
+            // ===== UMRAH (NEW) =====
+            'home_umrah_promo_enabled' => ['nullable', 'boolean'],
+            'home_umrah_promo_badge' => ['nullable', 'string', 'max:30'],
+            'home_umrah_promo_title' => ['nullable', 'string', 'max:140'],
+            'home_umrah_promo_desc' => ['nullable', 'string', 'max:240'],
+            'home_umrah_promo_mode' => ['nullable', Rule::in(['auto', 'custom'])],
+            'home_umrah_promo_custom_ids' => ['nullable', 'array'],
+            'home_umrah_promo_custom_ids.*' => ['integer', 'exists:umrah_packages,id'],
+
+            // ===== MICE (NEW) =====
+            'home_mice_promo_enabled' => ['nullable', 'boolean'],
+            'home_mice_promo_badge' => ['nullable', 'string', 'max:30'],
+            'home_mice_promo_title' => ['nullable', 'string', 'max:140'],
+            'home_mice_promo_desc' => ['nullable', 'string', 'max:240'],
+            'home_mice_promo_mode' => ['nullable', Rule::in(['auto', 'custom'])],
+            'home_mice_promo_custom_ids' => ['nullable', 'array'],
+            'home_mice_promo_custom_ids.*' => ['integer', 'exists:mice_packages,id'],
         ]);
 
-        Setting::updateOrCreate(
-            ['key' => 'home_promo_enabled'],
-            ['value' => $request->boolean('home_promo_enabled') ? '1' : '0']
-        );
+        // helper
+        $set = function (string $key, string $value) {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        };
 
-        Setting::updateOrCreate(['key' => 'home_promo_badge'], ['value' => $data['home_promo_badge'] ?? 'PROMO']);
-        Setting::updateOrCreate(['key' => 'home_promo_title'], ['value' => $data['home_promo_title'] ?? 'Paket Tour Promo']);
-        Setting::updateOrCreate(['key' => 'home_promo_desc'],  ['value' => $data['home_promo_desc'] ?? '']);
-        Setting::updateOrCreate(['key' => 'home_promo_mode'],  ['value' => $data['home_promo_mode'] ?? 'auto']);
+        // ===== TOUR =====
+        $set('home_promo_enabled', $request->boolean('home_promo_enabled') ? '1' : '0');
+        $set('home_promo_badge', $data['home_promo_badge'] ?? 'PROMO');
+        $set('home_promo_title', $data['home_promo_title'] ?? 'Paket Tour Promo');
+        $set('home_promo_desc', $data['home_promo_desc'] ?? '');
+        $set('home_promo_mode', $data['home_promo_mode'] ?? 'auto');
+        $tourIds = array_values(array_unique(array_map('intval', $data['home_promo_custom_ids'] ?? [])));
+        $set('home_promo_custom_ids', json_encode($tourIds));
 
-        $customIds = $data['home_promo_custom_ids'] ?? [];
-        $customIds = array_values(array_unique(array_map('intval', $customIds)));
+        // ===== SHIP =====
+        $set('home_ship_promo_enabled', $request->boolean('home_ship_promo_enabled') ? '1' : '0');
+        $set('home_ship_promo_badge', $data['home_ship_promo_badge'] ?? 'PROMO KAPAL');
+        $set('home_ship_promo_title', $data['home_ship_promo_title'] ?? 'Paket Sewa Kapal Promo');
+        $set('home_ship_promo_desc', $data['home_ship_promo_desc'] ?? '');
+        $set('home_ship_promo_mode', $data['home_ship_promo_mode'] ?? 'auto');
+        $shipIds = array_values(array_unique(array_map('intval', $data['home_ship_promo_custom_ids'] ?? [])));
+        $set('home_ship_promo_custom_ids', json_encode($shipIds));
 
-        Setting::updateOrCreate(
-            ['key' => 'home_promo_custom_ids'],
-            ['value' => json_encode($customIds)]
-        );
-// ===================== SAVE HOME SHIP PROMO (NEW) =====================
-Setting::updateOrCreate(
-    ['key' => 'home_ship_promo_enabled'],
-    ['value' => $request->boolean('home_ship_promo_enabled') ? '1' : '0']
-);
+        // ===== UMRAH (NEW) =====
+        $set('home_umrah_promo_enabled', $request->boolean('home_umrah_promo_enabled') ? '1' : '0');
+        $set('home_umrah_promo_badge', $data['home_umrah_promo_badge'] ?? 'PROMO UMRAH');
+        $set('home_umrah_promo_title', $data['home_umrah_promo_title'] ?? 'Paket Umrah Promo');
+        $set('home_umrah_promo_desc', $data['home_umrah_promo_desc'] ?? '');
+        $set('home_umrah_promo_mode', $data['home_umrah_promo_mode'] ?? 'auto');
+        $umrahIds = array_values(array_unique(array_map('intval', $data['home_umrah_promo_custom_ids'] ?? [])));
+        $set('home_umrah_promo_custom_ids', json_encode($umrahIds));
 
-Setting::updateOrCreate(['key' => 'home_ship_promo_badge'], ['value' => $data['home_ship_promo_badge'] ?? 'PROMO KAPAL']);
-Setting::updateOrCreate(['key' => 'home_ship_promo_title'], ['value' => $data['home_ship_promo_title'] ?? 'Paket Sewa Kapal Promo']);
-Setting::updateOrCreate(['key' => 'home_ship_promo_desc'],  ['value' => $data['home_ship_promo_desc'] ?? '']);
-Setting::updateOrCreate(['key' => 'home_ship_promo_mode'],  ['value' => $data['home_ship_promo_mode'] ?? 'auto']);
-
-$shipCustomIds = $data['home_ship_promo_custom_ids'] ?? [];
-$shipCustomIds = array_values(array_unique(array_map('intval', $shipCustomIds)));
-
-Setting::updateOrCreate(
-    ['key' => 'home_ship_promo_custom_ids'],
-    ['value' => json_encode($shipCustomIds)]
-);
+        // ===== MICE (NEW) =====
+        $set('home_mice_promo_enabled', $request->boolean('home_mice_promo_enabled') ? '1' : '0');
+        $set('home_mice_promo_badge', $data['home_mice_promo_badge'] ?? 'PROMO MICE');
+        $set('home_mice_promo_title', $data['home_mice_promo_title'] ?? 'Paket MICE Promo');
+        $set('home_mice_promo_desc', $data['home_mice_promo_desc'] ?? '');
+        $set('home_mice_promo_mode', $data['home_mice_promo_mode'] ?? 'auto');
+        $miceIds = array_values(array_unique(array_map('intval', $data['home_mice_promo_custom_ids'] ?? [])));
+        $set('home_mice_promo_custom_ids', json_encode($miceIds));
 
         return redirect()
             ->route('admin.home-sections.promo-tours.edit')

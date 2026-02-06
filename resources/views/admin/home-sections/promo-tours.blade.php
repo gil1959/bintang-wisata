@@ -252,6 +252,229 @@
     @error('home_ship_promo_custom_ids.*') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
 </div>
 
+{{-- ===================== NEW: PROMO UMRAH ===================== --}}
+<div class="md:col-span-2 mt-4">
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+        <div class="text-lg font-extrabold text-slate-900">Promo Umrah</div>
+        <div class="text-sm text-slate-600 mt-1">
+            Pastikan paket umrah yang mau tampil punya label <b>PROMO</b> dan status aktif.
+        </div>
+    </div>
+</div>
+
+<div class="md:col-span-2 flex items-center gap-3">
+    <input
+        type="checkbox"
+        name="home_umrah_promo_enabled"
+        value="1"
+        class="rounded border-slate-300"
+        {{ old('home_umrah_promo_enabled', ($settings['home_umrah_promo_enabled'] ?? '1')) == '1' ? 'checked' : '' }}
+    />
+    <div class="text-sm text-slate-900 font-semibold">Aktifkan section Promo Umrah</div>
+</div>
+
+<div>
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Badge</label>
+    <input
+        name="home_umrah_promo_badge"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        value="{{ old('home_umrah_promo_badge', $settings['home_umrah_promo_badge'] ?? 'PROMO UMRAH') }}"
+        placeholder="PROMO UMRAH"
+    />
+    @error('home_umrah_promo_badge') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div>
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Mode</label>
+    @php $umrahMode = old('home_umrah_promo_mode', $settings['home_umrah_promo_mode'] ?? 'auto'); @endphp
+    <select name="home_umrah_promo_mode" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900">
+        <option value="auto" {{ $umrahMode === 'auto' ? 'selected' : '' }}>Auto (ambil label PROMO)</option>
+        <option value="custom" {{ $umrahMode === 'custom' ? 'selected' : '' }}>Custom (pilih paket)</option>
+    </select>
+    @error('home_umrah_promo_mode') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Judul</label>
+    <input
+        name="home_umrah_promo_title"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        value="{{ old('home_umrah_promo_title', $settings['home_umrah_promo_title'] ?? 'Paket Umrah Promo') }}"
+        placeholder="Paket Umrah Promo"
+    />
+    @error('home_umrah_promo_title') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Deskripsi</label>
+    <textarea
+        name="home_umrah_promo_desc"
+        rows="3"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        placeholder="Tampilkan promo terbaik minggu ini..."
+    >{{ old('home_umrah_promo_desc', $settings['home_umrah_promo_desc'] ?? '') }}</textarea>
+    @error('home_umrah_promo_desc') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="text-xs text-slate-500">Dipakai hanya kalau mode = Custom</div>
+        <div class="w-full max-w-xs">
+            <input
+                id="promoUmrahSearch"
+                type="text"
+                class="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-900"
+                placeholder="CARI PAKET UMRAH"
+                autocomplete="off"
+            />
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 p-4 max-h-80 overflow-auto">
+        <div id="promoUmrahSearchEmpty" class="hidden text-sm text-slate-500">
+            Tidak ada paket yang cocok.
+        </div>
+
+        @if(isset($promoUmrahCandidates) && $promoUmrahCandidates->count() > 0)
+            <div class="grid gap-2" id="promoUmrahList">
+                @foreach($promoUmrahCandidates as $p)
+                    <label class="promo-umrah-item flex items-center gap-3 text-sm"
+                           data-search="{{ \Illuminate\Support\Str::lower('#'.$p->id.' '.$p->title) }}">
+                        <input
+                            type="checkbox"
+                            name="home_umrah_promo_custom_ids[]"
+                            value="{{ $p->id }}"
+                            class="rounded border-slate-300"
+                            {{ in_array((int)$p->id, old('home_umrah_promo_custom_ids', $selectedUmrahIds ?? [])) ? 'checked' : '' }}
+                        />
+                        <span class="text-slate-900 font-semibold">#{{ $p->id }}</span>
+                        <span class="text-slate-700">{{ $p->title }}</span>
+                    </label>
+                @endforeach
+            </div>
+        @else
+            <div class="text-sm text-slate-500">
+                Belum ada paket umrah berlabel PROMO (atau belum aktif).
+            </div>
+        @endif
+    </div>
+
+    @error('home_umrah_promo_custom_ids') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+    @error('home_umrah_promo_custom_ids.*') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+{{-- ===================== NEW: PROMO MICE ===================== --}}
+<div class="md:col-span-2 mt-4">
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+        <div class="text-lg font-extrabold text-slate-900">Promo MICE</div>
+        <div class="text-sm text-slate-600 mt-1">
+            Pastikan paket MICE yang mau tampil punya label <b>PROMO</b> dan status aktif.
+        </div>
+    </div>
+</div>
+
+<div class="md:col-span-2 flex items-center gap-3">
+    <input
+        type="checkbox"
+        name="home_mice_promo_enabled"
+        value="1"
+        class="rounded border-slate-300"
+        {{ old('home_mice_promo_enabled', ($settings['home_mice_promo_enabled'] ?? '1')) == '1' ? 'checked' : '' }}
+    />
+    <div class="text-sm text-slate-900 font-semibold">Aktifkan section Promo MICE</div>
+</div>
+
+<div>
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Badge</label>
+    <input
+        name="home_mice_promo_badge"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        value="{{ old('home_mice_promo_badge', $settings['home_mice_promo_badge'] ?? 'PROMO MICE') }}"
+        placeholder="PROMO MICE"
+    />
+    @error('home_mice_promo_badge') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div>
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Mode</label>
+    @php $miceMode = old('home_mice_promo_mode', $settings['home_mice_promo_mode'] ?? 'auto'); @endphp
+    <select name="home_mice_promo_mode" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900">
+        <option value="auto" {{ $miceMode === 'auto' ? 'selected' : '' }}>Auto (ambil label PROMO)</option>
+        <option value="custom" {{ $miceMode === 'custom' ? 'selected' : '' }}>Custom (pilih paket)</option>
+    </select>
+    @error('home_mice_promo_mode') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Judul</label>
+    <input
+        name="home_mice_promo_title"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        value="{{ old('home_mice_promo_title', $settings['home_mice_promo_title'] ?? 'Paket MICE Promo') }}"
+        placeholder="Paket MICE Promo"
+    />
+    @error('home_mice_promo_title') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <label class="block text-sm font-semibold text-slate-900 mb-2">Deskripsi</label>
+    <textarea
+        name="home_mice_promo_desc"
+        rows="3"
+        class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900"
+        placeholder="Tampilkan promo terbaik minggu ini..."
+    >{{ old('home_mice_promo_desc', $settings['home_mice_promo_desc'] ?? '') }}</textarea>
+    @error('home_mice_promo_desc') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+<div class="md:col-span-2">
+    <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="text-xs text-slate-500">Dipakai hanya kalau mode = Custom</div>
+        <div class="w-full max-w-xs">
+            <input
+                id="promoMiceSearch"
+                type="text"
+                class="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-900"
+                placeholder="CARI PAKET MICE"
+                autocomplete="off"
+            />
+        </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 p-4 max-h-80 overflow-auto">
+        <div id="promoMiceSearchEmpty" class="hidden text-sm text-slate-500">
+            Tidak ada paket yang cocok.
+        </div>
+
+        @if(isset($promoMiceCandidates) && $promoMiceCandidates->count() > 0)
+            <div class="grid gap-2" id="promoMiceList">
+                @foreach($promoMiceCandidates as $p)
+                    <label class="promo-mice-item flex items-center gap-3 text-sm"
+                           data-search="{{ \Illuminate\Support\Str::lower('#'.$p->id.' '.$p->title) }}">
+                        <input
+                            type="checkbox"
+                            name="home_mice_promo_custom_ids[]"
+                            value="{{ $p->id }}"
+                            class="rounded border-slate-300"
+                            {{ in_array((int)$p->id, old('home_mice_promo_custom_ids', $selectedMiceIds ?? [])) ? 'checked' : '' }}
+                        />
+                        <span class="text-slate-900 font-semibold">#{{ $p->id }}</span>
+                        <span class="text-slate-700">{{ $p->title }}</span>
+                    </label>
+                @endforeach
+            </div>
+        @else
+            <div class="text-sm text-slate-500">
+                Belum ada paket MICE berlabel PROMO (atau belum aktif).
+            </div>
+        @endif
+    </div>
+
+    @error('home_mice_promo_custom_ids') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+    @error('home_mice_promo_custom_ids.*') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
+</div>
+
+
         </div>
 
         <div class="px-6 py-5 border-t border-slate-200 flex items-center justify-end gap-3">
@@ -294,6 +517,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ships (NEW)
     bindSearch('promoShipSearch', 'promoShipList', 'promo-ship-item', 'promoShipSearchEmpty');
+
+    bindSearch('promoUmrahSearch', 'promoUmrahList', 'promo-umrah-item', 'promoUmrahSearchEmpty');
+bindSearch('promoMiceSearch', 'promoMiceList', 'promo-mice-item', 'promoMiceSearchEmpty');
 });
 
 </script>

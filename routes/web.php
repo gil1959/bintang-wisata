@@ -74,7 +74,53 @@ Route::prefix('bw-admin')
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('permission:admin.dashboard.view');
         Route::put('profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('permission:admin.dashboard.view');
         Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password')->middleware('permission:admin.dashboard.view');
-        
+                // Tabungan Umrah
+        Route::get('/tabungan-umrah/accounts/pending', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'pendingAccounts'])
+            ->name('tabungan-umrah.accounts.pending')->middleware('permission:admin.dashboard.view');
+
+        Route::get('/tabungan-umrah/accounts/verified', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'verifiedAccounts'])
+            ->name('tabungan-umrah.accounts.verified')->middleware('permission:admin.dashboard.view');
+
+        Route::get('/tabungan-umrah/accounts/{account}', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'showAccount'])
+            ->name('tabungan-umrah.accounts.show')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/accounts/{account}/verify', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'verifyAccount'])
+            ->name('tabungan-umrah.accounts.verify')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/accounts/{account}/reject', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'rejectAccount'])
+            ->name('tabungan-umrah.accounts.reject')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/accounts/{account}/suspend', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'suspendAccount'])
+            ->name('tabungan-umrah.accounts.suspend')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/accounts/{account}/unsuspend', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'unsuspendAccount'])
+            ->name('tabungan-umrah.accounts.unsuspend')->middleware('permission:admin.dashboard.view');
+
+        Route::get('/tabungan-umrah/deposits', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'depositsIndex'])
+            ->name('tabungan-umrah.deposits.index')->middleware('permission:admin.dashboard.view');
+
+        Route::get('/tabungan-umrah/deposits/{deposit}', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'showDeposit'])
+            ->name('tabungan-umrah.deposits.show')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/deposits/{deposit}/approve', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'approveDeposit'])
+            ->name('tabungan-umrah.deposits.approve')->middleware('permission:admin.dashboard.view');
+
+        Route::post('/tabungan-umrah/deposits/{deposit}/reject', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'rejectDeposit'])
+            ->name('tabungan-umrah.deposits.reject')->middleware('permission:admin.dashboard.view');
+        Route::get('/tabungan-umrah/accounts/{account}/edit', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'editAccount'])
+    ->name('tabungan-umrah.accounts.edit')->middleware('permission:admin.dashboard.view');
+
+Route::put('/tabungan-umrah/accounts/{account}', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'updateAccount'])
+    ->name('tabungan-umrah.accounts.update')->middleware('permission:admin.dashboard.view');
+        // Notifications
+        Route::get('/notifications/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])
+            ->name('notifications.create')
+            ->middleware('permission:admin.notifications.manage');
+
+        Route::post('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])
+            ->name('notifications.store')
+            ->middleware('permission:admin.notifications.manage');
+
         Route::prefix('partners')->name('partners.')->group(function () {
 
     Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index')->middleware('permission:admin.dashboard.view');
@@ -301,9 +347,26 @@ Route::get('/orders/{order}/confirm-admin', [\App\Http\Controllers\User\OrderCon
     ->name('orders.confirm-admin');
 Route::get('/withdrawals', [\App\Http\Controllers\User\AffiliateController::class, 'withdrawals'])
     ->name('withdrawals');
+        Route::get('/notifications', [\App\Http\Controllers\NotificationCenterController::class, 'indexUser'])
+            ->name('notifications.index');
 
 Route::post('/withdrawals', [\App\Http\Controllers\User\AffiliateController::class, 'submitWithdrawal'])
     ->name('withdrawals.submit');
+        // Tabungan Umrah
+        Route::get('/tabungan-umrah', [\App\Http\Controllers\User\TabunganUmrahController::class, 'index'])
+            ->name('tabungan-umrah.index');
+
+        Route::post('/tabungan-umrah/register', [\App\Http\Controllers\User\TabunganUmrahController::class, 'storeRegistration'])
+            ->name('tabungan-umrah.register');
+
+        Route::get('/tabungan-umrah/setoran/create', [\App\Http\Controllers\User\TabunganUmrahController::class, 'createDeposit'])
+            ->name('tabungan-umrah.deposits.create');
+
+        Route::post('/tabungan-umrah/setoran', [\App\Http\Controllers\User\TabunganUmrahController::class, 'storeDeposit'])
+            ->name('tabungan-umrah.deposits.store');
+
+        Route::get('/tabungan-umrah/setoran/{deposit}', [\App\Http\Controllers\User\TabunganUmrahController::class, 'showDeposit'])
+            ->name('tabungan-umrah.deposits.show');
 
         Route::prefix('affiliate')
     ->name('affiliate.')
@@ -375,6 +438,8 @@ Route::post('/withdraw', [\App\Http\Controllers\Partner\WithdrawController::clas
 Route::get('/withdraw/requests', [\App\Http\Controllers\Partner\WithdrawController::class, 'requests'])->name('withdraw.requests');
 Route::get('/withdraw/requests/{withdrawal}', [\App\Http\Controllers\Partner\WithdrawController::class, 'show'])->name('withdraw.show');
 Route::delete('/withdraw/requests/{withdrawal}', [\App\Http\Controllers\Partner\WithdrawController::class, 'destroy'])->name('withdraw.destroy');
+        Route::get('/notifications', [\App\Http\Controllers\NotificationCenterController::class, 'indexPartner'])
+            ->name('notifications.index');
 
     // ✅ Partner Profile
     Route::get('/profile', [PartnerProfileController::class, 'edit'])->name('profile.edit');
@@ -400,6 +465,18 @@ Route::resource('rent-car-categories', \App\Http\Controllers\Partner\RentCarCate
 
 
 
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationCenterController::class, 'markRead'])
+        ->name('notifications.markRead');
+
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationCenterController::class, 'readAll'])
+        ->name('notifications.readAll');
+
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])
+        ->name('push.subscribe');
 });
 
 /*

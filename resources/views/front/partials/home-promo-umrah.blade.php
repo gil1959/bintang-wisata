@@ -1,30 +1,30 @@
 @php
-    $promoEnabled = ($siteSettings['home_promo_enabled'] ?? '1') === '1';
+    $umrahPromoEnabled = ($siteSettings['home_umrah_promo_enabled'] ?? '1') === '1';
 @endphp
 
-@if($promoEnabled && isset($promoTours) && $promoTours->count() > 0)
+@if($umrahPromoEnabled && isset($promoUmrah) && $promoUmrah->count() > 0)
 <section class="bg-white">
     <div class="max-w-7xl mx-auto px-4 py-10 lg:py-14">
 
         <div class="flex items-end justify-between gap-4" data-aos="fade-up">
             <div>
                 <div class="pill pill-azure">
-                    <i data-lucide="tag" class="w-4 h-4"></i>
-                    {{ $siteSettings['home_promo_badge'] ?? 'PROMO' }}
+                    <i data-lucide="landmark" class="w-4 h-4"></i>
+                    {{ $siteSettings['home_umrah_promo_badge'] ?? 'PROMO UMRAH' }}
                 </div>
 
                 <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                    {{ $siteSettings['home_promo_title'] ?? 'Paket Tour Promo' }}
+                    {{ $siteSettings['home_umrah_promo_title'] ?? 'Paket Umrah Promo' }}
                 </h2>
 
-                @if(!empty($siteSettings['home_promo_desc']))
+                @if(!empty($siteSettings['home_umrah_promo_desc']))
                     <p class="mt-2 text-slate-600">
-                        {{ $siteSettings['home_promo_desc'] }}
+                        {{ $siteSettings['home_umrah_promo_desc'] }}
                     </p>
                 @endif
             </div>
 
-            <a href="{{ route('tours.index') }}" class="hidden sm:inline-flex btn btn-ghost">
+            <a href="{{ route('umrah.index') }}" class="hidden sm:inline-flex btn btn-ghost">
                 Lihat Semua
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
@@ -32,7 +32,7 @@
 
         <div class="mt-7">
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-                @foreach($promoTours->take(10) as $package)
+                @foreach($promoUmrah->take(10) as $package)
                     @php
     $tiers = $package->tiers ?? collect();
     $minPrice = $tiers->where('price', '>', 0)->min('price');
@@ -41,9 +41,8 @@
     $durationText = $package->duration_text ?? '';
 @endphp
 
-
                     <div>
-                        <a href="{{ route('tour.show', $package) }}"
+                        <a href="{{ route('umrah.show', $package) }}"
                            class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition h-full">
 
                             <div class="relative h-44 overflow-hidden bg-slate-100">
@@ -71,7 +70,7 @@
                                     <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow max-w-full">
                                         <i data-lucide="tag" class="w-4 h-4 shrink-0" style="color:#0194F3;"></i>
                                         <span class="truncate max-w-full">
-                                            {{ $package->category?->name ?? 'Tour' }}
+                                            {{ $package->category?->name ?? 'Umrah' }}
                                         </span>
                                     </span>
                                 </div>
@@ -116,14 +115,13 @@
                                     <div class="btn btn-primary w-full justify-center !rounded-md !py-2">Lihat Detail</div>
                                 </div>
                             </div>
-
                         </a>
                     </div>
                 @endforeach
             </div>
 
             <div class="mt-10 sm:hidden">
-                <a href="{{ route('tours.index') }}" class="btn btn-ghost w-full">
+                <a href="{{ route('umrah.index') }}" class="btn btn-ghost w-full">
                     Lihat Semua Paket
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>

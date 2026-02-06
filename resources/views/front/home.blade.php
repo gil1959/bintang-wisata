@@ -537,6 +537,9 @@
 <section class="bg-slate-50">
    @include('front.partials.home-promo-tours')
    @include('front.partials.home-promo-ships')
+   
+@include('front.partials.home-promo-umrah')
+@include('front.partials.home-promo-mice')
    @include('front.partials.home-inspiration-articles')
 
         {{-- ================= INSPIRASI DESTINASI ================= --}}

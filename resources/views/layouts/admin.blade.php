@@ -180,6 +180,17 @@
             ],
         ],
 
+        [
+            'label' => 'Tabungan Umrah',
+            'icon'  => 'wallet',
+            'children' => [
+                ['label'=>'Verifikasi Akun','route'=>'admin.tabungan-umrah.accounts.pending','match'=>'admin.tabungan-umrah.accounts.*','icon'=>'user-check','perm'=>'admin.dashboard.view'],
+                ['label'=>'Akun Terverifikasi','route'=>'admin.tabungan-umrah.accounts.verified','match'=>'admin.tabungan-umrah.accounts.verified','icon'=>'users','perm'=>'admin.dashboard.view'],
+                ['label'=>'Setoran/Finance','route'=>'admin.tabungan-umrah.deposits.index','match'=>'admin.tabungan-umrah.deposits.*','icon'=>'credit-card','perm'=>'admin.dashboard.view'],
+            ],
+        ],
+['label'=>'Kirim Notifikasi','route'=>'admin.notifications.create','match'=>'admin.notifications.*','icon'=>'bell','perm'=>'admin.notifications.manage'],
+
        // GROUP: Settings
 [
     'label' => 'Settings',

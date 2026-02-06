@@ -1,30 +1,30 @@
 @php
-    $promoEnabled = ($siteSettings['home_promo_enabled'] ?? '1') === '1';
+    $micePromoEnabled = ($siteSettings['home_mice_promo_enabled'] ?? '1') === '1';
 @endphp
 
-@if($promoEnabled && isset($promoTours) && $promoTours->count() > 0)
+@if($micePromoEnabled && isset($promoMice) && $promoMice->count() > 0)
 <section class="bg-white">
     <div class="max-w-7xl mx-auto px-4 py-10 lg:py-14">
 
         <div class="flex items-end justify-between gap-4" data-aos="fade-up">
             <div>
                 <div class="pill pill-azure">
-                    <i data-lucide="tag" class="w-4 h-4"></i>
-                    {{ $siteSettings['home_promo_badge'] ?? 'PROMO' }}
+                    <i data-lucide="briefcase" class="w-4 h-4"></i>
+                    {{ $siteSettings['home_mice_promo_badge'] ?? 'PROMO MICE' }}
                 </div>
 
                 <h2 class="mt-4 text-2xl lg:text-3xl font-extrabold text-slate-900">
-                    {{ $siteSettings['home_promo_title'] ?? 'Paket Tour Promo' }}
+                    {{ $siteSettings['home_mice_promo_title'] ?? 'Paket MICE Promo' }}
                 </h2>
 
-                @if(!empty($siteSettings['home_promo_desc']))
+                @if(!empty($siteSettings['home_mice_promo_desc']))
                     <p class="mt-2 text-slate-600">
-                        {{ $siteSettings['home_promo_desc'] }}
+                        {{ $siteSettings['home_mice_promo_desc'] }}
                     </p>
                 @endif
             </div>
 
-            <a href="{{ route('tours.index') }}" class="hidden sm:inline-flex btn btn-ghost">
+            <a href="{{ route('mice.index') }}" class="hidden sm:inline-flex btn btn-ghost">
                 Lihat Semua
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
@@ -32,10 +32,13 @@
 
         <div class="mt-7">
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-                @foreach($promoTours->take(10) as $package)
+                @foreach($promoMice->take(10) as $package)
                     @php
     $tiers = $package->tiers ?? collect();
-    $minPrice = $tiers->where('price', '>', 0)->min('price');
+
+    // Prioritas: domestic yang valid (>0). Kalau kosong, fallback ke tier lain yang valid (>0).
+    $minDomestic = $tiers->where('type', 'domestic')->where('price', '>', 0)->min('price');
+    $minPrice = $minDomestic ?? $tiers->where('price', '>', 0)->min('price');
 
     $ratingCount = (int)($package->rating_count ?? 0);
     $durationText = $package->duration_text ?? '';
@@ -43,7 +46,7 @@
 
 
                     <div>
-                        <a href="{{ route('tour.show', $package) }}"
+                        <a href="{{ route('mice.show', $package) }}"
                            class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition h-full">
 
                             <div class="relative h-44 overflow-hidden bg-slate-100">
@@ -71,7 +74,7 @@
                                     <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow max-w-full">
                                         <i data-lucide="tag" class="w-4 h-4 shrink-0" style="color:#0194F3;"></i>
                                         <span class="truncate max-w-full">
-                                            {{ $package->category?->name ?? 'Tour' }}
+                                            {{ $package->category?->name ?? 'MICE' }}
                                         </span>
                                     </span>
                                 </div>
@@ -91,7 +94,7 @@
                                             -
                                         @endif
                                     </span>
-                                    <span class="text-slate-500">/orang</span>
+                                    <span class="text-slate-500">/paket</span>
                                 </div>
 
                                 <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
@@ -116,14 +119,13 @@
                                     <div class="btn btn-primary w-full justify-center !rounded-md !py-2">Lihat Detail</div>
                                 </div>
                             </div>
-
                         </a>
                     </div>
                 @endforeach
             </div>
 
             <div class="mt-10 sm:hidden">
-                <a href="{{ route('tours.index') }}" class="btn btn-ghost w-full">
+                <a href="{{ route('mice.index') }}" class="btn btn-ghost w-full">
                     Lihat Semua Paket
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>

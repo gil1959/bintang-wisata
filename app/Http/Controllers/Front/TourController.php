@@ -11,6 +11,8 @@ use App\Models\ClientLogo;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use App\Models\ShipPackage;
+use App\Models\UmrahPackage;
+use App\Models\MicePackage;
 use Illuminate\Support\Collection;
 use App\Models\Article;
 class TourController extends Controller
@@ -221,6 +223,65 @@ if ($shipPromoEnabled) {
     }
 }
 
+// ===================== PROMO UMRAH PACKAGES (Home Section) =====================
+$umrahPromoEnabled = filter_var(Setting::getValue('home_umrah_promo_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
+$umrahPromoMode = Setting::getValue('home_umrah_promo_mode', 'auto'); // auto | custom
+
+$promoUmrah = collect();
+
+if ($umrahPromoEnabled) {
+    $customUmrahIds = json_decode(Setting::getValue('home_umrah_promo_custom_ids', '[]'), true);
+    $customUmrahIds = is_array($customUmrahIds) ? array_values(array_unique(array_map('intval', $customUmrahIds))) : [];
+
+    if ($umrahPromoMode === 'custom' && count($customUmrahIds) > 0) {
+        $idsCsv = implode(',', $customUmrahIds);
+
+        $promoUmrah = UmrahPackage::query()
+            ->where('is_active', true)
+            ->whereIn('id', $customUmrahIds)
+            ->orderByRaw(DB::raw("FIELD(id, {$idsCsv})"))
+            ->with(['category', 'tiers'])
+            ->get();
+    } else {
+        $promoUmrah = UmrahPackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->latest()
+            ->with(['category', 'tiers'])
+            ->get();
+    }
+}
+
+// ===================== PROMO MICE PACKAGES (Home Section) =====================
+$micePromoEnabled = filter_var(Setting::getValue('home_mice_promo_enabled', '1'), FILTER_VALIDATE_BOOLEAN);
+$micePromoMode = Setting::getValue('home_mice_promo_mode', 'auto'); // auto | custom
+
+$promoMice = collect();
+
+if ($micePromoEnabled) {
+    $customMiceIds = json_decode(Setting::getValue('home_mice_promo_custom_ids', '[]'), true);
+    $customMiceIds = is_array($customMiceIds) ? array_values(array_unique(array_map('intval', $customMiceIds))) : [];
+
+    if ($micePromoMode === 'custom' && count($customMiceIds) > 0) {
+        $idsCsv = implode(',', $customMiceIds);
+
+        $promoMice = MicePackage::query()
+            ->where('is_active', true)
+            ->whereIn('id', $customMiceIds)
+            ->orderByRaw(DB::raw("FIELD(id, {$idsCsv})"))
+            ->with(['category', 'tiers'])
+            ->get();
+    } else {
+        $promoMice = MicePackage::query()
+            ->where('is_active', true)
+            ->where('label', 'PROMO')
+            ->latest()
+            ->with(['category', 'tiers'])
+            ->get();
+    }
+}
+
+
 $homeDiscountBanners = \App\Models\HomePromoBanner::query()
     ->where('section', 'discount')
     ->where('is_active', 1)
@@ -246,10 +307,13 @@ $tourMainCategories = TourCategory::query()
     'clientLogos',
     'promoTours',
     'promoShips',
+    'promoUmrah',
+    'promoMice',
     'homeDiscountBanners',
     'homeMissionBanners',
     'tourMainCategories'
-))->with([
+))
+->with([
     'homeArticlesEnabled' => $homeArticlesEnabled,
     'homeArticlesTitle' => $homeArticlesTitle,
     'homeArticlesDesc' => $homeArticlesDesc,

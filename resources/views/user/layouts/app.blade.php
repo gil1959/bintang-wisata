@@ -82,6 +82,7 @@
                    $nav = [
   ['label'=>'Dashboard','route'=>'user.dashboard','match'=>'user.dashboard','icon'=>'layout-dashboard'],
   ['label'=>'Orders','route'=>'user.orders','match'=>'user.orders.*','icon'=>'receipt'],
+  ['label'=>'Tabungan Umrah','route'=>'user.tabungan-umrah.index','match'=>'user.tabungan-umrah.*','icon'=>'wallet'],
 
  [
   'label' => 'Affiliate',
@@ -93,6 +94,7 @@
     ['label'=>'Coupons','route'=>'user.affiliate.coupons','match'=>'user.affiliate.coupons*','icon'=>'ticket'],
     ['label'=>'Orders','route'=>'user.affiliate.orders','match'=>'user.affiliate.orders','icon'=>'shopping-bag'],
     ['label'=>'Withdraw','route'=>'user.withdrawals','match'=>'user.withdrawals*','icon'=>'wallet'],
+  
 
   ],
 ],
@@ -220,7 +222,7 @@
         <div class="flex-1 flex flex-col min-w-0">
 
             {{-- TOPBAR --}}
-            <header class="h-16 bg-white/70 backdrop-blur border-b border-slate-200">
+            <header class="relative z-50 h-16 bg-white/70 backdrop-blur border-b border-slate-200">
                 <div class="h-full px-4 lg:px-5 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <button
@@ -238,26 +240,104 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('home') }}"
-                           class="hidden sm:inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold bg-white border border-slate-200 hover:bg-slate-50 transition">
-                            <i data-lucide="home" class="w-4 h-4" style="color:#0194F3;"></i>
-                            Back to Site
-                        </a>
+    <a href="{{ route('home') }}"
+       class="hidden sm:inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold bg-white border border-slate-200 hover:bg-slate-50 transition">
+        <i data-lucide="home" class="w-4 h-4" style="color:#0194F3;"></i>
+        Back to Site
+    </a>
 
-                        <div class="flex items-center gap-3">
-                            <div class="text-right hidden sm:block">
-                                <div class="text-xs text-slate-500">Signed in as</div>
-                                <div class="text-sm font-bold text-slate-900">{{ auth()->user()->name }}</div>
-                            </div>
+    @php
+        $unreadNotifCount = auth()->user()->unreadNotifications()->count();
+        $latestNotifs = auth()->user()->notifications()->latest()->limit(5)->get();
+    @endphp
 
-                            <div class="h-10 w-10 rounded-2xl grid place-items-center border"
-                                 style="background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22)">
-                                <span class="font-extrabold" style="color:#0194F3;">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                </span>
-                            </div>
+    {{-- NOTIF DROPDOWN (theme: slate + azure #0194F3) --}}
+    <div x-data="{ open:false }" class="relative">
+        <button
+            type="button"
+            @click="open=!open"
+            class="relative h-10 w-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 grid place-items-center"
+            aria-label="Notifikasi"
+        >
+            <i data-lucide="bell" class="w-5 h-5" style="color:#0f172a;"></i>
+
+            @if($unreadNotifCount > 0)
+                <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] grid place-items-center font-extrabold text-white"
+                      style="background:#0194F3;">
+                    {{ $unreadNotifCount }}
+                </span>
+            @endif
+        </button>
+
+       <div
+    x-show="open"
+    x-cloak
+    @click.outside="open=false"
+    class="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white shadow-lg overflow-hidden z-[60]"
+>
+
+            <div class="px-4 py-3 border-b border-slate-200">
+                <div class="font-extrabold text-slate-900">Notifikasi</div>
+                <div class="text-xs text-slate-500">Terbaru</div>
+            </div>
+
+            <div class="max-h-80 overflow-auto">
+                @forelse($latestNotifs as $n)
+                    <div class="px-4 py-3 border-b border-slate-100">
+                        <div class="text-sm font-extrabold text-slate-900">
+                            {{ data_get($n->data,'title','Notifikasi') }}
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600 mt-1">
+                            {{ data_get($n->data,'message','') }}
+                        </div>
+
+                        <div class="mt-2 flex items-center gap-3">
+                            <a href="{{ data_get($n->data,'url', route('user.notifications.index')) }}"
+                               class="text-xs font-extrabold hover:underline"
+                               style="color:#0194F3;">
+                                Buka
+                            </a>
+
+                            @if(is_null($n->read_at))
+                                <form method="POST" action="{{ route('notifications.markRead',$n->id) }}">
+                                    @csrf
+                                    <button class="text-xs font-extrabold text-slate-700 hover:underline">
+                                        Tandai dibaca
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
+                @empty
+                    <div class="px-4 py-6 text-sm font-semibold text-slate-500">Belum ada notifikasi.</div>
+                @endforelse
+            </div>
+
+            <div class="px-4 py-3">
+                <a href="{{ route('user.notifications.index') }}"
+                   class="text-sm font-extrabold hover:underline"
+                   style="color:#0194F3;">
+                    Lihat semua
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+            <div class="text-xs text-slate-500">Signed in as</div>
+            <div class="text-sm font-bold text-slate-900">{{ auth()->user()->name }}</div>
+        </div>
+
+        <div class="h-10 w-10 rounded-2xl grid place-items-center border"
+             style="background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22)">
+            <span class="font-extrabold" style="color:#0194F3;">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </span>
+        </div>
+    </div>
+</div>
+
                 </div>
             </header>
 
@@ -277,5 +357,48 @@
         if (window.lucide) lucide.createIcons();
     });
 </script>
+
+<script>
+(async function(){
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+
+        const vapidPublicKey = @json(env('VAPID_PUBLIC_KEY'));
+        if (!vapidPublicKey) return;
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+            return outputArray;
+        }
+
+        const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+
+        await fetch(@json(route('push.subscribe')), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': @json(csrf_token())
+            },
+            body: JSON.stringify(sub)
+        });
+    } catch (e) {
+        // gagal push subscribe = biarin, notif in-app tetap jalan
+    }
+})();
+</script>
+
 </body>
 </html>
+

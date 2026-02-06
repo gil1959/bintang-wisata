@@ -176,7 +176,11 @@
             @foreach($packages as $package)
                 @php
                     // min price dari tiers domestic (kalau ada)
-                    $minDomestic = ($package->tiers ?? collect())->where('type','domestic')->min('price');
+                    $tiers = $package->tiers ?? collect();
+$minDomestic = $tiers->where('type', 'domestic')->where('price', '>', 0)->min('price');
+
+// fallback kalau domestic nggak ada yang valid
+$minDomestic = $minDomestic ?? $tiers->where('price', '>', 0)->min('price');
                     $ratingValue = $package->rating_value ?? 0;
                     $ratingCount = $package->rating_count ?? 0;
                 @endphp
