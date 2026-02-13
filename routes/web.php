@@ -524,8 +524,10 @@ Route::get('/lang/{locale}', function ($locale) {
     abort_unless(in_array($locale, $available, true), 404);
 
     session(['locale' => $locale]);
+    cookie()->queue(cookie('locale', $locale, 60 * 24 * 30));
     return back();
 })->name('lang.switch');
+
 
 
 Route::get('/checkout/{order}', [CheckoutController::class, 'show'])
@@ -657,3 +659,5 @@ Route::post('/logout-to-login', function (Request $request) {
 
     return redirect()->route('login');
 })->name('logout.to.login');
+
+Route::get('/__tools/translate/tour/backfill', [\App\Http\Controllers\Tools\TourTranslateBackfillController::class, 'run']);

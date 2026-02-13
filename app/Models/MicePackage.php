@@ -27,6 +27,14 @@ class MicePackage extends Model
         'seo_title',
         'seo_description',
         'seo_keywords',
+        'title_en',
+        'label_en',
+        'duration_text_en',
+        'long_description_en',
+        'seo_title_en',
+        'seo_keywords_en',
+        'seo_description_en'
+
     ];
 
     protected $casts = [

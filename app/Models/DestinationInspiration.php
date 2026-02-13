@@ -14,6 +14,7 @@ class DestinationInspiration extends Model
         'sort_order',
         'is_active',
         'tour_subcategory_id',
+        'title_en',
 
     ];
 
@@ -22,8 +23,7 @@ class DestinationInspiration extends Model
         return $this->belongsTo(TourCategory::class, 'tour_category_id');
     }
     public function tourSubcategory()
-{
-    return $this->belongsTo(TourCategory::class, 'tour_subcategory_id');
-}
-
+    {
+        return $this->belongsTo(TourCategory::class, 'tour_subcategory_id');
+    }
 }

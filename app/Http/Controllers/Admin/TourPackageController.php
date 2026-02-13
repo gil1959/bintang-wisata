@@ -100,6 +100,11 @@ $excludes = $this->htmlToLines($request->input('exclude_text'));
 
          $this->replaceItinerariesFromHtml($package, $request->input('itinerary_text'));
             $this->syncTiers($package, $request->tiers);
+
+            \App\Jobs\Translate\TourPackageToEn::dispatch($package->id)
+    ->onQueue('translations')
+    ->afterCommit();
+
         });
 
         return redirect()->route('admin.tour-packages.index')
@@ -157,6 +162,10 @@ $excludes = $this->htmlToLines($request->input('exclude_text'));
 
             $this->replaceItinerariesFromHtml($tour_package, $request->input('itinerary_text'));
             $this->syncTiers($tour_package, $request->tiers);
+            \App\Jobs\Translate\TourPackageToEn::dispatch($tour_package->id)
+    ->onQueue('translations')
+    ->afterCommit();
+
         });
 
         return redirect()->route('admin.tour-packages.index')

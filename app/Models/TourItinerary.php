@@ -12,6 +12,8 @@ class TourItinerary extends Model
         'tour_package_id',
         'title',
         'sort_order',
+        'title_en',
+
     ];
 
 

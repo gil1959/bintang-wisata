@@ -21,6 +21,12 @@ class Article extends Model
         'seo_keywords',
         'ads_code',
         'tags',
+        'title_en',
+        'excerpt_en',
+        'content_en',
+        'seo_title_en',
+        'seo_description_en',
+
     ];
 
     protected $casts = [

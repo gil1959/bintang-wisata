@@ -20,11 +20,19 @@ class ShipPackage extends Model
         'seo_description',
         'rating_value',
         'rating_count',
-          'created_by_partner_id',
-    'partner_review_status',
-    'partner_review_note',
-    'partner_reviewed_by',
-    'partner_reviewed_at',
+        'created_by_partner_id',
+        'partner_review_status',
+        'partner_review_note',
+        'partner_reviewed_by',
+        'partner_reviewed_at',
+        'title_en',
+        'label_en',
+        'duration_text_en',
+        'long_description_en',
+        'seo_title_en',
+        'seo_keywords_en',
+        'seo_description_en',
+
     ];
 
     protected $casts = [
@@ -32,9 +40,9 @@ class ShipPackage extends Model
         'features' => 'array',
         'rating_value' => 'float',
         'rating_count' => 'int',
-          'created_by_partner_id' => 'int',
-    'partner_reviewed_by' => 'int',
-    'partner_reviewed_at' => 'datetime',
+        'created_by_partner_id' => 'int',
+        'partner_reviewed_by' => 'int',
+        'partner_reviewed_at' => 'datetime',
     ];
 
     public function category()
@@ -49,8 +57,7 @@ class ShipPackage extends Model
             ->orderBy('sort_order');
     }
     public function reviews()
-{
-    return $this->morphMany(\App\Models\Review::class, 'reviewable');
-}
-
+    {
+        return $this->morphMany(\App\Models\Review::class, 'reviewable');
+    }
 }

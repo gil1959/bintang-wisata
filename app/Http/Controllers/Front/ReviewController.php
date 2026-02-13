@@ -53,8 +53,14 @@ class ReviewController extends Controller
             ->exists();
 
         if ($exists) {
+            $isEn = app()->getLocale() === 'en';
+
             return back()
-                ->withErrors(['email' => 'Email ini baru saja mengirim ulasan untuk paket ini. Coba lagi beberapa menit.'])
+                ->withErrors([
+                    'email' => $isEn
+                        ? 'This email has recently submitted a review for this package. Please try again in a few minutes.'
+                        : 'Email ini baru saja mengirim ulasan untuk paket ini. Coba lagi beberapa menit.'
+                ])
                 ->withInput();
         }
 
@@ -68,6 +74,13 @@ class ReviewController extends Controller
             'user_agent' => substr((string) $request->userAgent(), 0, 512),
         ]);
 
-        return back()->with('success', 'Ulasan berhasil dikirim dan menunggu persetujuan admin.');
+        $isEn = app()->getLocale() === 'en';
+
+        return back()->with(
+            'success',
+            $isEn
+                ? 'Review submitted successfully and is pending admin approval.'
+                : 'Ulasan berhasil dikirim dan menunggu persetujuan admin.'
+        );
     }
 }

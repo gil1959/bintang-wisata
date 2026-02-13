@@ -10,6 +10,7 @@ use App\Models\UmrahPackage;
 use App\Models\MicePackage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\TranslateService;
 
 class HomePromoToursController extends Controller
 {
@@ -150,6 +151,53 @@ class HomePromoToursController extends Controller
         $set('home_mice_promo_mode', $data['home_mice_promo_mode'] ?? 'auto');
         $miceIds = array_values(array_unique(array_map('intval', $data['home_mice_promo_custom_ids'] ?? [])));
         $set('home_mice_promo_custom_ids', json_encode($miceIds));
+
+        // AUTO TRANSLATE (DEEPL) -> promo label/title/desc *_en (admin input 1x)
+        try {
+            /** @var TranslateService $tx */
+            $tx = app(TranslateService::class);
+
+            $src = [
+                // TOUR
+                'home_promo_badge' => (string)($data['home_promo_badge'] ?? 'PROMO'),
+                'home_promo_title' => (string)($data['home_promo_title'] ?? 'Paket Tour Promo'),
+                'home_promo_desc'  => (string)($data['home_promo_desc'] ?? ''),
+
+                // SHIP
+                'home_ship_promo_badge' => (string)($data['home_ship_promo_badge'] ?? 'PROMO KAPAL'),
+                'home_ship_promo_title' => (string)($data['home_ship_promo_title'] ?? 'Paket Sewa Kapal Promo'),
+                'home_ship_promo_desc'  => (string)($data['home_ship_promo_desc'] ?? ''),
+
+                // UMRAH
+                'home_umrah_promo_badge' => (string)($data['home_umrah_promo_badge'] ?? 'PROMO UMRAH'),
+                'home_umrah_promo_title' => (string)($data['home_umrah_promo_title'] ?? 'Paket Umrah Promo'),
+                'home_umrah_promo_desc'  => (string)($data['home_umrah_promo_desc'] ?? ''),
+
+                // MICE
+                'home_mice_promo_badge' => (string)($data['home_mice_promo_badge'] ?? 'PROMO MICE'),
+                'home_mice_promo_title' => (string)($data['home_mice_promo_title'] ?? 'Paket MICE Promo'),
+                'home_mice_promo_desc'  => (string)($data['home_mice_promo_desc'] ?? ''),
+            ];
+
+            // buang yang kosong biar ga buang quota
+            $src = array_filter($src, fn($v) => trim((string)$v) !== '');
+
+            if (count($src) > 0) {
+                $keys = array_keys($src);
+                $vals = array_values($src);
+
+                $out = $tx->toEnBatch($vals, 'text');
+
+                foreach ($keys as $i => $k) {
+                    $enVal = $out[$i] ?? null;
+                    if (is_string($enVal) && trim($enVal) !== '') {
+                        Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $enVal]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save gagal
+        }
 
         return redirect()
             ->route('admin.home-sections.promo-tours.edit')

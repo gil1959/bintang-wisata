@@ -13,6 +13,7 @@ class TourPackageTier extends Model
         'min_people',
         'max_people',
         'price',
+        'label_text',
     ];
 
     protected $casts = [

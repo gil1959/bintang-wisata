@@ -17,6 +17,7 @@ class TourPriceTier extends Model
         'max_peserta',
         'harga_per_orang',
         'sort_order',
+        'label_text',
     ];
 
     public function package()

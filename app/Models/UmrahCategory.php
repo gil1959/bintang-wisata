@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UmrahCategory extends Model
 {
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'name_en', 'slug'];
 
     public function packages()
     {

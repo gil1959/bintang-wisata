@@ -12,6 +12,8 @@ class MiceCategory extends Model
     protected $fillable = [
         'name',
         'slug',
+        'name_en'
+
     ];
 
     public function packages()

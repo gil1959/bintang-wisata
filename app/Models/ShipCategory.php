@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ShipCategory extends Model
 {
-    protected $fillable = ['name', 'slug', 'created_by_partner_id'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'name_en',
+        'created_by_partner_id'
+    ];
 
 
     public function packages()

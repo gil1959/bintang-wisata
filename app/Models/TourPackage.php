@@ -35,12 +35,28 @@ class TourPackage extends Model
 'partner_reviewed_by',
 'partner_reviewed_at',
 
+'title_en',
+'label_en',
+'destination_en',
+'duration_text_en',
+'long_description_en',
+'includes_en',
+'excludes_en',
+'flight_info_en',
+'seo_title_en',
+'seo_description_en',
+'seo_keywords_en',
+
+
     ];
 
 
     protected $casts = [
         'includes' => 'array',
         'excludes' => 'array',
+        'includes_en' => 'array',
+        'excludes_en' => 'array',
+
     ];
 
     public function category()

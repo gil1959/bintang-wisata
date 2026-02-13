@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\TranslateService;
+
 
 class SettingController extends Controller
 {
@@ -21,10 +23,10 @@ class SettingController extends Controller
             'hero_title'       => ['required', 'string', 'max:120'],
             'hero_subtitle'    => ['required', 'string', 'max:180'],
             'hero_image'       => ['nullable', 'image', 'max:2048'],
-// Home: teks di box "Cari Paket Wisata"
-'home_search_title' => ['nullable', 'string', 'max:255'],
-'home_search_desc'  => ['nullable', 'string', 'max:255'],
-'home_search_hint'  => ['nullable', 'string', 'max:255'],
+            // Home: teks di box "Cari Paket Wisata"
+            'home_search_title' => ['nullable', 'string', 'max:255'],
+            'home_search_desc'  => ['nullable', 'string', 'max:255'],
+            'home_search_hint'  => ['nullable', 'string', 'max:255'],
 
             // Footer
             'footer_address'   => ['nullable', 'string', 'max:1000'],
@@ -33,8 +35,8 @@ class SettingController extends Controller
             'footer_whatsapp'  => ['nullable', 'string', 'max:30'],
             'tour_cta_secondary_button' => ['nullable', 'string', 'max:60'],
             'tour_cta_secondary_link'   => ['nullable', 'string', 'max:255'],
-'tracking_head' => ['nullable', 'string'],
-'tracking_body' => ['nullable', 'string'],
+            'tracking_head' => ['nullable', 'string'],
+            'tracking_body' => ['nullable', 'string'],
             // Email notif
             'invoice_admin_email' => ['nullable', 'email', 'max:255'],
 
@@ -177,96 +179,96 @@ class SettingController extends Controller
             'rentcar_note3_desc'  => ['nullable', 'string', 'max:80'],
             'rentcar_note4_title' => ['nullable', 'string', 'max:40'],
             'rentcar_note4_desc'  => ['nullable', 'string', 'max:80'],
-// Halaman Sewa Kapal (Hero)
-'ship_hero_badge' => ['nullable', 'string', 'max:60'],
-'ship_hero_title' => ['nullable', 'string', 'max:200'],
-'ship_hero_desc'  => ['nullable', 'string', 'max:500'],
+            // Halaman Sewa Kapal (Hero)
+            'ship_hero_badge' => ['nullable', 'string', 'max:60'],
+            'ship_hero_title' => ['nullable', 'string', 'max:200'],
+            'ship_hero_desc'  => ['nullable', 'string', 'max:500'],
 
-// Sewa Kapal - Tips Box
-'ship_tips_title' => ['nullable', 'string', 'max:60'],
-'ship_tips_desc'  => ['nullable', 'string', 'max:180'],
-'ship_tip1_title' => ['nullable', 'string', 'max:60'],
-'ship_tip1_desc'  => ['nullable', 'string', 'max:80'],
-'ship_tip2_title' => ['nullable', 'string', 'max:60'],
-'ship_tip2_desc'  => ['nullable', 'string', 'max:80'],
-'ship_tip3_title' => ['nullable', 'string', 'max:60'],
-'ship_tip3_desc'  => ['nullable', 'string', 'max:80'],
-'ship_tip4_title' => ['nullable', 'string', 'max:60'],
-'ship_tip4_desc'  => ['nullable', 'string', 'max:80'],
+            // Sewa Kapal - Tips Box
+            'ship_tips_title' => ['nullable', 'string', 'max:60'],
+            'ship_tips_desc'  => ['nullable', 'string', 'max:180'],
+            'ship_tip1_title' => ['nullable', 'string', 'max:60'],
+            'ship_tip1_desc'  => ['nullable', 'string', 'max:80'],
+            'ship_tip2_title' => ['nullable', 'string', 'max:60'],
+            'ship_tip2_desc'  => ['nullable', 'string', 'max:80'],
+            'ship_tip3_title' => ['nullable', 'string', 'max:60'],
+            'ship_tip3_desc'  => ['nullable', 'string', 'max:80'],
+            'ship_tip4_title' => ['nullable', 'string', 'max:60'],
+            'ship_tip4_desc'  => ['nullable', 'string', 'max:80'],
 
-// Halaman Umrah (Hero + filter + tips) - ini penting karena view udah pakai keys ini
-'umrah_hero_badge' => ['nullable', 'string', 'max:60'],
-'umrah_hero_title' => ['nullable', 'string', 'max:200'],
-'umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
+            // Halaman Umrah (Hero + filter + tips) - ini penting karena view udah pakai keys ini
+            'umrah_hero_badge' => ['nullable', 'string', 'max:60'],
+            'umrah_hero_title' => ['nullable', 'string', 'max:200'],
+            'umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
 
-'umrah_filter_dest_label'  => ['nullable', 'string', 'max:30'],
-'umrah_filter_cat_label'   => ['nullable', 'string', 'max:30'],
-'umrah_filter_dur_label'   => ['nullable', 'string', 'max:30'],
-'umrah_filter_trans_label' => ['nullable', 'string', 'max:30'],
+            'umrah_filter_dest_label'  => ['nullable', 'string', 'max:30'],
+            'umrah_filter_cat_label'   => ['nullable', 'string', 'max:30'],
+            'umrah_filter_dur_label'   => ['nullable', 'string', 'max:30'],
+            'umrah_filter_trans_label' => ['nullable', 'string', 'max:30'],
 
-'umrah_tips_title' => ['nullable', 'string', 'max:60'],
-'umrah_tips_desc'  => ['nullable', 'string', 'max:180'],
-'umrah_tip1_title' => ['nullable', 'string', 'max:60'],
-'umrah_tip1_desc'  => ['nullable', 'string', 'max:80'],
-'umrah_tip2_title' => ['nullable', 'string', 'max:60'],
-'umrah_tip2_desc'  => ['nullable', 'string', 'max:80'],
-'umrah_tip3_title' => ['nullable', 'string', 'max:60'],
-'umrah_tip3_desc'  => ['nullable', 'string', 'max:80'],
-'umrah_tip4_title' => ['nullable', 'string', 'max:60'],
-'umrah_tip4_desc'  => ['nullable', 'string', 'max:80'],
+            'umrah_tips_title' => ['nullable', 'string', 'max:60'],
+            'umrah_tips_desc'  => ['nullable', 'string', 'max:180'],
+            'umrah_tip1_title' => ['nullable', 'string', 'max:60'],
+            'umrah_tip1_desc'  => ['nullable', 'string', 'max:80'],
+            'umrah_tip2_title' => ['nullable', 'string', 'max:60'],
+            'umrah_tip2_desc'  => ['nullable', 'string', 'max:80'],
+            'umrah_tip3_title' => ['nullable', 'string', 'max:60'],
+            'umrah_tip3_desc'  => ['nullable', 'string', 'max:80'],
+            'umrah_tip4_title' => ['nullable', 'string', 'max:60'],
+            'umrah_tip4_desc'  => ['nullable', 'string', 'max:80'],
 
-// HOME: Logo wall header
-'home_logos_badge' => ['nullable', 'string', 'max:60'],
-'home_logos_title' => ['nullable', 'string', 'max:140'],
-'home_logos_desc'  => ['nullable', 'string', 'max:240'],
+            // HOME: Logo wall header
+            'home_logos_badge' => ['nullable', 'string', 'max:60'],
+            'home_logos_title' => ['nullable', 'string', 'max:140'],
+            'home_logos_desc'  => ['nullable', 'string', 'max:240'],
 
-// HOME: Final CTA (Rencanakan Perjalanan...)
-'home_final_cta_title'          => ['nullable', 'string', 'max:140'],
-'home_final_cta_desc'           => ['nullable', 'string', 'max:240'],
-'home_final_cta_primary_text'   => ['nullable', 'string', 'max:60'],
-'home_final_cta_primary_url'    => ['nullable', 'string', 'max:255'],
-'home_final_cta_secondary_text' => ['nullable', 'string', 'max:60'],
-'home_final_cta_secondary_url'  => ['nullable', 'string', 'max:255'],
+            // HOME: Final CTA (Rencanakan Perjalanan...)
+            'home_final_cta_title'          => ['nullable', 'string', 'max:140'],
+            'home_final_cta_desc'           => ['nullable', 'string', 'max:240'],
+            'home_final_cta_primary_text'   => ['nullable', 'string', 'max:60'],
+            'home_final_cta_primary_url'    => ['nullable', 'string', 'max:255'],
+            'home_final_cta_secondary_text' => ['nullable', 'string', 'max:60'],
+            'home_final_cta_secondary_url'  => ['nullable', 'string', 'max:255'],
 
-// HOME: Partner CTA
-'home_partner_badge'       => ['nullable', 'string', 'max:60'],
-'home_partner_title'       => ['nullable', 'string', 'max:140'],
-'home_partner_desc'        => ['nullable', 'string', 'max:300'],
-'home_partner_button_text' => ['nullable', 'string', 'max:60'],
-'home_partner_button_url'  => ['nullable', 'string', 'max:255'],
+            // HOME: Partner CTA
+            'home_partner_badge'       => ['nullable', 'string', 'max:60'],
+            'home_partner_title'       => ['nullable', 'string', 'max:140'],
+            'home_partner_desc'        => ['nullable', 'string', 'max:300'],
+            'home_partner_button_text' => ['nullable', 'string', 'max:60'],
+            'home_partner_button_url'  => ['nullable', 'string', 'max:255'],
 
-'home_partner_card1_title' => ['nullable', 'string', 'max:80'],
-'home_partner_card1_desc'  => ['nullable', 'string', 'max:200'],
-'home_partner_card2_title' => ['nullable', 'string', 'max:80'],
-'home_partner_card2_desc'  => ['nullable', 'string', 'max:200'],
-'home_partner_card3_title' => ['nullable', 'string', 'max:80'],
-'home_partner_card3_desc'  => ['nullable', 'string', 'max:200'],
-'home_partner_card4_title' => ['nullable', 'string', 'max:80'],
-'home_partner_card4_desc'  => ['nullable', 'string', 'max:200'],
+            'home_partner_card1_title' => ['nullable', 'string', 'max:80'],
+            'home_partner_card1_desc'  => ['nullable', 'string', 'max:200'],
+            'home_partner_card2_title' => ['nullable', 'string', 'max:80'],
+            'home_partner_card2_desc'  => ['nullable', 'string', 'max:200'],
+            'home_partner_card3_title' => ['nullable', 'string', 'max:80'],
+            'home_partner_card3_desc'  => ['nullable', 'string', 'max:200'],
+            'home_partner_card4_title' => ['nullable', 'string', 'max:80'],
+            'home_partner_card4_desc'  => ['nullable', 'string', 'max:200'],
 
-// MICE: Hero + tips (section yang lu tandain)
-'mice_hero_badge' => ['nullable', 'string', 'max:60'],
-'mice_hero_title' => ['nullable', 'string', 'max:140'],
-'mice_hero_desc'  => ['nullable', 'string', 'max:500'],
-'mice_cta_button' => ['nullable', 'string', 'max:60'],
+            // MICE: Hero + tips (section yang lu tandain)
+            'mice_hero_badge' => ['nullable', 'string', 'max:60'],
+            'mice_hero_title' => ['nullable', 'string', 'max:140'],
+            'mice_hero_desc'  => ['nullable', 'string', 'max:500'],
+            'mice_cta_button' => ['nullable', 'string', 'max:60'],
 
-'mice_tip1_title' => ['nullable', 'string', 'max:60'],
-'mice_tip1_desc'  => ['nullable', 'string', 'max:120'],
-'mice_tip2_title' => ['nullable', 'string', 'max:60'],
-'mice_tip2_desc'  => ['nullable', 'string', 'max:120'],
-'mice_tip3_title' => ['nullable', 'string', 'max:60'],
-'mice_tip3_desc'  => ['nullable', 'string', 'max:120'],
-'mice_tip4_title' => ['nullable', 'string', 'max:60'],
-'mice_tip4_desc'  => ['nullable', 'string', 'max:120'],
+            'mice_tip1_title' => ['nullable', 'string', 'max:60'],
+            'mice_tip1_desc'  => ['nullable', 'string', 'max:120'],
+            'mice_tip2_title' => ['nullable', 'string', 'max:60'],
+            'mice_tip2_desc'  => ['nullable', 'string', 'max:120'],
+            'mice_tip3_title' => ['nullable', 'string', 'max:60'],
+            'mice_tip3_desc'  => ['nullable', 'string', 'max:120'],
+            'mice_tip4_title' => ['nullable', 'string', 'max:60'],
+            'mice_tip4_desc'  => ['nullable', 'string', 'max:120'],
 
-// Dokumentasi per kategori (Ship & Umrah)
-'docs_ship_hero_badge' => ['nullable', 'string', 'max:60'],
-'docs_ship_hero_title' => ['nullable', 'string', 'max:120'],
-'docs_ship_hero_desc'  => ['nullable', 'string', 'max:500'],
+            // Dokumentasi per kategori (Ship & Umrah)
+            'docs_ship_hero_badge' => ['nullable', 'string', 'max:60'],
+            'docs_ship_hero_title' => ['nullable', 'string', 'max:120'],
+            'docs_ship_hero_desc'  => ['nullable', 'string', 'max:500'],
 
-'docs_umrah_hero_badge' => ['nullable', 'string', 'max:60'],
-'docs_umrah_hero_title' => ['nullable', 'string', 'max:120'],
-'docs_umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
+            'docs_umrah_hero_badge' => ['nullable', 'string', 'max:60'],
+            'docs_umrah_hero_title' => ['nullable', 'string', 'max:120'],
+            'docs_umrah_hero_desc'  => ['nullable', 'string', 'max:500'],
 
             // Halaman Dokumentasi
             'docs_hero_badge' => ['nullable', 'string', 'max:60'],
@@ -282,22 +284,22 @@ class SettingController extends Controller
 
         // HERO
         // TRACKING
-Setting::updateOrCreate(
-    ['key' => 'tracking_head'],
-    ['value' => $data['tracking_head'] ?? '']
-);
+        Setting::updateOrCreate(
+            ['key' => 'tracking_head'],
+            ['value' => $data['tracking_head'] ?? '']
+        );
 
-Setting::updateOrCreate(
-    ['key' => 'tracking_body'],
-    ['value' => $data['tracking_body'] ?? '']
-);
+        Setting::updateOrCreate(
+            ['key' => 'tracking_body'],
+            ['value' => $data['tracking_body'] ?? '']
+        );
 
 
         Setting::updateOrCreate(['key' => 'hero_title'], ['value' => $data['hero_title']]);
         Setting::updateOrCreate(['key' => 'hero_subtitle'], ['value' => $data['hero_subtitle']]);
-Setting::updateOrCreate(['key' => 'home_search_title'], ['value' => $data['home_search_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'home_search_desc'],  ['value' => $data['home_search_desc'] ?? '']);
-Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_search_hint'] ?? '']);
+        Setting::updateOrCreate(['key' => 'home_search_title'], ['value' => $data['home_search_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'home_search_desc'],  ['value' => $data['home_search_desc'] ?? '']);
+        Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_search_hint'] ?? '']);
         if ($request->hasFile('hero_image')) {
             $old = Setting::where('key', 'hero_image')->value('value');
             if ($old && str_starts_with($old, '/storage/')) {
@@ -369,6 +371,71 @@ Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_
             Setting::updateOrCreate(['key' => "footer_link{$i}_url"],   ['value' => $data["footer_link{$i}_url"] ?? '']);
         }
 
+        // AUTO TRANSLATE (DEEPL) -> footer *_en (admin input 1x)
+        try {
+            /** @var TranslateService $tx */
+            $tx = app(TranslateService::class);
+
+            $src = [
+                'footer_tagline' => $data['footer_tagline'] ?? '',
+                'footer_quick_links_title' => $data['footer_quick_links_title'] ?? '',
+                'footer_copyright' => $data['footer_copyright'] ?? '',
+                'footer_link1_label' => $data['footer_link1_label'] ?? '',
+                'footer_link2_label' => $data['footer_link2_label'] ?? '',
+                'footer_link3_label' => $data['footer_link3_label'] ?? '',
+                'footer_link4_label' => $data['footer_link4_label'] ?? '',
+                'hero_title' => $data['hero_title'] ?? '',
+                'hero_subtitle' => $data['hero_subtitle'] ?? '',
+                'home_search_title' => $data['home_search_title'] ?? '',
+                'home_search_desc'  => $data['home_search_desc'] ?? '',
+                'home_search_hint'  => $data['home_search_hint'] ?? '',
+
+                // HOME HIGHLIGHTS (field ini juga divalidasi di controller ini)
+                'home_highlight_label' => $data['home_highlight_label'] ?? '',
+                'home_highlight_title' => $data['home_highlight_title'] ?? '',
+                'home_highlight_desc'  => $data['home_highlight_desc'] ?? '',
+
+                'home_highlight_left1_title' => $data['home_highlight_left1_title'] ?? '',
+                'home_highlight_left1_desc'  => $data['home_highlight_left1_desc'] ?? '',
+                'home_highlight_left2_title' => $data['home_highlight_left2_title'] ?? '',
+                'home_highlight_left2_desc'  => $data['home_highlight_left2_desc'] ?? '',
+                'home_highlight_left3_title' => $data['home_highlight_left3_title'] ?? '',
+                'home_highlight_left3_desc'  => $data['home_highlight_left3_desc'] ?? '',
+                'home_highlight_left4_title' => $data['home_highlight_left4_title'] ?? '',
+                'home_highlight_left4_desc'  => $data['home_highlight_left4_desc'] ?? '',
+
+                'home_highlight_right1_title' => $data['home_highlight_right1_title'] ?? '',
+                'home_highlight_right1_desc'  => $data['home_highlight_right1_desc'] ?? '',
+                'home_highlight_right2_title' => $data['home_highlight_right2_title'] ?? '',
+                'home_highlight_right2_desc'  => $data['home_highlight_right2_desc'] ?? '',
+                'home_highlight_right3_title' => $data['home_highlight_right3_title'] ?? '',
+                'home_highlight_right3_desc'  => $data['home_highlight_right3_desc'] ?? '',
+                'home_highlight_right4_title' => $data['home_highlight_right4_title'] ?? '',
+                'home_highlight_right4_desc'  => $data['home_highlight_right4_desc'] ?? '',
+
+                'home_highlight_cta_primary_text'   => $data['home_highlight_cta_primary_text'] ?? '',
+                'home_highlight_cta_secondary_text' => $data['home_highlight_cta_secondary_text'] ?? '',
+
+            ];
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+
+                if ($en !== '') {
+                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save admin gagal kalau deepl down / key belum di-set
+        }
+
+
         // HALAMAN PAKET TOUR
         Setting::updateOrCreate(['key' => 'tour_hero_badge'], ['value' => $data['tour_hero_badge'] ?? '']);
         Setting::updateOrCreate(['key' => 'tour_hero_title'], ['value' => $data['tour_hero_title'] ?? '']);
@@ -391,6 +458,58 @@ Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_
             Setting::updateOrCreate(['key' => "tour_tip{$i}_desc"],  ['value' => $data["tour_tip{$i}_desc"] ?? '']);
         }
 
+
+        try {
+            /** @var TranslateService $tx */
+            $tx = app(TranslateService::class);
+
+
+            $src = [
+                'tour_hero_badge' => $data['tour_hero_badge'] ?? '',
+                'tour_hero_title' => $data['tour_hero_title'] ?? '',
+                'tour_hero_desc'  => $data['tour_hero_desc'] ?? '',
+
+                'tour_filter_dest_label'  => $data['tour_filter_dest_label'] ?? '',
+                'tour_filter_cat_label'   => $data['tour_filter_cat_label'] ?? '',
+                'tour_filter_dur_label'   => $data['tour_filter_dur_label'] ?? '',
+                'tour_filter_trans_label' => $data['tour_filter_trans_label'] ?? '',
+
+                'tour_tips_title' => $data['tour_tips_title'] ?? '',
+                'tour_tips_desc'  => $data['tour_tips_desc'] ?? '',
+
+                'tour_cta_title'  => $data['tour_cta_title'] ?? '',
+                'tour_cta_desc'   => $data['tour_cta_desc'] ?? '',
+                'tour_cta_button' => $data['tour_cta_button'] ?? '',
+            ];
+
+
+            for ($i = 1; $i <= 4; $i++) {
+                $src["tour_tip{$i}_title"] = $data["tour_tip{$i}_title"] ?? '';
+                $src["tour_tip{$i}_desc"]  = $data["tour_tip{$i}_desc"] ?? '';
+            }
+
+
+            $src['tour_cta_secondary_button'] = $data['tour_cta_secondary_button'] ?? '';
+
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+
+
+                if ($en !== '') {
+                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+
+
         // HALAMAN RENT CAR
         Setting::updateOrCreate(['key' => 'rentcar_hero_badge'], ['value' => $data['rentcar_hero_badge'] ?? '']);
         Setting::updateOrCreate(['key' => 'rentcar_hero_title'], ['value' => $data['rentcar_hero_title'] ?? '']);
@@ -408,45 +527,45 @@ Setting::updateOrCreate(['key' => 'home_search_hint'],  ['value' => $data['home_
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_title"], ['value' => $data["rentcar_note{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_desc"],  ['value' => $data["rentcar_note{$i}_desc"] ?? '']);
         }
-// HALAMAN SEWA KAPAL
-Setting::updateOrCreate(['key' => 'ship_hero_badge'], ['value' => $data['ship_hero_badge'] ?? '']);
-Setting::updateOrCreate(['key' => 'ship_hero_title'], ['value' => $data['ship_hero_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'ship_hero_desc'],  ['value' => $data['ship_hero_desc'] ?? '']);
+        // HALAMAN SEWA KAPAL
+        Setting::updateOrCreate(['key' => 'ship_hero_badge'], ['value' => $data['ship_hero_badge'] ?? '']);
+        Setting::updateOrCreate(['key' => 'ship_hero_title'], ['value' => $data['ship_hero_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'ship_hero_desc'],  ['value' => $data['ship_hero_desc'] ?? '']);
 
-Setting::updateOrCreate(['key' => 'ship_tips_title'], ['value' => $data['ship_tips_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'ship_tips_desc'],  ['value' => $data['ship_tips_desc'] ?? '']);
+        Setting::updateOrCreate(['key' => 'ship_tips_title'], ['value' => $data['ship_tips_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'ship_tips_desc'],  ['value' => $data['ship_tips_desc'] ?? '']);
 
-for ($i = 1; $i <= 4; $i++) {
-    Setting::updateOrCreate(['key' => "ship_tip{$i}_title"], ['value' => $data["ship_tip{$i}_title"] ?? '']);
-    Setting::updateOrCreate(['key' => "ship_tip{$i}_desc"],  ['value' => $data["ship_tip{$i}_desc"] ?? '']);
-}
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "ship_tip{$i}_title"], ['value' => $data["ship_tip{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "ship_tip{$i}_desc"],  ['value' => $data["ship_tip{$i}_desc"] ?? '']);
+        }
 
-// HALAMAN UMRAH
-Setting::updateOrCreate(['key' => 'umrah_hero_badge'], ['value' => $data['umrah_hero_badge'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_hero_title'], ['value' => $data['umrah_hero_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_hero_desc'],  ['value' => $data['umrah_hero_desc'] ?? '']);
+        // HALAMAN UMRAH
+        Setting::updateOrCreate(['key' => 'umrah_hero_badge'], ['value' => $data['umrah_hero_badge'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_hero_title'], ['value' => $data['umrah_hero_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_hero_desc'],  ['value' => $data['umrah_hero_desc'] ?? '']);
 
-Setting::updateOrCreate(['key' => 'umrah_filter_dest_label'],  ['value' => $data['umrah_filter_dest_label'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_filter_cat_label'],   ['value' => $data['umrah_filter_cat_label'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_filter_dur_label'],   ['value' => $data['umrah_filter_dur_label'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_filter_trans_label'], ['value' => $data['umrah_filter_trans_label'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_filter_dest_label'],  ['value' => $data['umrah_filter_dest_label'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_filter_cat_label'],   ['value' => $data['umrah_filter_cat_label'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_filter_dur_label'],   ['value' => $data['umrah_filter_dur_label'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_filter_trans_label'], ['value' => $data['umrah_filter_trans_label'] ?? '']);
 
-Setting::updateOrCreate(['key' => 'umrah_tips_title'], ['value' => $data['umrah_tips_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'umrah_tips_desc'],  ['value' => $data['umrah_tips_desc'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_tips_title'], ['value' => $data['umrah_tips_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'umrah_tips_desc'],  ['value' => $data['umrah_tips_desc'] ?? '']);
 
-for ($i = 1; $i <= 4; $i++) {
-    Setting::updateOrCreate(['key' => "umrah_tip{$i}_title"], ['value' => $data["umrah_tip{$i}_title"] ?? '']);
-    Setting::updateOrCreate(['key' => "umrah_tip{$i}_desc"],  ['value' => $data["umrah_tip{$i}_desc"] ?? '']);
-}
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "umrah_tip{$i}_title"], ['value' => $data["umrah_tip{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "umrah_tip{$i}_desc"],  ['value' => $data["umrah_tip{$i}_desc"] ?? '']);
+        }
 
-// DOKUMENTASI PER KATEGORI
-Setting::updateOrCreate(['key' => 'docs_ship_hero_badge'], ['value' => $data['docs_ship_hero_badge'] ?? '']);
-Setting::updateOrCreate(['key' => 'docs_ship_hero_title'], ['value' => $data['docs_ship_hero_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'docs_ship_hero_desc'],  ['value' => $data['docs_ship_hero_desc'] ?? '']);
+        // DOKUMENTASI PER KATEGORI
+        Setting::updateOrCreate(['key' => 'docs_ship_hero_badge'], ['value' => $data['docs_ship_hero_badge'] ?? '']);
+        Setting::updateOrCreate(['key' => 'docs_ship_hero_title'], ['value' => $data['docs_ship_hero_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'docs_ship_hero_desc'],  ['value' => $data['docs_ship_hero_desc'] ?? '']);
 
-Setting::updateOrCreate(['key' => 'docs_umrah_hero_badge'], ['value' => $data['docs_umrah_hero_badge'] ?? '']);
-Setting::updateOrCreate(['key' => 'docs_umrah_hero_title'], ['value' => $data['docs_umrah_hero_title'] ?? '']);
-Setting::updateOrCreate(['key' => 'docs_umrah_hero_desc'],  ['value' => $data['docs_umrah_hero_desc'] ?? '']);
+        Setting::updateOrCreate(['key' => 'docs_umrah_hero_badge'], ['value' => $data['docs_umrah_hero_badge'] ?? '']);
+        Setting::updateOrCreate(['key' => 'docs_umrah_hero_title'], ['value' => $data['docs_umrah_hero_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'docs_umrah_hero_desc'],  ['value' => $data['docs_umrah_hero_desc'] ?? '']);
 
         // HALAMAN DOKUMENTASI
         Setting::updateOrCreate(['key' => 'docs_hero_badge'], ['value' => $data['docs_hero_badge'] ?? '']);
@@ -502,46 +621,130 @@ Setting::updateOrCreate(['key' => 'docs_umrah_hero_desc'],  ['value' => $data['d
             Setting::updateOrCreate(['key' => "home_flow{$i}_title"], ['value' => $data["home_flow{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "home_flow{$i}_desc"],  ['value' => $data["home_flow{$i}_desc"] ?? '']);
         }
-// HOME: Logos header
-foreach (['home_logos_badge','home_logos_title','home_logos_desc'] as $k) {
-    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
-}
+        // HOME: Logos header
+        foreach (['home_logos_badge', 'home_logos_title', 'home_logos_desc'] as $k) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
 
-// HOME: Final CTA
-foreach ([
-    'home_final_cta_title',
-    'home_final_cta_desc',
-    'home_final_cta_primary_text',
-    'home_final_cta_primary_url',
-    'home_final_cta_secondary_text',
-    'home_final_cta_secondary_url',
-] as $k) {
-    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
-}
+        // HOME: Final CTA
+        foreach (
+            [
+                'home_final_cta_title',
+                'home_final_cta_desc',
+                'home_final_cta_primary_text',
+                'home_final_cta_primary_url',
+                'home_final_cta_secondary_text',
+                'home_final_cta_secondary_url',
+            ] as $k
+        ) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
 
-// HOME: Partner CTA + cards
-foreach ([
-    'home_partner_badge',
-    'home_partner_title',
-    'home_partner_desc',
-    'home_partner_button_text',
-    'home_partner_button_url',
-    'home_partner_card1_title','home_partner_card1_desc',
-    'home_partner_card2_title','home_partner_card2_desc',
-    'home_partner_card3_title','home_partner_card3_desc',
-    'home_partner_card4_title','home_partner_card4_desc',
-] as $k) {
-    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
-}
+        // HOME: Partner CTA + cards
+        foreach (
+            [
+                'home_partner_badge',
+                'home_partner_title',
+                'home_partner_desc',
+                'home_partner_button_text',
+                'home_partner_button_url',
+                'home_partner_card1_title',
+                'home_partner_card1_desc',
+                'home_partner_card2_title',
+                'home_partner_card2_desc',
+                'home_partner_card3_title',
+                'home_partner_card3_desc',
+                'home_partner_card4_title',
+                'home_partner_card4_desc',
+            ] as $k
+        ) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
+        // AUTO TRANSLATE (DEEPL) -> HOME sections *_en (admin input 1x)
+        try {
+            /** @var TranslateService $tx */
+            $tx = app(TranslateService::class);
 
-// MICE: Hero + tips
-foreach (['mice_hero_badge','mice_hero_title','mice_hero_desc','mice_cta_button'] as $k) {
-    Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
-}
-for ($i = 1; $i <= 4; $i++) {
-    Setting::updateOrCreate(['key' => "mice_tip{$i}_title"], ['value' => $data["mice_tip{$i}_title"] ?? '']);
-    Setting::updateOrCreate(['key' => "mice_tip{$i}_desc"],  ['value' => $data["mice_tip{$i}_desc"] ?? '']);
-}
+            $src = [];
+
+            // why
+            foreach (['home_why_label', 'home_why_title', 'home_why_desc'] as $k) {
+                $src[$k] = $data[$k] ?? '';
+            }
+            for ($i = 1; $i <= 4; $i++) {
+                $src["home_why{$i}_title"] = $data["home_why{$i}_title"] ?? '';
+                $src["home_why{$i}_desc"]  = $data["home_why{$i}_desc"] ?? '';
+            }
+
+            // flow
+            foreach (['home_flow_label', 'home_flow_title', 'home_flow_desc'] as $k) {
+                $src[$k] = $data[$k] ?? '';
+            }
+            for ($i = 1; $i <= 4; $i++) {
+                $src["home_flow{$i}_title"] = $data["home_flow{$i}_title"] ?? '';
+                $src["home_flow{$i}_desc"]  = $data["home_flow{$i}_desc"] ?? '';
+            }
+
+            // logos header
+            foreach (['home_logos_badge', 'home_logos_title', 'home_logos_desc'] as $k) {
+                $src[$k] = $data[$k] ?? '';
+            }
+
+            // final cta (HANYA text, URL jangan ditranslate)
+            foreach (['home_final_cta_title', 'home_final_cta_desc', 'home_final_cta_primary_text', 'home_final_cta_secondary_text'] as $k) {
+                $src[$k] = $data[$k] ?? '';
+            }
+
+            // partner (HANYA text, URL jangan ditranslate)
+            foreach (
+                [
+                    'home_partner_badge',
+                    'home_partner_title',
+                    'home_partner_desc',
+                    'home_partner_button_text',
+                    'home_partner_card1_title',
+                    'home_partner_card1_desc',
+                    'home_partner_card2_title',
+                    'home_partner_card2_desc',
+                    'home_partner_card3_title',
+                    'home_partner_card3_desc',
+                    'home_partner_card4_title',
+                    'home_partner_card4_desc',
+                ] as $k
+            ) {
+                $src[$k] = $data[$k] ?? '';
+            }
+
+            // buang yang kosong biar ga buang quota
+            $src = array_filter($src, fn($v) => trim((string)$v) !== '');
+
+            if (count($src) > 0) {
+                $keys = array_keys($src);
+                $vals = array_values($src);
+
+                // sama persis pattern yang sudah ada: toEnBatch(vals, 'text')
+                $enVals = $tx->toEnBatch($vals, 'text');
+
+                foreach ($keys as $i => $k) {
+                    $en = $enVals[$i] ?? null;
+                    $en = is_string($en) ? trim($en) : '';
+                    if ($en === '') continue;
+
+                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save admin gagal kalau deepl down / key belum di-set
+        }
+
+        // MICE: Hero + tips
+        foreach (['mice_hero_badge', 'mice_hero_title', 'mice_hero_desc', 'mice_cta_button'] as $k) {
+            Setting::updateOrCreate(['key' => $k], ['value' => $data[$k] ?? '']);
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "mice_tip{$i}_title"], ['value' => $data["mice_tip{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "mice_tip{$i}_desc"],  ['value' => $data["mice_tip{$i}_desc"] ?? '']);
+        }
 
         return back()->with('success', 'Settings berhasil disimpan.');
     }

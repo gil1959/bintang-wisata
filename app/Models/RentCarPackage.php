@@ -28,6 +28,14 @@ class RentCarPackage extends Model
 'partner_review_note',
 'partner_reviewed_by',
 'partner_reviewed_at',
+'title_en',
+'label_en',
+'long_description_en',
+'features_en',
+'seo_title_en',
+'seo_keywords_en',
+'seo_description_en',
+
 
     ];
 
@@ -37,6 +45,8 @@ class RentCarPackage extends Model
         'price_per_day' => 'float',
         'is_active' => 'boolean',
         'features' => 'array',
+        'features_en' => 'array',
+
     ];
 
     public function reviews()
