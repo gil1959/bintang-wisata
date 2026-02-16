@@ -9,11 +9,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Http\Client\ConnectionException;
 
 class DestinationInspirationToEn implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
+    public int $tries = 5;
+    public int $timeout = 120;
+    public bool $failOnTimeout = false;
+    public array $backoff = [60, 300, 900, 1800, 3600];
     public function __construct(public int $id) {}
 
     public function handle(TranslateService $tx): void
@@ -24,10 +28,15 @@ class DestinationInspirationToEn implements ShouldQueue
         if ($d->title_en && trim((string)$d->title_en) !== '') return;
         if (!is_string($d->title) || trim($d->title) === '') return;
 
-        $val = $tx->toEnBatch([$d->title], 'text')[0] ?? null;
-        if (is_string($val) && trim($val) !== '') {
-            $d->title_en = $val;
-            $d->save();
+        try {
+            $val = $tx->toEnBatch([$d->title], 'text')[0] ?? null;
+            if (is_string($val) && trim($val) !== '') {
+                $d->title_en = $val;
+                $d->save();
+            }
+        } catch (ConnectionException $e) {
+            $this->release(300);
+            return;
         }
     }
 }

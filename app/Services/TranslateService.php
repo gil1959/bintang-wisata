@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
+
 
 class TranslateService
 {
@@ -271,9 +273,19 @@ class TranslateService
             $payload['api_key'] = $apiKey;
         }
 
-        $resp = Http::timeout((int)config('translate.libretranslate.timeout', 25))
+        $timeout = (int) config('translate.libretranslate.timeout', 25);
+        $connectTimeout = (int) config('translate.libretranslate.connect_timeout', 5);
+        $retry = (int) config('translate.libretranslate.retry', 2);
+        $retrySleep = (int) config('translate.libretranslate.retry_sleep_ms', 500);
+
+        $resp = Http::connectTimeout($connectTimeout)
+            ->timeout($timeout)
+            ->retry($retry, $retrySleep, function ($exception) {
+                return $exception instanceof ConnectionException;
+            })
             ->asJson()
             ->post($endpoint, $payload);
+
 
         if (!$resp->ok()) {
             throw new \RuntimeException('LibreTranslate error: ' . $resp->status() . ' ' . $resp->body());
@@ -329,9 +341,22 @@ class TranslateService
             $payload['api_key'] = $apiKey;
         }
 
-        $resp = Http::timeout((int)config('translate.libretranslate.timeout', 25))
+        $timeout = (int) config('translate.libretranslate.timeout', 25);
+        $connectTimeout = (int) config('translate.libretranslate.connect_timeout', 5);
+        $retry = (int) config('translate.libretranslate.retry', 2);
+        $retrySleep = (int) config('translate.libretranslate.retry_sleep_ms', 500);
+
+        $resp = Http::withOptions([
+            'connect_timeout' => $connectTimeout,
+        ])
+            ->timeout($timeout)
+            ->retry($retry, $retrySleep, function ($exception) {
+                return $exception instanceof ConnectionException;
+            })
             ->asJson()
             ->post($endpoint, $payload);
+
+
 
         if (!$resp->ok()) {
             throw new \RuntimeException('LibreTranslate error: ' . $resp->status() . ' ' . $resp->body());

@@ -23,8 +23,8 @@
       $nav = [
       ['type' => 'link', 'label' => $isEn ? 'Home' : 'Beranda', 'route' => 'home', 'icon' => 'home'],
       ['type' => 'link', 'label' => $isEn ? 'Tour Packages' : 'Paket Tour','route' => 'tours.index', 'icon' => 'map'],
-      ['type' => 'link', 'label' => $isEn ? 'Car Rental' : 'Rental Mobil', 'route' => 'rentcar.index', 'icon' => 'car'],
-      ['type' => 'link', 'label' => $isEn ? 'Ship Rental' : 'Sewa Kapal', 'route' => 'ship.index', 'icon' => 'anchor'],
+      ['type' => 'link', 'label' => $isEn ? 'Car Rental' : 'carter pribadi', 'route' => 'rentcar.index', 'icon' => 'car'],
+      ['type' => 'link', 'label' => $isEn ? 'Private Charter' : 'Sewa Kapal', 'route' => 'ship.index', 'icon' => 'anchor'],
       ['type' => 'link', 'label' => $isEn ? 'Umrah' : 'Umrah', 'route' => 'umrah.index', 'icon' => 'landmark'],
       ['type' => 'link', 'label' => $isEn ? 'MICE' : 'MICE', 'route' => 'mice.index', 'icon' => 'briefcase'],
 
