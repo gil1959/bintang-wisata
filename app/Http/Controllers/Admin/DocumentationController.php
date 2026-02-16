@@ -12,29 +12,28 @@ class DocumentationController extends Controller
     public function index(Request $request)
     {
         $type = $request->get('type'); // photo|video|null
-$base = Documentation::query();
+        $base = Documentation::query();
 
-if ($type && in_array($type, ['photo', 'video'])) {
-    $base->where('type', $type);
-}
+        if ($type && in_array($type, ['photo', 'video'])) {
+            $base->where('type', $type);
+        }
 
-$tourItems = (clone $base)->where('category', 'tour')
-    ->orderByDesc('created_at')
-    ->paginate(20, ['*'], 'tour_page')
-    ->withQueryString();
+        $tourItems = (clone $base)->where('category', 'tour')
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'tour_page')
+            ->withQueryString();
 
-$shipItems = (clone $base)->where('category', 'ship')
-    ->orderByDesc('created_at')
-    ->paginate(20, ['*'], 'ship_page')
-    ->withQueryString();
+        $shipItems = (clone $base)->where('category', 'ship')
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'ship_page')
+            ->withQueryString();
 
-$umrahItems = (clone $base)->where('category', 'umrah')
-    ->orderByDesc('created_at')
-    ->paginate(20, ['*'], 'umrah_page')
-    ->withQueryString();
+        $umrahItems = (clone $base)->where('category', 'umrah')
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'umrah_page')
+            ->withQueryString();
 
-return view('admin.documentations.index', compact('type', 'tourItems', 'shipItems', 'umrahItems'));
-
+        return view('admin.documentations.index', compact('type', 'tourItems', 'shipItems', 'umrahItems'));
     }
 
     public function create()
@@ -73,7 +72,7 @@ return view('admin.documentations.index', compact('type', 'tourItems', 'shipItem
 
                 $path = $file->store($dir, 'public');
 
-                Documentation::create([
+                $doc = Documentation::create([
                     'category' => $data['category'],
                     'type' => $data['type'],
                     'title' => $data['title'],
@@ -81,6 +80,8 @@ return view('admin.documentations.index', compact('type', 'tourItems', 'shipItem
                     'is_active' => $request->boolean('is_active', true),
                     'sort_order' => $data['sort_order'] ?? 0,
                 ]);
+
+                \App\Jobs\Translate\DocumentationToEn::dispatch($doc->id)->onQueue('translations');
 
                 $created++;
             }
@@ -102,13 +103,16 @@ return view('admin.documentations.index', compact('type', 'tourItems', 'shipItem
 
                 if (!preg_match('#^https?://#i', $link)) continue;
 
-                Documentation::create([
+                $doc = Documentation::create([
+                    'category' => $data['category'],
                     'type' => $data['type'],
                     'title' => $data['title'],
                     'file_path' => $link,
                     'is_active' => $request->boolean('is_active', true),
                     'sort_order' => $data['sort_order'] ?? 0,
                 ]);
+
+                \App\Jobs\Translate\DocumentationToEn::dispatch($doc->id)->onQueue('translations');
 
                 $created++;
             }
@@ -172,6 +176,8 @@ return view('admin.documentations.index', compact('type', 'tourItems', 'shipItem
         }
 
         $documentation->save();
+
+        \App\Jobs\Translate\DocumentationToEn::dispatch($documentation->id)->onQueue('translations');
 
         return redirect()->route('admin.documentations.index')
             ->with('success', 'Dokumentasi berhasil diperbarui.');

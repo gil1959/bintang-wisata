@@ -4,26 +4,35 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\Documentation;
-use App\Models\Setting; 
+use App\Models\Setting;
+
 class DocumentationController extends Controller
 {
     public function tour()
     {
-        return $this->renderDocs('tour', 'Dokumentasi Paket Tour');
+        return $this->renderDocs('tour');
     }
 
     public function ship()
     {
-        return $this->renderDocs('ship', 'Dokumentasi Sewa Kapal');
+        return $this->renderDocs('ship');
     }
 
     public function umrah()
     {
-        return $this->renderDocs('umrah', 'Dokumentasi Umrah');
+        return $this->renderDocs('umrah');
     }
 
-    private function renderDocs(string $category, string $pageTitle)
+    private function renderDocs(string $category)
     {
+        $isEn = app()->getLocale() === 'en';
+
+        $pageTitle = match ($category) {
+            'ship'  => $isEn ? 'Ship Rental Documentation' : 'Dokumentasi Sewa Kapal',
+            'umrah' => $isEn ? 'Umrah Documentation' : 'Dokumentasi Umrah',
+            default => $isEn ? 'Tour Documentation' : 'Dokumentasi Paket Tour',
+        };
+
         $photos = Documentation::query()
             ->where('category', $category)
             ->where('type', 'photo')
@@ -40,13 +49,26 @@ class DocumentationController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $heroBadge = Setting::getValue("docs_{$category}_hero_badge", Setting::getValue('docs_hero_badge', $pageTitle));
-$heroTitle = Setting::getValue("docs_{$category}_hero_title", Setting::getValue('docs_hero_title', $pageTitle));
-$heroDesc  = Setting::getValue(
-    "docs_{$category}_hero_desc",
-    Setting::getValue('docs_hero_desc', 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.')
-);
+        $kBadge = "docs_{$category}_hero_badge";
+        $kTitle = "docs_{$category}_hero_title";
+        $kDesc  = "docs_{$category}_hero_desc";
 
-return view('front.pages.docs', compact('photos', 'videos', 'pageTitle', 'heroBadge', 'heroTitle', 'heroDesc'));
+        // locale-aware: coba *_en dulu kalau EN, fallback ke ID, lalu fallback global docs_*
+        $heroBadge = $isEn
+            ? Setting::getValue($kBadge . '_en', Setting::getValue($kBadge, Setting::getValue('docs_hero_badge_en', Setting::getValue('docs_hero_badge', $pageTitle))))
+            : Setting::getValue($kBadge, Setting::getValue('docs_hero_badge', $pageTitle));
+
+        $heroTitle = $isEn
+            ? Setting::getValue($kTitle . '_en', Setting::getValue($kTitle, Setting::getValue('docs_hero_title_en', Setting::getValue('docs_hero_title', $pageTitle))))
+            : Setting::getValue($kTitle, Setting::getValue('docs_hero_title', $pageTitle));
+
+        $fallbackDescId = 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.';
+        $fallbackDescEn = 'A gallery of our trips and service activities, consisting of photos and videos.';
+
+        $heroDesc = $isEn
+            ? Setting::getValue($kDesc . '_en', Setting::getValue($kDesc, Setting::getValue('docs_hero_desc_en', Setting::getValue('docs_hero_desc', $fallbackDescEn))))
+            : Setting::getValue($kDesc, Setting::getValue('docs_hero_desc', $fallbackDescId));
+
+        return view('front.pages.docs', compact('photos', 'videos', 'pageTitle', 'heroBadge', 'heroTitle', 'heroDesc'));
     }
 }

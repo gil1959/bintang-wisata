@@ -33,7 +33,19 @@ class MicePackage extends Model
         'long_description_en',
         'seo_title_en',
         'seo_keywords_en',
-        'seo_description_en'
+        'seo_description_en',
+
+        'title_en',
+        'label_en',
+        'destination_en',
+        'duration_text_en',
+        'long_description_en',
+        'itinerary_en',
+        'include_text_en',
+        'exclude_text_en',
+        'seo_title_en',
+        'seo_keywords_en',
+        'seo_description_en',
 
     ];
 

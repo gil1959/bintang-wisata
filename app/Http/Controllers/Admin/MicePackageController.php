@@ -15,35 +15,35 @@ use Illuminate\Http\Request;
 class MicePackageController extends Controller
 {
     public function index(Request $request)
-{
-    $q        = trim((string) $request->query('q', ''));
-    $category = $request->query('category');
-    $status   = $request->query('status');
+    {
+        $q        = trim((string) $request->query('q', ''));
+        $category = $request->query('category');
+        $status   = $request->query('status');
 
-    $query = MicePackage::query()->with('category')->latest();
+        $query = MicePackage::query()->with('category')->latest();
 
-    if ($q !== '') {
-        $query->where(function ($qq) use ($q) {
-            $qq->where('title', 'like', "%{$q}%")
-               ->orWhere('slug', 'like', "%{$q}%");
-        });
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('title', 'like', "%{$q}%")
+                    ->orWhere('slug', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($category)) {
+            $query->where('category_id', $category);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+
+        $packages = $query->paginate(20)->withQueryString();
+        $categories = MiceCategory::orderBy('name')->get();
+
+        return view('admin.mice-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
     }
-
-    if (!empty($category)) {
-        $query->where('category_id', $category);
-    }
-
-    if ($status === 'active') {
-        $query->where('is_active', 1);
-    } elseif ($status === 'inactive') {
-        $query->where('is_active', 0);
-    }
-
-    $packages = $query->paginate(20)->withQueryString();
-    $categories = MiceCategory::orderBy('name')->get();
-
-    return view('admin.mice-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
-}
 
 
     public function create()
@@ -97,7 +97,9 @@ class MicePackageController extends Controller
                     $package->photos()->create(['file_path' => $path]);
                 }
             }
-
+            \App\Jobs\Translate\MicePackageToEn::dispatch($package->id)
+                ->onQueue('translations')
+                ->afterCommit();
             return redirect()
                 ->route('admin.mice-packages.index')
                 ->with('success', 'Paket MICE berhasil dibuat.');
@@ -157,11 +159,12 @@ class MicePackageController extends Controller
                     $mice_package->photos()->create(['file_path' => $path]);
                 }
             }
-
+            \App\Jobs\Translate\MicePackageToEn::dispatch($mice_package->id)
+                ->onQueue('translations')
+                ->afterCommit();
             return redirect()
-    ->route('admin.mice-packages.index')
-    ->with('success', 'Paket MICE berhasil diupdate.');
-
+                ->route('admin.mice-packages.index')
+                ->with('success', 'Paket MICE berhasil diupdate.');
         });
     }
 

@@ -15,35 +15,35 @@ use Illuminate\Http\Request;
 class UmrahPackageController extends Controller
 {
     public function index(Request $request)
-{
-    $q        = trim((string) $request->query('q', ''));
-    $category = $request->query('category');
-    $status   = $request->query('status');
+    {
+        $q        = trim((string) $request->query('q', ''));
+        $category = $request->query('category');
+        $status   = $request->query('status');
 
-    $query = UmrahPackage::query()->with('category');
+        $query = UmrahPackage::query()->with('category');
 
-    if ($q !== '') {
-        $query->where(function ($qq) use ($q) {
-            $qq->where('title', 'like', "%{$q}%")
-               ->orWhere('slug', 'like', "%{$q}%");
-        });
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('title', 'like', "%{$q}%")
+                    ->orWhere('slug', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($category)) {
+            $query->where('category_id', $category);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+
+        $packages = $query->latest()->paginate(20)->withQueryString();
+        $categories = \App\Models\UmrahCategory::orderBy('name')->get();
+
+        return view('admin.umrah-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
     }
-
-    if (!empty($category)) {
-        $query->where('category_id', $category);
-    }
-
-    if ($status === 'active') {
-        $query->where('is_active', 1);
-    } elseif ($status === 'inactive') {
-        $query->where('is_active', 0);
-    }
-
-    $packages = $query->latest()->paginate(20)->withQueryString();
-    $categories = \App\Models\UmrahCategory::orderBy('name')->get();
-
-    return view('admin.umrah-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
-}
 
 
     public function create()
@@ -65,7 +65,7 @@ class UmrahPackageController extends Controller
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
-'is_active' => (int) $request->input('is_active', 1),
+                'is_active' => (int) $request->input('is_active', 1),
 
                 'long_description' => $request->long_description,
                 'itinerary'        => $request->itinerary,
@@ -93,6 +93,10 @@ class UmrahPackageController extends Controller
 
             // Harga (tiers)
             $this->syncTiers($package, $request->tiers);
+
+            \App\Jobs\Translate\UmrahPackageToEn::dispatch($package->id)
+                ->onQueue('translations')
+                ->afterCommit();
         });
 
         return redirect()->route('admin.umrah-packages.index')
@@ -102,8 +106,8 @@ class UmrahPackageController extends Controller
     public function edit(UmrahPackage $umrahPackage)
     {
         $categories = UmrahCategory::orderBy('name')->get();
-        $package = $umrahPackage->load(['photos','tiers','category']);
-        return view('admin.umrah-packages.edit', compact('package','categories'));
+        $package = $umrahPackage->load(['photos', 'tiers', 'category']);
+        return view('admin.umrah-packages.edit', compact('package', 'categories'));
     }
 
     public function update(UpdateUmrahPackageRequest $request, UmrahPackage $umrahPackage)
@@ -119,7 +123,7 @@ class UmrahPackageController extends Controller
                 'category_id'      => $request->category_id,
                 'duration_text'    => $request->duration_text,
                 'destination'      => $request->destination,
-'is_active' => (int) $request->input('is_active', 1),
+                'is_active' => (int) $request->input('is_active', 1),
 
                 'long_description' => $request->long_description,
                 'itinerary'        => $request->itinerary,
@@ -149,6 +153,10 @@ class UmrahPackageController extends Controller
             }
 
             $this->syncTiers($umrahPackage, $request->tiers);
+
+            \App\Jobs\Translate\UmrahPackageToEn::dispatch($umrahPackage->id)
+                ->onQueue('translations')
+                ->afterCommit();
         });
 
         return redirect()->route('admin.umrah-packages.index')

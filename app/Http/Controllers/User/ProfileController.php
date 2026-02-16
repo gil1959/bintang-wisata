@@ -44,6 +44,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return back()->with('status', 'Profile updated.');
+        $isEn = app()->getLocale() === 'en';
+        return back()->with('status', $isEn ? 'Profile updated.' : 'Profil berhasil diperbarui.');
     }
 }

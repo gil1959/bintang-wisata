@@ -1,10 +1,14 @@
 <x-guest-layout>
+    @php $isEn = app()->getLocale() === 'en'; @endphp
     <x-auth.auth-wrapper>
 
-        <h2 class="text-xl font-bold mb-4">Lupa Password</h2>
+        <h2 class="text-xl font-bold mb-4">{{ $isEn ? 'Forgot Password' : 'Lupa Password' }}</h2>
 
         <p class="text-sm text-gray-600 mb-6">
-            Masukkan email Anda untuk menerima link reset password.
+            {{ $isEn
+        ? 'Enter your email to receive a password reset link.'
+        : 'Masukkan email Anda untuk menerima link reset password.'
+    }}
         </p>
 
         <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -14,14 +18,14 @@
             @csrf
 
             <div>
-                <x-label for="email" value="Email" />
+                <x-label for="email" :value="$isEn ? 'Email' : 'Email'" />
                 <x-input id="email" class="w-full rounded-xl"
-                         type="email" name="email"
-                         value="{{ old('email') }}" required />
+                    type="email" name="email"
+                    value="{{ old('email') }}" required />
             </div>
 
             <button class="w-full py-3 rounded-xl bg-[#0194F3] text-white font-semibold">
-                Kirim Link Reset
+                {{ $isEn ? 'Send Reset Link' : 'Kirim Link Reset' }}
             </button>
         </form>
 

@@ -415,8 +415,48 @@ class SettingController extends Controller
 
                 'home_highlight_cta_primary_text'   => $data['home_highlight_cta_primary_text'] ?? '',
                 'home_highlight_cta_secondary_text' => $data['home_highlight_cta_secondary_text'] ?? '',
+                'mice_hero_badge'  => $data['mice_hero_badge'] ?? '',
+                'mice_hero_title'  => $data['mice_hero_title'] ?? '',
+                'mice_hero_desc'   => $data['mice_hero_desc'] ?? '',
+                'mice_cta_button'  => $data['mice_cta_button'] ?? '',
 
+                'mice_tip1_title'  => $data['mice_tip1_title'] ?? '',
+                'mice_tip1_desc'   => $data['mice_tip1_desc'] ?? '',
+                'mice_tip2_title'  => $data['mice_tip2_title'] ?? '',
+                'mice_tip2_desc'   => $data['mice_tip2_desc'] ?? '',
+                'mice_tip3_title'  => $data['mice_tip3_title'] ?? '',
+                'mice_tip3_desc'   => $data['mice_tip3_desc'] ?? '',
+                'mice_tip4_title'  => $data['mice_tip4_title'] ?? '',
+                'mice_tip4_desc'   => $data['mice_tip4_desc'] ?? '',
+
+                // ABOUT (meta + hero)
+                'about_meta_title' => $data['about_meta_title'] ?? '',
+                'about_hero_badge' => $data['about_hero_badge'] ?? '',
+                'about_hero_title' => $data['about_hero_title'] ?? '',
+                'about_hero_desc'  => $data['about_hero_desc'] ?? '',
+
+                // ABOUT (values header)
+                'about_values_label' => $data['about_values_label'] ?? '',
+                'about_values_title' => $data['about_values_title'] ?? '',
+                'about_values_desc'  => $data['about_values_desc'] ?? '',
+
+                // ABOUT (flow header)
+                'about_flow_label' => $data['about_flow_label'] ?? '',
+                'about_flow_title' => $data['about_flow_title'] ?? '',
+                'about_flow_desc'  => $data['about_flow_desc'] ?? '',
             ];
+
+            // ABOUT (values items)
+            for ($i = 1; $i <= 4; $i++) {
+                $src["about_value{$i}_title"] = $data["about_value{$i}_title"] ?? '';
+                $src["about_value{$i}_desc"]  = $data["about_value{$i}_desc"] ?? '';
+            }
+
+            // ABOUT (steps)
+            for ($i = 1; $i <= 4; $i++) {
+                $src["about_step{$i}_title"] = $data["about_step{$i}_title"] ?? '';
+                $src["about_step{$i}_desc"]  = $data["about_step{$i}_desc"] ?? '';
+            }
 
             $keys = array_keys($src);
             $vals = array_values($src);
@@ -480,6 +520,27 @@ class SettingController extends Controller
                 'tour_cta_title'  => $data['tour_cta_title'] ?? '',
                 'tour_cta_desc'   => $data['tour_cta_desc'] ?? '',
                 'tour_cta_button' => $data['tour_cta_button'] ?? '',
+
+                // DOCUMENTATION (GLOBAL)
+                'docs_hero_badge'  => $data['docs_hero_badge'] ?? '',
+                'docs_hero_title'  => $data['docs_hero_title'] ?? '',
+                'docs_hero_desc'   => $data['docs_hero_desc'] ?? '',
+                'docs_tab_photos'  => $data['docs_tab_photos'] ?? '',
+                'docs_tab_videos'  => $data['docs_tab_videos'] ?? '',
+                'docs_stat_photos' => $data['docs_stat_photos'] ?? '',
+                'docs_stat_videos' => $data['docs_stat_videos'] ?? '',
+                'docs_hint'        => $data['docs_hint'] ?? '',
+
+                // DOCUMENTATION (PER CATEGORY: SHIP)
+                'docs_ship_hero_badge' => $data['docs_ship_hero_badge'] ?? '',
+                'docs_ship_hero_title' => $data['docs_ship_hero_title'] ?? '',
+                'docs_ship_hero_desc'  => $data['docs_ship_hero_desc'] ?? '',
+
+                // DOCUMENTATION (PER CATEGORY: UMRAH)
+                'docs_umrah_hero_badge' => $data['docs_umrah_hero_badge'] ?? '',
+                'docs_umrah_hero_title' => $data['docs_umrah_hero_title'] ?? '',
+                'docs_umrah_hero_desc'  => $data['docs_umrah_hero_desc'] ?? '',
+
             ];
 
 
@@ -509,6 +570,81 @@ class SettingController extends Controller
         } catch (\Throwable $e) {
         }
 
+        try {
+            $tx = app(TranslateService::class);
+
+            $src = [
+                'rentcar_hero_badge' => $data['rentcar_hero_badge'] ?? '',
+                'rentcar_hero_title' => $data['rentcar_hero_title'] ?? '',
+                'rentcar_hero_desc'  => $data['rentcar_hero_desc'] ?? '',
+
+                'rentcar_chip1' => $data['rentcar_chip1'] ?? '',
+                'rentcar_chip2' => $data['rentcar_chip2'] ?? '',
+                'rentcar_chip3' => $data['rentcar_chip3'] ?? '',
+                'rentcar_chip4' => $data['rentcar_chip4'] ?? '',
+
+                'rentcar_note_title' => $data['rentcar_note_title'] ?? '',
+                'rentcar_note_desc'  => $data['rentcar_note_desc'] ?? '',
+            ];
+
+            for ($i = 1; $i <= 4; $i++) {
+                $src["rentcar_note{$i}_title"] = $data["rentcar_note{$i}_title"] ?? '';
+                $src["rentcar_note{$i}_desc"]  = $data["rentcar_note{$i}_desc"] ?? '';
+            }
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+                if ($en !== '') {
+                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+
+        // AUTO-TRANSLATE RENTCAR SETTINGS (ID -> EN) via DeepL
+        try {
+            $tx = app(\App\Services\TranslateService::class);
+
+            $src = [
+                'rentcar_hero_badge' => $data['rentcar_hero_badge'] ?? '',
+                'rentcar_hero_title' => $data['rentcar_hero_title'] ?? '',
+                'rentcar_hero_desc'  => $data['rentcar_hero_desc'] ?? '',
+
+                'rentcar_chip1' => $data['rentcar_chip1'] ?? '',
+                'rentcar_chip2' => $data['rentcar_chip2'] ?? '',
+                'rentcar_chip3' => $data['rentcar_chip3'] ?? '',
+                'rentcar_chip4' => $data['rentcar_chip4'] ?? '',
+
+                'rentcar_note_title' => $data['rentcar_note_title'] ?? '',
+                'rentcar_note_desc'  => $data['rentcar_note_desc'] ?? '',
+            ];
+
+            for ($i = 1; $i <= 4; $i++) {
+                $src["rentcar_note{$i}_title"] = $data["rentcar_note{$i}_title"] ?? '';
+                $src["rentcar_note{$i}_desc"]  = $data["rentcar_note{$i}_desc"] ?? '';
+            }
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+                if ($en !== '') {
+                    \App\Models\Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save admin gagal kalau deepl error
+        }
 
         // HALAMAN RENT CAR
         Setting::updateOrCreate(['key' => 'rentcar_hero_badge'], ['value' => $data['rentcar_hero_badge'] ?? '']);
@@ -527,6 +663,86 @@ class SettingController extends Controller
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_title"], ['value' => $data["rentcar_note{$i}_title"] ?? '']);
             Setting::updateOrCreate(['key' => "rentcar_note{$i}_desc"],  ['value' => $data["rentcar_note{$i}_desc"] ?? '']);
         }
+
+        // AUTO-TRANSLATE SHIP SETTINGS (ID -> EN) via DeepL
+        try {
+            $tx = app(\App\Services\TranslateService::class);
+
+            $src = [
+                'ship_hero_badge' => $data['ship_hero_badge'] ?? '',
+                'ship_hero_title' => $data['ship_hero_title'] ?? '',
+                'ship_hero_desc'  => $data['ship_hero_desc'] ?? '',
+
+                'ship_tips_title' => $data['ship_tips_title'] ?? '',
+                'ship_tips_desc'  => $data['ship_tips_desc'] ?? '',
+            ];
+
+            for ($i = 1; $i <= 4; $i++) {
+                $src["ship_tip{$i}_title"] = $data["ship_tip{$i}_title"] ?? '';
+                $src["ship_tip{$i}_desc"]  = $data["ship_tip{$i}_desc"] ?? '';
+            }
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+                if ($en !== '') {
+                    \App\Models\Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save admin gagal kalau deepl error
+        }
+
+        // AUTO-TRANSLATE UMRAH SETTINGS (ID -> EN) via DeepL
+        try {
+            $tx = app(\App\Services\TranslateService::class);
+
+            $src = [
+                'umrah_hero_badge' => $data['umrah_hero_badge'] ?? '',
+                'umrah_hero_title' => $data['umrah_hero_title'] ?? '',
+                'umrah_hero_desc'  => $data['umrah_hero_desc'] ?? '',
+
+                'umrah_filter_dest_label'  => $data['umrah_filter_dest_label'] ?? '',
+                'umrah_filter_cat_label'   => $data['umrah_filter_cat_label'] ?? '',
+                'umrah_filter_dur_label'   => $data['umrah_filter_dur_label'] ?? '',
+                'umrah_filter_trans_label' => $data['umrah_filter_trans_label'] ?? '',
+
+                'umrah_tips_title' => $data['umrah_tips_title'] ?? '',
+                'umrah_tips_desc'  => $data['umrah_tips_desc'] ?? '',
+            ];
+
+            for ($i = 1; $i <= 4; $i++) {
+                $src["umrah_tip{$i}_title"] = $data["umrah_tip{$i}_title"] ?? '';
+                $src["umrah_tip{$i}_desc"]  = $data["umrah_tip{$i}_desc"] ?? '';
+            }
+
+            // docs umrah (kalau lu mau ikut auto-translate juga)
+            $src['docs_umrah_hero_badge'] = $data['docs_umrah_hero_badge'] ?? '';
+            $src['docs_umrah_hero_title'] = $data['docs_umrah_hero_title'] ?? '';
+            $src['docs_umrah_hero_desc']  = $data['docs_umrah_hero_desc'] ?? '';
+
+            $keys = array_keys($src);
+            $vals = array_values($src);
+
+            $enVals = $tx->toEnBatch($vals, 'text');
+
+            foreach ($keys as $i => $k) {
+                $en = $enVals[$i] ?? null;
+                $en = is_string($en) ? trim($en) : '';
+                if ($en !== '') {
+                    \App\Models\Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // jangan bikin save settings gagal kalau DeepL error
+        }
+
+
         // HALAMAN SEWA KAPAL
         Setting::updateOrCreate(['key' => 'ship_hero_badge'], ['value' => $data['ship_hero_badge'] ?? '']);
         Setting::updateOrCreate(['key' => 'ship_hero_title'], ['value' => $data['ship_hero_title'] ?? '']);

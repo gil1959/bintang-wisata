@@ -10,37 +10,40 @@ class PromoValidatorController extends Controller
 {
     public function validatePromo(Request $request)
     {
-       $request->validate([
-    'code'  => 'required|string',
-    'price' => 'required|numeric|min:0',
-    'email' => 'nullable|email',
-]);
+        $request->validate([
+            'code'  => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'email' => 'nullable|email',
+        ]);
 
 
         $promo = Promo::where('code', strtoupper($request->code))
             ->where('is_active', true)
             ->first();
 
+        $isEn = app()->getLocale() === 'en';
+
         if (!$promo) {
             return response()->json([
                 'valid' => false,
-                'message' => 'Kode promo tidak ditemukan.'
+                'message' => $isEn ? 'Promo code not found.' : 'Kode promo tidak ditemukan.'
             ]);
         }
 
         // Check usage (once per user)
-       if ($request->filled('email')) {
-    $alreadyUsed = \App\Models\Order::where('customer_email', $request->email)
-        ->where('promo_id', $promo->id)
-        ->exists();
+        if ($request->filled('email')) {
+            $alreadyUsed = \App\Models\Order::where('customer_email', $request->email)
+                ->where('promo_id', $promo->id)
+                ->exists();
 
-    if ($alreadyUsed) {
-        return response()->json([
-            'valid' => false,
-            'message' => 'Kode promo sudah pernah digunakan untuk email ini.'
-        ]);
-    }
-}
+
+            if ($alreadyUsed) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => $isEn ? 'This promo code has already been used for this email.' : 'Kode promo sudah pernah digunakan untuk email ini.'
+                ]);
+            }
+        }
 
 
         // hitung diskon

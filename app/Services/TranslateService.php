@@ -12,12 +12,12 @@ class TranslateService
         if ($text === '') return null;
 
         $driver = config('translate.driver', 'deepl');
-        if ($driver !== 'deepl') {
-            // fallback: kalau driver lain belum dipakai
-            return $text;
-        }
 
-        return $this->deeplTranslate($text, 'text');
+        return match ($driver) {
+            'libretranslate' => $this->libreTranslate($text, 'text'),
+            'deepl'          => $this->deeplTranslate($text, 'text'),
+            default          => $text, // fallback aman
+        };
     }
 
     public function toEnHtml(?string $html): ?string
@@ -26,15 +26,16 @@ class TranslateService
         if ($html === '') return null;
 
         $driver = config('translate.driver', 'deepl');
-        if ($driver !== 'deepl') {
-            return $html;
-        }
 
+        // konsisten: normalize dulu sebelum translate HTML
         $html = $this->normalizeQuillHtml($html);
 
-        return $this->deeplTranslate($html, 'html');
+        return match ($driver) {
+            'libretranslate' => $this->libreTranslate($html, 'html'),
+            'deepl'          => $this->deeplTranslate($html, 'html'),
+            default          => $html,
+        };
     }
-
 
     /**
      * Translate array string (includes/excludes, dll).
@@ -62,17 +63,26 @@ class TranslateService
     }
 
     /**
-     * Translate batch items dalam 1 request ke DeepL (multi "text").
+     * Translate batch items.
      * Output array ukurannya SAMA dengan input.
      * - item kosong/null => output null di index yang sama
      */
     public function toEnBatch(array $items, string $mode = 'text'): array
     {
         $driver = config('translate.driver', 'deepl');
-        if ($driver !== 'deepl') {
-            return $items;
-        }
 
+        return match ($driver) {
+            'libretranslate' => $this->libreTranslateBatch($items, $mode),
+            'deepl'          => $this->deeplBatch($items, $mode),
+            default          => $items,
+        };
+    }
+
+    /**
+     * DeepL batch translate (legacy).
+     */
+    private function deeplBatch(array $items, string $mode = 'text'): array
+    {
         $key = config('translate.deepl.key');
         if (!$key) throw new \RuntimeException('DEEPL_API_KEY belum diset.');
 
@@ -112,7 +122,6 @@ class TranslateService
             $parts[] = 'text=' . rawurlencode($t);
         }
 
-
         $body = implode('&', $parts);
 
         $resp = Http::timeout(25)
@@ -122,7 +131,6 @@ class TranslateService
             ])
             ->withBody($body, 'application/x-www-form-urlencoded')
             ->post($endpoint);
-
 
         if (!$resp->ok()) {
             throw new \RuntimeException('DeepL error: ' . $resp->status() . ' ' . $resp->body());
@@ -163,7 +171,6 @@ class TranslateService
         ];
 
         foreach ($replacements as $class => $style) {
-            // Tambah style ke tag yang punya class tersebut
             $html = preg_replace_callback(
                 '/<(p|div|h1|h2|h3|li)([^>]*\bclass="[^"]*\b' . preg_quote($class, '/') . '\b[^"]*"[^>]*)>/i',
                 function ($m) use ($style) {
@@ -171,7 +178,6 @@ class TranslateService
                     $attrs = $m[2];
 
                     if (preg_match('/\bstyle="([^"]*)"/i', $attrs, $sm)) {
-                        // append ke style existing
                         $newStyle = rtrim($sm[1], ';') . ';' . $style;
                         $attrs = preg_replace('/\bstyle="[^"]*"/i', 'style="' . $newStyle . '"', $attrs);
                     } else {
@@ -183,14 +189,14 @@ class TranslateService
             );
         }
 
-        // Indent classes -> padding-left (optional tapi bikin output lebih mirip editor)
+        // Indent classes -> padding-left
         $html = preg_replace_callback(
             '/<(p|div|li)([^>]*\bclass="[^"]*\bql-indent-(\d+)\b[^"]*"[^>]*)>/i',
             function ($m) {
                 $tag = $m[1];
                 $attrs = $m[2];
                 $level = (int)$m[3];
-                $pad = (2 * $level) . 'em'; // 1->2em, 2->4em, dst.
+                $pad = (2 * $level) . 'em';
 
                 if (preg_match('/\bstyle="([^"]*)"/i', $attrs, $sm)) {
                     $newStyle = rtrim($sm[1], ';') . ';padding-left:' . $pad . ';';
@@ -243,5 +249,111 @@ class TranslateService
         }
 
         return $out;
+    }
+
+    private function libreTranslate(string $text, string $format = 'text'): string
+    {
+        $baseUrl = rtrim((string)config('translate.libretranslate.url'), '/');
+        if ($baseUrl === '') throw new \RuntimeException('LIBRETRANSLATE_URL belum diset.');
+
+        $endpoint = $baseUrl . '/translate';
+        $apiKey = (string)config('translate.libretranslate.key');
+
+        $payload = [
+            'q'      => $text,
+            'source' => 'id',
+            'target' => 'en',
+            'format' => $format === 'html' ? 'html' : 'text',
+        ];
+
+        // api_key opsional (self-hosted sering kosong)
+        if (trim($apiKey) !== '') {
+            $payload['api_key'] = $apiKey;
+        }
+
+        $resp = Http::timeout((int)config('translate.libretranslate.timeout', 25))
+            ->asJson()
+            ->post($endpoint, $payload);
+
+        if (!$resp->ok()) {
+            throw new \RuntimeException('LibreTranslate error: ' . $resp->status() . ' ' . $resp->body());
+        }
+
+        $data = $resp->json();
+        $out = $data['translatedText'] ?? null;
+
+        if (!is_string($out) || trim($out) === '') {
+            throw new \RuntimeException('LibreTranslate response kosong.');
+        }
+
+        return $out;
+    }
+
+    private function libreTranslateBatch(array $items, string $mode = 'text'): array
+    {
+        $baseUrl = rtrim((string)config('translate.libretranslate.url'), '/');
+        if ($baseUrl === '') throw new \RuntimeException('LIBRETRANSLATE_URL belum diset.');
+
+        $endpoint = $baseUrl . '/translate';
+        $apiKey = (string)config('translate.libretranslate.key');
+
+        $texts = [];
+        $map = []; // original index => compact index in $texts
+
+        foreach ($items as $i => $v) {
+            $s = is_string($v) ? trim($v) : '';
+            if ($s === '') {
+                $map[$i] = null;
+                continue;
+            }
+            if ($mode === 'html') {
+                $s = $this->normalizeQuillHtml($s);
+            }
+            $map[$i] = count($texts);
+            $texts[] = $s;
+        }
+
+        if (!count($texts)) {
+            return array_map(fn() => null, $items);
+        }
+
+        // LibreTranslate dukung q sebagai array dan translatedText balik sebagai array. :contentReference[oaicite:2]{index=2}
+        $payload = [
+            'q'      => $texts,
+            'source' => 'id',
+            'target' => 'en',
+            'format' => $mode === 'html' ? 'html' : 'text',
+        ];
+
+        if (trim($apiKey) !== '') {
+            $payload['api_key'] = $apiKey;
+        }
+
+        $resp = Http::timeout((int)config('translate.libretranslate.timeout', 25))
+            ->asJson()
+            ->post($endpoint, $payload);
+
+        if (!$resp->ok()) {
+            throw new \RuntimeException('LibreTranslate error: ' . $resp->status() . ' ' . $resp->body());
+        }
+
+        $data = $resp->json();
+        $translated = $data['translatedText'] ?? null;
+
+        if (!is_array($translated) || !count($translated)) {
+            throw new \RuntimeException('LibreTranslate response kosong.');
+        }
+
+        // rebuild output sesuai index asli
+        $result = [];
+        foreach ($items as $i => $_) {
+            if ($map[$i] === null) {
+                $result[$i] = null;
+            } else {
+                $result[$i] = $translated[$map[$i]] ?? null;
+            }
+        }
+
+        return $result;
     }
 }

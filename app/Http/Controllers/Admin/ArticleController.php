@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Jobs\Translate\ArticleToEn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -51,7 +52,11 @@ class ArticleController extends Controller
         $data['tags'] = $this->normalizeTags($request->input('tags'));
 
 
-        Article::create($data);
+        $article = Article::create($data);
+
+        ArticleToEn::dispatch($article->id)
+            ->onQueue('translations')
+            ->afterCommit();
 
         return redirect()->route('admin.articles.index')
             ->with('success', 'Artikel berhasil dibuat');
@@ -95,6 +100,10 @@ class ArticleController extends Controller
         }
 
         $article->update($data);
+
+        ArticleToEn::dispatch($article->id)
+            ->onQueue('translations')
+            ->afterCommit();
 
         return redirect()->route('admin.articles.index')
             ->with('success', 'Artikel diperbarui');

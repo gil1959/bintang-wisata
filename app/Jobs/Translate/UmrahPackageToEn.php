@@ -23,13 +23,14 @@ class UmrahPackageToEn implements ShouldQueue
 
         $dirty = false;
 
+        // 1) Batch TEXT fields
         $textMap = [
-            'title_en'         => [$p->title_en ?? null, $p->title ?? null],
-            'label_en'         => [$p->label_en ?? null, $p->label ?? null],
-            'duration_text_en' => [$p->duration_text_en ?? null, $p->duration_text ?? null],
-            'seo_title_en'     => [$p->seo_title_en ?? null, $p->seo_title ?? null],
+            'title_en'           => [$p->title_en ?? null, $p->title ?? null],
+            'label_en'           => [$p->label_en ?? null, $p->label ?? null],
+            'duration_text_en'   => [$p->duration_text_en ?? null, $p->duration_text ?? null],
+            'seo_title_en'       => [$p->seo_title_en ?? null, $p->seo_title ?? null],
             'seo_description_en' => [$p->seo_description_en ?? null, $p->seo_description ?? null],
-            'seo_keywords_en'  => [$p->seo_keywords_en ?? null, $p->seo_keywords ?? null],
+            'seo_keywords_en'    => [$p->seo_keywords_en ?? null, $p->seo_keywords ?? null],
         ];
 
         $keys = [];
@@ -43,33 +44,38 @@ class UmrahPackageToEn implements ShouldQueue
 
         if ($inputs) {
             $out = $tx->toEnBatch($inputs, 'text');
-            foreach ($keys as $i => $field) {
-                $val = $out[$i] ?? null;
-                if (is_string($val) && trim($val) !== '') {
-                    $p->{$field} = $val;
-                    $dirty = true;
-                }
-            }
-        }
-
-        if ((!$p->long_description_en || trim((string)$p->long_description_en) === '')
-            && is_string($p->long_description) && trim($p->long_description) !== ''
-        ) {
-            $val = $tx->toEnBatch([$p->long_description], 'html')[0] ?? null;
-            if (is_string($val) && trim($val) !== '') {
-                $p->long_description_en = $val;
+            foreach ($keys as $i => $k) {
+                $p->{$k} = $out[$i] ?? null;
                 $dirty = true;
             }
         }
 
-        if (
-            $p->category && (!($p->category->name_en ?? null) || trim((string)$p->category->name_en) === '')
-            && is_string($p->category->name) && trim($p->category->name) !== ''
-        ) {
-            $val = $tx->toEnBatch([$p->category->name], 'text')[0] ?? null;
-            if (is_string($val) && trim($val) !== '') {
-                $p->category->name_en = $val;
-                $p->category->save();
+        // 2) Batch HTML fields (WYSIWYG)
+        $htmlKeys = [];
+        $htmlInputs = [];
+
+        if ((!$p->long_description_en || trim((string)$p->long_description_en) === '') && is_string($p->long_description) && trim($p->long_description) !== '') {
+            $htmlKeys[] = 'long_description_en';
+            $htmlInputs[] = $p->long_description;
+        }
+        if ((!$p->itinerary_en || trim((string)$p->itinerary_en) === '') && is_string($p->itinerary) && trim($p->itinerary) !== '') {
+            $htmlKeys[] = 'itinerary_en';
+            $htmlInputs[] = $p->itinerary;
+        }
+        if ((!$p->include_text_en || trim((string)$p->include_text_en) === '') && is_string($p->include_text) && trim($p->include_text) !== '') {
+            $htmlKeys[] = 'include_text_en';
+            $htmlInputs[] = $p->include_text;
+        }
+        if ((!$p->exclude_text_en || trim((string)$p->exclude_text_en) === '') && is_string($p->exclude_text) && trim($p->exclude_text) !== '') {
+            $htmlKeys[] = 'exclude_text_en';
+            $htmlInputs[] = $p->exclude_text;
+        }
+
+        if ($htmlInputs) {
+            $out = $tx->toEnBatch($htmlInputs, 'html');
+            foreach ($htmlKeys as $i => $k) {
+                $p->{$k} = $out[$i] ?? null;
+                $dirty = true;
             }
         }
 

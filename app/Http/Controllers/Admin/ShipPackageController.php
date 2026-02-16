@@ -14,35 +14,35 @@ use Illuminate\Support\Facades\Storage;
 class ShipPackageController extends Controller
 {
     public function index(Request $request)
-{
-    $q        = trim((string) $request->query('q', ''));
-    $category = $request->query('category');
-    $status   = $request->query('status');
+    {
+        $q        = trim((string) $request->query('q', ''));
+        $category = $request->query('category');
+        $status   = $request->query('status');
 
-    $query = ShipPackage::query()->with('category');
+        $query = ShipPackage::query()->with('category');
 
-    if ($q !== '') {
-        $query->where(function ($qq) use ($q) {
-            $qq->where('title', 'like', "%{$q}%")
-               ->orWhere('slug', 'like', "%{$q}%");
-        });
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('title', 'like', "%{$q}%")
+                    ->orWhere('slug', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($category)) {
+            $query->where('category_id', $category);
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+
+        $packages = $query->latest()->paginate(12)->withQueryString();
+        $categories = \App\Models\ShipCategory::orderBy('name')->get();
+
+        return view('admin.ship-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
     }
-
-    if (!empty($category)) {
-        $query->where('category_id', $category);
-    }
-
-    if ($status === 'active') {
-        $query->where('is_active', 1);
-    } elseif ($status === 'inactive') {
-        $query->where('is_active', 0);
-    }
-
-    $packages = $query->latest()->paginate(12)->withQueryString();
-    $categories = \App\Models\ShipCategory::orderBy('name')->get();
-
-    return view('admin.ship-packages.index', compact('packages', 'categories', 'q', 'category', 'status'));
-}
 
 
     public function create()
@@ -77,7 +77,9 @@ class ShipPackageController extends Controller
         ]);
 
         $this->syncTiers($pkg, $data['tiers'] ?? []);
-
+        \App\Jobs\Translate\ShipPackageToEn::dispatch($pkg->id)
+            ->onQueue('translations')
+            ->afterCommit();
         return redirect()->route('admin.ship-packages.index')
             ->with('success', 'Paket sewa kapal berhasil dibuat.');
     }
@@ -88,11 +90,11 @@ class ShipPackageController extends Controller
         $categories = ShipCategory::orderBy('name')->get();
         return view('admin.ship-packages.edit', compact('package', 'categories'));
     }
-public function show(ShipPackage $ship_package)
-{
-    
-    return redirect()->route('admin.ship-packages.edit', $ship_package->id);
-}
+    public function show(ShipPackage $ship_package)
+    {
+
+        return redirect()->route('admin.ship-packages.edit', $ship_package->id);
+    }
 
     public function update(UpdateShipPackageRequest $request, ShipPackage $ship_package)
     {
@@ -121,7 +123,9 @@ public function show(ShipPackage $ship_package)
         ])->save();
 
         $this->syncTiers($ship_package, $data['tiers'] ?? []);
-
+        \App\Jobs\Translate\ShipPackageToEn::dispatch($ship_package->id)
+            ->onQueue('translations')
+            ->afterCommit();
         return redirect()->route('admin.ship-packages.index')
             ->with('success', 'Paket sewa kapal berhasil diupdate.');
     }

@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Documentation extends Model
 {
     protected $fillable = [
-    'category',
-    'type',
-    'title',
-    'file_path',
-    'is_active',
-    'sort_order'
-];
+        'category',
+        'type',
+        'title',
+        'title_en',
+        'file_path',
+        'is_active',
+        'sort_order'
+    ];
 
 
     protected $casts = [

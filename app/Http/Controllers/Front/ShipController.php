@@ -16,15 +16,23 @@ class ShipController extends Controller
         $sort = $request->query('sort', 'latest');
 
         $query = ShipPackage::query()
-              ->with(['category', 'tiers']) 
+            ->with(['category', 'tiers'])
             ->where('is_active', 1);
 
         if ($q !== '') {
-            $query->where(function ($qq) use ($q) {
+            $isEn = app()->getLocale() === 'en';
+
+            $query->where(function ($qq) use ($q, $isEn) {
                 $qq->where('title', 'like', "%{$q}%")
-                   ->orWhere('label', 'like', "%{$q}%");
+                    ->orWhere('label', 'like', "%{$q}%");
+
+                if ($isEn) {
+                    $qq->orWhere('title_en', 'like', "%{$q}%")
+                        ->orWhere('label_en', 'like', "%{$q}%");
+                }
             });
         }
+
 
         if (!empty($categoryId)) {
             $query->where('category_id', $categoryId);

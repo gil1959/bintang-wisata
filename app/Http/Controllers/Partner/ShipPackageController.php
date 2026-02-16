@@ -13,40 +13,40 @@ use Illuminate\Support\Facades\Storage;
 class ShipPackageController extends Controller
 {
     public function index()
-{
-    abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
 
-    $categories = ShipCategory::orderBy('name')->get();
+        $categories = ShipCategory::orderBy('name')->get();
 
-    $q = trim((string)request('q', ''));
-    $categoryId = request('category_id');
-    $active = request('active'); // '1' / '0' / null
+        $q = trim((string)request('q', ''));
+        $categoryId = request('category_id');
+        $active = request('active'); // '1' / '0' / null
 
-    $packagesQuery = ShipPackage::with('category')
-        ->where('created_by_partner_id', auth()->id());
+        $packagesQuery = ShipPackage::with('category')
+            ->where('created_by_partner_id', auth()->id());
 
-    if ($q !== '') {
-        $packagesQuery->where(function ($w) use ($q) {
-            $w->where('title', 'like', "%{$q}%")
-              ->orWhere('slug', 'like', "%{$q}%");
-        });
+        if ($q !== '') {
+            $packagesQuery->where(function ($w) use ($q) {
+                $w->where('title', 'like', "%{$q}%")
+                    ->orWhere('slug', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($categoryId)) {
+            $packagesQuery->where('category_id', $categoryId);
+        }
+
+        if ($active === '1' || $active === '0') {
+            $packagesQuery->where('is_active', (int)$active);
+        }
+
+        $packages = $packagesQuery
+            ->latest()
+            ->paginate(12)
+            ->appends(request()->query());
+
+        return view('partner.ship-packages.index', compact('packages', 'categories', 'q', 'categoryId', 'active'));
     }
-
-    if (!empty($categoryId)) {
-        $packagesQuery->where('category_id', $categoryId);
-    }
-
-    if ($active === '1' || $active === '0') {
-        $packagesQuery->where('is_active', (int)$active);
-    }
-
-    $packages = $packagesQuery
-        ->latest()
-        ->paginate(12)
-        ->appends(request()->query());
-
-    return view('partner.ship-packages.index', compact('packages', 'categories', 'q', 'categoryId', 'active'));
-}
 
 
     public function create()
@@ -54,12 +54,12 @@ class ShipPackageController extends Controller
         abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
 
         $categories = ShipCategory::query()
-    ->where(function ($q) {
-        $q->whereNull('created_by_partner_id')
-          ->orWhere('created_by_partner_id', auth()->id());
-    })
-    ->orderBy('name')
-    ->get();
+            ->where(function ($q) {
+                $q->whereNull('created_by_partner_id')
+                    ->orWhere('created_by_partner_id', auth()->id());
+            })
+            ->orderBy('name')
+            ->get();
         return view('partner.ship-packages.create', compact('categories'));
     }
 
@@ -96,14 +96,16 @@ class ShipPackageController extends Controller
         ]);
 
         $pkg->forceFill([
-    'created_by_partner_id' => auth()->id(),
-    'partner_review_status' => 'pending',
-    'is_active' => 0,
-])->save();
+            'created_by_partner_id' => auth()->id(),
+            'partner_review_status' => 'pending',
+            'is_active' => 0,
+        ])->save();
 
 
         $this->syncTiers($pkg, $data['tiers'] ?? []);
-
+        \App\Jobs\Translate\ShipPackageToEn::dispatch($pkg->id)
+            ->onQueue('translations')
+            ->afterCommit();
         return redirect()->route('partner.ship-packages.index')
             ->with('success', 'Paket sewa kapal berhasil dibuat dan menunggu review admin.');
     }
@@ -115,15 +117,14 @@ class ShipPackageController extends Controller
 
         $package = $ship_package->load('tiers');
         $categories = ShipCategory::query()
-    ->where(function ($q) {
-        $q->whereNull('created_by_partner_id')
-          ->orWhere('created_by_partner_id', auth()->id());
-    })
-    ->orderBy('name')
-    ->get();
+            ->where(function ($q) {
+                $q->whereNull('created_by_partner_id')
+                    ->orWhere('created_by_partner_id', auth()->id());
+            })
+            ->orderBy('name')
+            ->get();
 
-return view('partner.ship-packages.edit', compact('package', 'categories'));
-
+        return view('partner.ship-packages.edit', compact('package', 'categories'));
     }
 
     public function update(UpdateShipPackageRequest $request, ShipPackage $ship_package)
@@ -156,17 +157,19 @@ return view('partner.ship-packages.edit', compact('package', 'categories'));
         ])->save();
 
         // paksa pending lagi
-       $ship_package->forceFill([
-    'is_active' => 0,
-    'partner_review_status'=> 'pending',
-    'partner_review_note'  => null,
-    'partner_reviewed_by'  => null,
-    'partner_reviewed_at'  => null,
-])->save();
+        $ship_package->forceFill([
+            'is_active' => 0,
+            'partner_review_status' => 'pending',
+            'partner_review_note'  => null,
+            'partner_reviewed_by'  => null,
+            'partner_reviewed_at'  => null,
+        ])->save();
 
 
         $this->syncTiers($ship_package, $data['tiers'] ?? []);
-
+        \App\Jobs\Translate\ShipPackageToEn::dispatch($ship_package->id)
+            ->onQueue('translations')
+            ->afterCommit();
         return redirect()->route('partner.ship-packages.index')
             ->with('success', 'Paket sewa kapal berhasil diupdate dan menunggu review admin.');
     }
@@ -184,14 +187,14 @@ return view('partner.ship-packages.edit', compact('package', 'categories'));
 
         return back()->with('success', 'Paket sewa kapal berhasil dihapus.');
     }
-public function show(ShipPackage $ship_package)
-{
-    abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
-    abort_unless((int)$ship_package->created_by_partner_id === (int)auth()->id(), 403);
+    public function show(ShipPackage $ship_package)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_kapal', 403);
+        abort_unless((int)$ship_package->created_by_partner_id === (int)auth()->id(), 403);
 
-    // Karena tidak ada halaman detail "show", arahkan ke halaman edit
-    return redirect()->route('partner.ship-packages.edit', $ship_package->id);
-}
+        // Karena tidak ada halaman detail "show", arahkan ke halaman edit
+        return redirect()->route('partner.ship-packages.edit', $ship_package->id);
+    }
 
     private function normalizeFeatures(array $features): array
     {

@@ -50,82 +50,166 @@ class AppServiceProvider extends ServiceProvider
 
                 'home_tabs',
                 'home_tabs_en',
-                // ship packages page
+                // SHIP PACKAGES PAGE
                 'ship_hero_badge',
+                'ship_hero_badge_en',
                 'ship_hero_title',
+                'ship_hero_title_en',
                 'ship_hero_desc',
+                'ship_hero_desc_en',
+
                 'ship_tips_title',
+                'ship_tips_title_en',
                 'ship_tips_desc',
+                'ship_tips_desc_en',
+
                 'ship_tip1_title',
+                'ship_tip1_title_en',
                 'ship_tip1_desc',
+                'ship_tip1_desc_en',
+
                 'ship_tip2_title',
+                'ship_tip2_title_en',
                 'ship_tip2_desc',
+                'ship_tip2_desc_en',
+
                 'ship_tip3_title',
+                'ship_tip3_title_en',
                 'ship_tip3_desc',
+                'ship_tip3_desc_en',
+
                 'ship_tip4_title',
+                'ship_tip4_title_en',
                 'ship_tip4_desc',
+                'ship_tip4_desc_en',
+
 
                 // umrah packages page
                 'umrah_hero_badge',
+                'umrah_hero_badge_en',
                 'umrah_hero_title',
+                'umrah_hero_title_en',
                 'umrah_hero_desc',
+                'umrah_hero_desc_en',
+
                 'umrah_filter_dest_label',
+                'umrah_filter_dest_label_en',
                 'umrah_filter_cat_label',
+                'umrah_filter_cat_label_en',
                 'umrah_filter_dur_label',
+                'umrah_filter_dur_label_en',
                 'umrah_filter_trans_label',
+                'umrah_filter_trans_label_en',
+
                 'umrah_tips_title',
+                'umrah_tips_title_en',
                 'umrah_tips_desc',
+                'umrah_tips_desc_en',
+
                 'umrah_tip1_title',
+                'umrah_tip1_title_en',
                 'umrah_tip1_desc',
+                'umrah_tip1_desc_en',
                 'umrah_tip2_title',
+                'umrah_tip2_title_en',
                 'umrah_tip2_desc',
+                'umrah_tip2_desc_en',
                 'umrah_tip3_title',
+                'umrah_tip3_title_en',
                 'umrah_tip3_desc',
+                'umrah_tip3_desc_en',
                 'umrah_tip4_title',
+                'umrah_tip4_title_en',
                 'umrah_tip4_desc',
+                'umrah_tip4_desc_en',
+
                 'docs_ship_hero_badge',
+                'docs_ship_hero_badge_en',
                 'docs_ship_hero_title',
+                'docs_ship_hero_title_en',
                 'docs_ship_hero_desc',
+                'docs_ship_hero_desc_en',
+
                 'docs_umrah_hero_badge',
+                'docs_umrah_hero_badge_en',
                 'docs_umrah_hero_title',
+                'docs_umrah_hero_title_en',
                 'docs_umrah_hero_desc',
+                'docs_umrah_hero_desc_en',
+
 
                 // footer
                 'footer_address',
                 'footer_phone',
                 'footer_email',
                 'footer_whatsapp',
+
                 // about meta + hero
                 'about_meta_title',
+                'about_meta_title_en',
                 'about_hero_badge',
+                'about_hero_badge_en',
                 'about_hero_title',
+                'about_hero_title_en',
                 'about_hero_desc',
+                'about_hero_desc_en',
 
                 // about values
                 'about_values_label',
+                'about_values_label_en',
                 'about_values_title',
+                'about_values_title_en',
                 'about_values_desc',
+                'about_values_desc_en',
+
                 'about_value1_title',
+                'about_value1_title_en',
                 'about_value1_desc',
+                'about_value1_desc_en',
+
                 'about_value2_title',
+                'about_value2_title_en',
                 'about_value2_desc',
+                'about_value2_desc_en',
+
                 'about_value3_title',
+                'about_value3_title_en',
                 'about_value3_desc',
+                'about_value3_desc_en',
+
                 'about_value4_title',
+                'about_value4_title_en',
                 'about_value4_desc',
+                'about_value4_desc_en',
 
                 // about flow/steps
                 'about_flow_label',
+                'about_flow_label_en',
                 'about_flow_title',
+                'about_flow_title_en',
                 'about_flow_desc',
+                'about_flow_desc_en',
+
                 'about_step1_title',
+                'about_step1_title_en',
                 'about_step1_desc',
+                'about_step1_desc_en',
+
                 'about_step2_title',
+                'about_step2_title_en',
                 'about_step2_desc',
+                'about_step2_desc_en',
+
                 'about_step3_title',
+                'about_step3_title_en',
                 'about_step3_desc',
+                'about_step3_desc_en',
+
                 'about_step4_title',
+                'about_step4_title_en',
                 'about_step4_desc',
+                'about_step4_desc_en',
+
 
                 'home_highlight_label',
                 'home_highlight_label_en',
@@ -351,22 +435,48 @@ class AppServiceProvider extends ServiceProvider
 
                 // rentcar page
                 'rentcar_hero_badge',
+                'rentcar_hero_badge_en',
                 'rentcar_hero_title',
+                'rentcar_hero_title_en',
                 'rentcar_hero_desc',
+                'rentcar_hero_desc_en',
+
                 'rentcar_chip1',
+                'rentcar_chip1_en',
                 'rentcar_chip2',
+                'rentcar_chip2_en',
                 'rentcar_chip3',
+                'rentcar_chip3_en',
                 'rentcar_chip4',
+                'rentcar_chip4_en',
+
                 'rentcar_note_title',
+                'rentcar_note_title_en',
                 'rentcar_note_desc',
+                'rentcar_note_desc_en',
+
                 'rentcar_note1_title',
+                'rentcar_note1_title_en',
                 'rentcar_note1_desc',
+                'rentcar_note1_desc_en',
+
                 'rentcar_note2_title',
+                'rentcar_note2_title_en',
                 'rentcar_note2_desc',
+                'rentcar_note2_desc_en',
+
                 'rentcar_note3_title',
+                'rentcar_note3_title_en',
                 'rentcar_note3_desc',
+                'rentcar_note3_desc_en',
+
                 'rentcar_note4_title',
+                'rentcar_note4_title_en',
                 'rentcar_note4_desc',
+                'rentcar_note4_desc_en',
+
+
+
                 'home_discount_banner_title',
                 'home_mission_banner_title',
                 'home_discount_banner_title_en',
@@ -432,32 +542,53 @@ class AppServiceProvider extends ServiceProvider
 
                 // MICE hero + tips
                 'mice_hero_badge',
+                'mice_hero_badge_en',
                 'mice_hero_title',
+                'mice_hero_title_en',
                 'mice_hero_desc',
+                'mice_hero_desc_en',
                 'mice_cta_button',
+                'mice_cta_button_en',
+
                 'mice_tip1_title',
+                'mice_tip1_title_en',
                 'mice_tip1_desc',
+                'mice_tip1_desc_en',
                 'mice_tip2_title',
+                'mice_tip2_title_en',
                 'mice_tip2_desc',
+                'mice_tip2_desc_en',
                 'mice_tip3_title',
+                'mice_tip3_title_en',
                 'mice_tip3_desc',
+                'mice_tip3_desc_en',
                 'mice_tip4_title',
+                'mice_tip4_title_en',
                 'mice_tip4_desc',
+                'mice_tip4_desc_en',
+
 
                 // docs page
                 'docs_hero_badge',
+                'docs_hero_badge_en',
                 'docs_hero_title',
+                'docs_hero_title_en',
                 'docs_hero_desc',
+                'docs_hero_desc_en',
+
                 'docs_tab_photos',
+                'docs_tab_photos_en',
                 'docs_tab_videos',
+                'docs_tab_videos_en',
+
                 'docs_stat_photos',
+                'docs_stat_photos_en',
                 'docs_stat_videos',
+                'docs_stat_videos_en',
+
                 'docs_hint',
-                'site_logo',
-                'tour_cta_secondary_button',
-                'tour_cta_secondary_link',
-                'tracking_head',
-                'tracking_body',
+                'docs_hint_en',
+
                 // HOME: promo (keys only)
                 'home_promo_enabled',
                 'home_promo_badge',
@@ -596,10 +727,27 @@ class AppServiceProvider extends ServiceProvider
                 'seo_keywords' => $settings['seo_keywords'] ?? '',
                 'tour_cta_secondary_button' => $settings['tour_cta_secondary_button'] ?? 'Lihat Rental',
                 'tour_cta_secondary_link'   => $settings['tour_cta_secondary_link'] ?? route('rentcar.index'),
-                // SHIP PACKAGES PAGE
-                'ship_hero_badge' => $settings['ship_hero_badge'] ?? 'Sewa Kapal',
-                'ship_hero_title' => $settings['ship_hero_title'] ?? 'Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda',
-                'ship_hero_desc'  => $settings['ship_hero_desc'] ?? 'Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia.',
+                // SHIP PACKAGES PAGE (locale-aware via *_en + fallback)
+                'ship_hero_badge' => $getSetting('ship_hero_badge', $isEn ? 'Ship Rental' : 'Sewa Kapal'),
+                'ship_hero_title' => $getSetting('ship_hero_title', $isEn ? 'Choose Private Charter According to Your Trip Needs' : 'Temukan Paket Sewa Kapal yang Sesuai Kebutuhan Anda'),
+                'ship_hero_desc'  => $getSetting('ship_hero_desc',  $isEn ? 'Use the search and category filters to sift through the available packages.' : 'Gunakan pencarian dan filter kategori untuk menyaring paket yang tersedia.'),
+
+                'ship_tips_title' => $getSetting('ship_tips_title', $isEn ? 'Quick Tips' : 'Tips Cepat'),
+                'ship_tips_desc'  => $getSetting('ship_tips_desc',  $isEn ? 'Check package details for weekday/weekend prices and available features.' : 'Cek detail paket untuk harga weekday/weekend & fitur yang tersedia.'),
+
+                'ship_tip1_title' => $getSetting('ship_tip1_title', $isEn ? 'Weekday/Weekend' : 'Weekday/Weekend'),
+                'ship_tip1_desc'  => $getSetting('ship_tip1_desc',  $isEn ? 'Prices vary by day' : 'Harga berbeda sesuai hari'),
+
+                'ship_tip2_title' => $getSetting('ship_tip2_title', $isEn ? 'For Groups' : 'Untuk Grup'),
+                'ship_tip2_desc'  => $getSetting('ship_tip2_desc',  $isEn ? 'Suitable for families/groups' : 'Cocok keluarga/rombongan'),
+
+                'ship_tip3_title' => $getSetting('ship_tip3_title', $isEn ? 'Recommended' : 'Rekomendasi'),
+                'ship_tip3_desc'  => $getSetting('ship_tip3_desc',  $isEn ? 'Customer favorite packages' : 'Paket favorit pelanggan'),
+
+                'ship_tip4_title' => $getSetting('ship_tip4_title', $isEn ? 'Support' : 'Support'),
+                'ship_tip4_desc'  => $getSetting('ship_tip4_desc',  $isEn ? 'Consultation before booking' : 'Bisa konsultasi sebelum booking'),
+
+
                 // HOME: banner titles
                 'home_discount_banner_title' => $getSetting('home_discount_banner_title', 'Discount up to 50% + instant cashback'),
                 'home_mission_banner_title'  => $getSetting('home_mission_banner_title', 'Earn up to IDR 850K from missions'),
@@ -637,18 +785,6 @@ class AppServiceProvider extends ServiceProvider
                 'home_articles_title'       => $getSetting('home_articles_title', 'Baca dan bangkitkan semangat liburanmu'),
                 'home_articles_desc'        => $getSetting('home_articles_desc', ''),
                 'home_articles_button_text' => $getSetting('home_articles_button_text', 'Baca Artikel Inspirasi'),
-
-
-                'ship_tips_title' => $settings['ship_tips_title'] ?? 'Tips Cepat',
-                'ship_tips_desc'  => $settings['ship_tips_desc'] ?? 'Cek detail paket untuk harga weekday/weekend & fitur yang tersedia.',
-                'ship_tip1_title' => $settings['ship_tip1_title'] ?? 'Weekday/Weekend',
-                'ship_tip1_desc'  => $settings['ship_tip1_desc'] ?? 'Harga berbeda sesuai hari',
-                'ship_tip2_title' => $settings['ship_tip2_title'] ?? 'Untuk Grup',
-                'ship_tip2_desc'  => $settings['ship_tip2_desc'] ?? 'Cocok keluarga/rombongan',
-                'ship_tip3_title' => $settings['ship_tip3_title'] ?? 'Rekomendasi',
-                'ship_tip3_desc'  => $settings['ship_tip3_desc'] ?? 'Paket favorit pelanggan',
-                'ship_tip4_title' => $settings['ship_tip4_title'] ?? 'Support',
-                'ship_tip4_desc'  => $settings['ship_tip4_desc'] ?? 'Bisa konsultasi sebelum booking',
 
                 // HOME: logos header (locale-aware via *_en + fallback)
                 'home_logos_badge' => $getSetting('home_logos_badge', 'Kepercayaan pelanggan'),
@@ -688,41 +824,43 @@ class AppServiceProvider extends ServiceProvider
 
                 'home_partner_card4_title' => $getSetting('home_partner_card4_title', 'Dukungan Tim'),
                 'home_partner_card4_desc'  => $getSetting('home_partner_card4_desc', 'Tim kami siap membantu untuk kelancaran kerja sama operasional.'),
-                // MICE: hero + tips
-                'mice_hero_badge' => $settings['mice_hero_badge'] ?? 'Paket MICE',
-                'mice_hero_title' => $settings['mice_hero_title'] ?? 'Solusi Paket MICE untuk Event Perusahaan Anda',
-                'mice_hero_desc'  => $settings['mice_hero_desc']  ?? 'Meetings, Incentives, Conferences, and Exhibitions. Pilih paket, lihat detail, dan lanjut checkout dengan mudah.',
-                'mice_cta_button' => $settings['mice_cta_button'] ?? 'Lihat Paket',
+                // MICE: hero + tips (locale-aware via *_en + fallback)
+                'mice_hero_badge' => $getSetting('mice_hero_badge', 'Paket MICE'),
+                'mice_hero_title' => $getSetting('mice_hero_title', 'Solusi Paket MICE untuk Event Perusahaan Anda'),
+                'mice_hero_desc'  => $getSetting('mice_hero_desc', 'Meetings, Incentives, Conferences, and Exhibitions. Pilih paket, lihat detail, dan lanjut checkout dengan mudah.'),
+                'mice_cta_button' => $getSetting('mice_cta_button', 'Lihat Paket'),
 
-                'mice_tip1_title' => $settings['mice_tip1_title'] ?? 'Event Ready',
-                'mice_tip1_desc'  => $settings['mice_tip1_desc']  ?? 'Paket siap untuk meeting, conference, dan exhibition.',
-                'mice_tip2_title' => $settings['mice_tip2_title'] ?? 'Terpercaya',
-                'mice_tip2_desc'  => $settings['mice_tip2_desc']  ?? 'Pilihan paket jelas, detail lengkap, mudah dipilih.',
-                'mice_tip3_title' => $settings['mice_tip3_title'] ?? 'Harga Fleksibel',
-                'mice_tip3_desc'  => $settings['mice_tip3_desc']  ?? 'Tier harga Domestik & WNA bisa multi baris sesuai kebutuhan.',
-                'mice_tip4_title' => $settings['mice_tip4_title'] ?? 'Support',
-                'mice_tip4_desc'  => $settings['mice_tip4_desc']  ?? 'Bisa konsultasi kebutuhan event dan itinerary.',
+                'mice_tip1_title' => $getSetting('mice_tip1_title', 'Event Ready'),
+                'mice_tip1_desc'  => $getSetting('mice_tip1_desc', 'Paket siap untuk meeting, conference, dan exhibition.'),
+                'mice_tip2_title' => $getSetting('mice_tip2_title', 'Terpercaya'),
+                'mice_tip2_desc'  => $getSetting('mice_tip2_desc', 'Pilihan paket jelas, detail lengkap, mudah dipilih.'),
+                'mice_tip3_title' => $getSetting('mice_tip3_title', 'Harga Fleksibel'),
+                'mice_tip3_desc'  => $getSetting('mice_tip3_desc', 'Tier harga Domestik & WNA bisa multi baris sesuai kebutuhan.'),
+                'mice_tip4_title' => $getSetting('mice_tip4_title', 'Support'),
+                'mice_tip4_desc'  => $getSetting('mice_tip4_desc', 'Bisa konsultasi kebutuhan event dan itinerary.'),
+
 
                 // UMRAH PACKAGES PAGE
-                'umrah_hero_badge' => $settings['umrah_hero_badge'] ?? 'Paket Umrah',
-                'umrah_hero_title' => $settings['umrah_hero_title'] ?? 'Temukan Paket Umrah yang Sesuai Kebutuhan Anda',
-                'umrah_hero_desc'  => $settings['umrah_hero_desc'] ?? 'Gunakan pencarian dan filter untuk menyaring paket berdasarkan destinasi maupun kategori.',
+                'umrah_hero_badge' => $getSetting('umrah_hero_badge', 'Paket Umrah'),
+                'umrah_hero_title' => $getSetting('umrah_hero_title', 'Temukan Paket Umrah yang Sesuai Kebutuhan Anda'),
+                'umrah_hero_desc'  => $getSetting('umrah_hero_desc', 'Gunakan pencarian dan filter untuk menyaring paket berdasarkan destinasi maupun kategori.'),
 
-                'umrah_filter_dest_label'  => $settings['umrah_filter_dest_label'] ?? 'Destinasi',
-                'umrah_filter_cat_label'   => $settings['umrah_filter_cat_label'] ?? 'Kategori',
-                'umrah_filter_dur_label'   => $settings['umrah_filter_dur_label'] ?? 'Durasi',
-                'umrah_filter_trans_label' => $settings['umrah_filter_trans_label'] ?? 'Transparan',
+                'umrah_filter_dest_label'  => $getSetting('umrah_filter_dest_label', 'Destinasi'),
+                'umrah_filter_cat_label'   => $getSetting('umrah_filter_cat_label', 'Kategori'),
+                'umrah_filter_dur_label'   => $getSetting('umrah_filter_dur_label', 'Durasi'),
+                'umrah_filter_trans_label' => $getSetting('umrah_filter_trans_label', 'Transparan'),
 
-                'umrah_tips_title' => $settings['umrah_tips_title'] ?? 'Tips Cepat',
-                'umrah_tips_desc'  => $settings['umrah_tips_desc'] ?? 'Gunakan kata kunci destinasi untuk hasil lebih akurat.',
-                'umrah_tip1_title' => $settings['umrah_tip1_title'] ?? 'Rekomendasi',
-                'umrah_tip1_desc'  => $settings['umrah_tip1_desc'] ?? 'Paket favorit pelanggan',
-                'umrah_tip2_title' => $settings['umrah_tip2_title'] ?? 'Itinerary',
-                'umrah_tip2_desc'  => $settings['umrah_tip2_desc'] ?? 'Alur perjalanan jelas',
-                'umrah_tip3_title' => $settings['umrah_tip3_title'] ?? 'Grup',
-                'umrah_tip3_desc'  => $settings['umrah_tip3_desc'] ?? 'Cocok untuk rombongan',
-                'umrah_tip4_title' => $settings['umrah_tip4_title'] ?? 'Support',
-                'umrah_tip4_desc'  => $settings['umrah_tip4_desc'] ?? 'Bisa konsultasi trip',
+                'umrah_tips_title' => $getSetting('umrah_tips_title', 'Tips Cepat'),
+                'umrah_tips_desc'  => $getSetting('umrah_tips_desc', 'Gunakan kata kunci destinasi untuk hasil lebih akurat.'),
+                'umrah_tip1_title' => $getSetting('umrah_tip1_title', 'Rekomendasi'),
+                'umrah_tip1_desc'  => $getSetting('umrah_tip1_desc', 'Paket favorit pelanggan'),
+                'umrah_tip2_title' => $getSetting('umrah_tip2_title', 'Itinerary'),
+                'umrah_tip2_desc'  => $getSetting('umrah_tip2_desc', 'Alur perjalanan jelas'),
+                'umrah_tip3_title' => $getSetting('umrah_tip3_title', 'Grup'),
+                'umrah_tip3_desc'  => $getSetting('umrah_tip3_desc', 'Cocok untuk rombongan'),
+                'umrah_tip4_title' => $getSetting('umrah_tip4_title', 'Support'),
+                'umrah_tip4_desc'  => $getSetting('umrah_tip4_desc', 'Bisa konsultasi trip'),
+
 
                 // FOOTER (Kontak)
                 'footer_address' => $settings['footer_address'] ?? 'Jl. Raya Kuta No. 88, Bali',
@@ -730,38 +868,99 @@ class AppServiceProvider extends ServiceProvider
                 'footer_email' => $settings['footer_email'] ?? 'info@bintangwisata.id',
                 'footer_whatsapp' => $settings['footer_whatsapp'] ?? '6281111111752',
                 // ABOUT META + HERO
-                'about_meta_title' => $settings['about_meta_title'] ?? 'About - Bintang Wisata',
-                'about_hero_badge' => $settings['about_hero_badge'] ?? 'Tentang Bintang Wisata',
-                'about_hero_title' => $settings['about_hero_title'] ?? 'Mitra perjalanan yang rapi, transparan, dan berorientasi pada kenyamanan Anda',
-                'about_hero_desc' => $settings['about_hero_desc'] ?? 'Bintang Wisata menyediakan layanan perjalanan dan transportasi yang dirancang untuk memudahkan Anda: mulai dari pemilihan paket, penjadwalan, hingga dukungan selama perjalanan. Kami menempatkan transparansi dan ketepatan layanan sebagai standar utama.',
-                'site_logo' => $settings['site_logo'] ?? '/images/logo.png',
-                // ABOUT VALUES
-                'about_values_label' => $settings['about_values_label'] ?? 'NILAI KAMI',
-                'about_values_title' => $settings['about_values_title'] ?? 'Prinsip kerja yang kami pegang',
-                'about_values_desc' => $settings['about_values_desc'] ?? 'Kami membangun layanan yang rapi dan konsisten. Tujuannya sederhana: pengalaman perjalanan yang nyaman dan dapat diandalkan.',
+                // ABOUT PAGE (locale-aware via *_en + fallback)
+                'about_meta_title' => $getSetting('about_meta_title', $isEn ? 'About - Bintang Wisata' : 'About - Bintang Wisata'),
 
-                'about_value1_title' => $settings['about_value1_title'] ?? 'Transparansi',
-                'about_value1_desc' => $settings['about_value1_desc'] ?? 'Harga, fasilitas, dan ketentuan disampaikan dengan jelas sejak awal.',
-                'about_value2_title' => $settings['about_value2_title'] ?? 'Ketepatan',
-                'about_value2_desc' => $settings['about_value2_desc'] ?? 'Jadwal dan rencana perjalanan disusun realistis sesuai kebutuhan Anda.',
-                'about_value3_title' => $settings['about_value3_title'] ?? 'Kenyamanan',
-                'about_value3_desc' => $settings['about_value3_desc'] ?? 'Kami menjaga detail layanan agar perjalanan terasa lebih ringan.',
-                'about_value4_title' => $settings['about_value4_title'] ?? 'Responsif',
-                'about_value4_desc' => $settings['about_value4_desc'] ?? 'Tim kami memberikan bantuan cepat untuk pertanyaan dan penyesuaian.',
+                'about_hero_badge' => $getSetting('about_hero_badge', $isEn ? 'About Bintang Wisata' : 'Tentang Bintang Wisata'),
+                'about_hero_title' => $getSetting(
+                    'about_hero_title',
+                    $isEn ? 'A travel partner that is neat, transparent, and focused on your comfort'
+                        : 'Mitra perjalanan yang rapi, transparan, dan berorientasi pada kenyamanan Anda'
+                ),
+                'about_hero_desc'  => $getSetting(
+                    'about_hero_desc',
+                    $isEn ? 'Bintang Wisata provides travel and transportation services designed to make everything easier—from choosing packages and scheduling, to on-trip support. Transparency and service accuracy are our baseline standards.'
+                        : 'Bintang Wisata menyediakan layanan perjalanan dan transportasi yang dirancang untuk memudahkan Anda: mulai dari pemilihan paket, penjadwalan, hingga dukungan selama perjalanan. Kami menempatkan transparansi dan ketepatan layanan sebagai standar utama.'
+                ),
 
-                // ABOUT FLOW/STEPS
-                'about_flow_label' => $settings['about_flow_label'] ?? 'ALUR LAYANAN',
-                'about_flow_title' => $settings['about_flow_title'] ?? 'Langkah sederhana, hasil yang jelas',
-                'about_flow_desc' => $settings['about_flow_desc'] ?? 'Kami menyusun alur layanan agar Anda dapat melakukan pemesanan tanpa kebingungan. Setiap tahap terstruktur dan mudah diikuti.',
+                'about_values_label' => $getSetting('about_values_label', $isEn ? 'OUR VALUES' : 'NILAI KAMI'),
+                'about_values_title' => $getSetting(
+                    'about_values_title',
+                    $isEn ? 'Principles we stand by' : 'Prinsip kerja yang kami pegang'
+                ),
+                'about_values_desc'  => $getSetting(
+                    'about_values_desc',
+                    $isEn ? 'We build a neat and consistent service. The goal is simple: a comfortable and reliable travel experience.'
+                        : 'Kami membangun layanan yang rapi dan konsisten. Tujuannya sederhana: pengalaman perjalanan yang nyaman dan dapat diandalkan.'
+                ),
 
-                'about_step1_title' => $settings['about_step1_title'] ?? 'Pilih layanan',
-                'about_step1_desc' => $settings['about_step1_desc'] ?? 'Tentukan paket tour atau rental sesuai kebutuhan.',
-                'about_step2_title' => $settings['about_step2_title'] ?? 'Konsultasi singkat',
-                'about_step2_desc' => $settings['about_step2_desc'] ?? 'Konfirmasi detail itinerary, durasi, dan ketentuan.',
-                'about_step3_title' => $settings['about_step3_title'] ?? 'Pemesanan',
-                'about_step3_desc' => $settings['about_step3_desc'] ?? 'Lengkapi data dan lakukan proses sesuai instruksi.',
-                'about_step4_title' => $settings['about_step4_title'] ?? 'Perjalanan dimulai',
-                'about_step4_desc' => $settings['about_step4_desc'] ?? 'Nikmati perjalanan, tim kami siap membantu bila diperlukan.',
+                'about_value1_title' => $getSetting('about_value1_title', $isEn ? 'Transparency' : 'Transparansi'),
+                'about_value1_desc'  => $getSetting(
+                    'about_value1_desc',
+                    $isEn ? 'Pricing, inclusions, and terms are communicated clearly from the start.'
+                        : 'Harga, fasilitas, dan ketentuan disampaikan dengan jelas sejak awal.'
+                ),
+
+                'about_value2_title' => $getSetting('about_value2_title', $isEn ? 'Accuracy' : 'Ketepatan'),
+                'about_value2_desc'  => $getSetting(
+                    'about_value2_desc',
+                    $isEn ? 'Schedules and itineraries are planned realistically based on your needs.'
+                        : 'Jadwal dan rencana perjalanan disusun realistis sesuai kebutuhan Anda.'
+                ),
+
+                'about_value3_title' => $getSetting('about_value3_title', $isEn ? 'Comfort' : 'Kenyamanan'),
+                'about_value3_desc'  => $getSetting(
+                    'about_value3_desc',
+                    $isEn ? 'We take care of the details so your trip feels lighter.'
+                        : 'Kami menjaga detail layanan agar perjalanan terasa lebih ringan.'
+                ),
+
+                'about_value4_title' => $getSetting('about_value4_title', $isEn ? 'Responsive' : 'Responsif'),
+                'about_value4_desc'  => $getSetting(
+                    'about_value4_desc',
+                    $isEn ? 'Our team responds quickly to questions and adjustments.'
+                        : 'Tim kami memberikan bantuan cepat untuk pertanyaan dan penyesuaian.'
+                ),
+
+                'about_flow_label' => $getSetting('about_flow_label', $isEn ? 'SERVICE FLOW' : 'ALUR LAYANAN'),
+                'about_flow_title' => $getSetting(
+                    'about_flow_title',
+                    $isEn ? 'Simple steps, clear outcomes' : 'Langkah sederhana, hasil yang jelas'
+                ),
+                'about_flow_desc'  => $getSetting(
+                    'about_flow_desc',
+                    $isEn ? 'We structure the service flow so you can book without confusion. Each step is organized and easy to follow.'
+                        : 'Kami menyusun alur layanan agar Anda dapat melakukan pemesanan tanpa kebingungan. Setiap tahap terstruktur dan mudah diikuti.'
+                ),
+
+                'about_step1_title' => $getSetting('about_step1_title', $isEn ? 'Choose a service' : 'Pilih layanan'),
+                'about_step1_desc'  => $getSetting(
+                    'about_step1_desc',
+                    $isEn ? 'Select a tour package or rental based on your needs.'
+                        : 'Tentukan paket tour atau rental sesuai kebutuhan.'
+                ),
+
+                'about_step2_title' => $getSetting('about_step2_title', $isEn ? 'Quick consultation' : 'Konsultasi singkat'),
+                'about_step2_desc'  => $getSetting(
+                    'about_step2_desc',
+                    $isEn ? 'Confirm itinerary details, duration, and terms.'
+                        : 'Konfirmasi detail itinerary, durasi, dan ketentuan.'
+                ),
+
+                'about_step3_title' => $getSetting('about_step3_title', $isEn ? 'Booking' : 'Pemesanan'),
+                'about_step3_desc'  => $getSetting(
+                    'about_step3_desc',
+                    $isEn ? 'Complete your details and follow the booking instructions.'
+                        : 'Lengkapi data dan lakukan proses sesuai instruksi.'
+                ),
+
+                'about_step4_title' => $getSetting('about_step4_title', $isEn ? 'Trip starts' : 'Perjalanan dimulai'),
+                'about_step4_desc'  => $getSetting(
+                    'about_step4_desc',
+                    $isEn ? 'Enjoy the trip—our team is ready to help if needed.'
+                        : 'Nikmati perjalanan, tim kami siap membantu bila diperlukan.'
+                ),
+
 
                 // HOME: highlights (Kenapa layanan kami beda)
                 'home_highlight_label' => $getSetting('home_highlight_label', 'Kenapa layanan kami beda'),
@@ -880,42 +1079,53 @@ class AppServiceProvider extends ServiceProvider
 
                 'tour_cta_secondary_button' => $getSetting('tour_cta_secondary_button', 'Lihat Rental'),
 
-                // RENT CAR PAGE
-                'rentcar_hero_badge' => $settings['rentcar_hero_badge'] ?? 'Rental Mobil',
-                'rentcar_hero_title' => $settings['rentcar_hero_title'] ?? 'Pilihan Mobil Terbaik untuk Perjalanan Anda',
-                'rentcar_hero_desc'  => $settings['rentcar_hero_desc']  ?? 'Armada terawat, harga transparan, dan proses booking cepat tanpa ribet.',
+                // RENT CAR PAGE (locale-aware via $getSetting -> *_en fallback)
+                'rentcar_hero_badge' => $getSetting('rentcar_hero_badge', 'Rental Mobil'),
+                'rentcar_hero_title' => $getSetting('rentcar_hero_title', 'Pilihan Mobil Terbaik untuk Perjalanan Anda'),
+                'rentcar_hero_desc'  => $getSetting('rentcar_hero_desc',  'Armada terawat, harga transparan, dan proses booking cepat tanpa ribet.'),
 
-                'rentcar_chip1' => $settings['rentcar_chip1'] ?? 'Terawat',
-                'rentcar_chip2' => $settings['rentcar_chip2'] ?? 'Transparan',
-                'rentcar_chip3' => $settings['rentcar_chip3'] ?? 'Cepat',
-                'rentcar_chip4' => $settings['rentcar_chip4'] ?? 'Travel Ready',
+                'rentcar_chip1' => $getSetting('rentcar_chip1', 'Terawat'),
+                'rentcar_chip2' => $getSetting('rentcar_chip2', 'Transparan'),
+                'rentcar_chip3' => $getSetting('rentcar_chip3', 'Cepat'),
+                'rentcar_chip4' => $getSetting('rentcar_chip4', 'Travel Ready'),
 
-                'rentcar_note_title' => $settings['rentcar_note_title'] ?? 'Catatan',
-                'rentcar_note_desc'  => $settings['rentcar_note_desc']  ?? 'Klik “Booking Sekarang” untuk lihat detail unit.',
+                'rentcar_note_title' => $getSetting('rentcar_note_title', 'Catatan'),
+                'rentcar_note_desc'  => $getSetting('rentcar_note_desc',  'Klik “Booking Sekarang” untuk lihat detail unit.'),
 
-                'rentcar_note1_title' => $settings['rentcar_note1_title'] ?? 'Hemat',
-                'rentcar_note1_desc'  => $settings['rentcar_note1_desc']  ?? 'Nyaman untuk perjalanan',
-                'rentcar_note2_title' => $settings['rentcar_note2_title'] ?? 'Bersih',
-                'rentcar_note2_desc'  => $settings['rentcar_note2_desc']  ?? 'Unit terawat',
-                'rentcar_note3_title' => $settings['rentcar_note3_title'] ?? 'Kapasitas',
-                'rentcar_note3_desc'  => $settings['rentcar_note3_desc']  ?? 'Cocok keluarga/grup',
-                'rentcar_note4_title' => $settings['rentcar_note4_title'] ?? 'Fleksibel',
-                'rentcar_note4_desc'  => $settings['rentcar_note4_desc']  ?? 'Untuk wisata & kerja',
+                'rentcar_note1_title' => $getSetting('rentcar_note1_title', 'Hemat'),
+                'rentcar_note1_desc'  => $getSetting('rentcar_note1_desc',  'Nyaman untuk perjalanan'),
+                'rentcar_note2_title' => $getSetting('rentcar_note2_title', 'Bersih'),
+                'rentcar_note2_desc'  => $getSetting('rentcar_note2_desc',  'Unit terawat'),
+                'rentcar_note3_title' => $getSetting('rentcar_note3_title', 'Kapasitas'),
+                'rentcar_note3_desc'  => $getSetting('rentcar_note3_desc',  'Cocok keluarga/grup'),
+                'rentcar_note4_title' => $getSetting('rentcar_note4_title', 'Fleksibel'),
+                'rentcar_note4_desc'  => $getSetting('rentcar_note4_desc',  'Untuk wisata & kerja'),
+
 
                 'tracking_head' => $settings['tracking_head'] ?? '',
                 'tracking_body' => $settings['tracking_body'] ?? '',
-                // DOCUMENTATION PAGE
-                'docs_hero_badge' => $settings['docs_hero_badge'] ?? 'Dokumentasi Perjalanan',
-                'docs_hero_title' => $settings['docs_hero_title'] ?? 'Dokumentasi',
-                'docs_hero_desc'  => $settings['docs_hero_desc']  ?? 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.',
+                // DOCUMENTATION PAGE (locale-aware via *_en + fallback)
+                'docs_hero_badge' => $getSetting('docs_hero_badge', 'Dokumentasi Perjalanan'),
+                'docs_hero_title' => $getSetting('docs_hero_title', 'Dokumentasi'),
+                'docs_hero_desc'  => $getSetting('docs_hero_desc', 'Galeri dokumentasi perjalanan dan aktivitas layanan kami, terdiri dari foto dan video.'),
 
-                'docs_tab_photos' => $settings['docs_tab_photos'] ?? 'Foto',
-                'docs_tab_videos' => $settings['docs_tab_videos'] ?? 'Video',
+                'docs_tab_photos' => $getSetting('docs_tab_photos', 'Foto'),
+                'docs_tab_videos' => $getSetting('docs_tab_videos', 'Video'),
 
-                'docs_stat_photos' => $settings['docs_stat_photos'] ?? 'Total Foto',
-                'docs_stat_videos' => $settings['docs_stat_videos'] ?? 'Total Video',
+                'docs_stat_photos' => $getSetting('docs_stat_photos', 'Total Foto'),
+                'docs_stat_videos' => $getSetting('docs_stat_videos', 'Total Video'),
 
-                'docs_hint' => $settings['docs_hint'] ?? 'Gunakan tab untuk menavigasi dokumentasi. Konten tetap dimuat lengkap.',
+                'docs_hint' => $getSetting('docs_hint', 'Gunakan tab untuk menavigasi dokumentasi. Konten tetap dimuat lengkap.'),
+
+                // optional: category hero (kalau setting nya ada)
+                'docs_ship_hero_badge' => $getSetting('docs_ship_hero_badge', ''),
+                'docs_ship_hero_title' => $getSetting('docs_ship_hero_title', ''),
+                'docs_ship_hero_desc'  => $getSetting('docs_ship_hero_desc', ''),
+
+                'docs_umrah_hero_badge' => $getSetting('docs_umrah_hero_badge', ''),
+                'docs_umrah_hero_title' => $getSetting('docs_umrah_hero_title', ''),
+                'docs_umrah_hero_desc'  => $getSetting('docs_umrah_hero_desc', ''),
+
 
             ]);
 
