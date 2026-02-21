@@ -13,6 +13,7 @@ $descHtml = $isEn
 ? ($package->long_description_en ?: $package->long_description)
 : $package->long_description;
 
+
 $metaDesc = $isEn
 ? ($package->seo_description_en ?: $package->seo_description ?: \Illuminate\Support\Str::limit(trim(strip_tags($descHtml ?? '')), 160))
 : ($package->seo_description ?: \Illuminate\Support\Str::limit(trim(strip_tags($descHtml ?? '')), 160));
@@ -44,6 +45,9 @@ $i18n = [
 'total_price' => $isEn ? 'Total Price' : 'Total Harga',
 'book_now' => $isEn ? 'Book Now' : 'Booking Sekarang',
 'description' => $isEn ? 'Description' : 'Deskripsi',
+'high_season_notice' => $isEn
+? 'For high season, you must chat admin before booking.'
+: 'Untuk high season Wajib Chat admin sebelum Booking',
 ];
 @endphp
 
@@ -152,6 +156,14 @@ $i18n = [
               <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
               <strong id="total">Rp0</strong>
             </div>
+          </div>
+          {{-- HIGH SEASON WARNING --}}
+          <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
+            <p class="font-semibold">
+              {!! $isEn
+              ? 'For <span class="uppercase font-extrabold">high season</span>, you must chat admin before booking.'
+              : 'Untuk <span class="uppercase font-extrabold">high season</span> Wajib Chat admin sebelum Booking.' !!}
+            </p>
           </div>
 
           <button type="button"

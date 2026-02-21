@@ -1,3 +1,10 @@
+@php
+$isEn = app()->getLocale() === 'en';
+$highSeasonNotice = $isEn
+? 'For high season, you must chat admin before booking.'
+: 'Untuk high season Wajib Chat admin sebelum Booking';
+@endphp
+
 <div class="md:col-span-1">
     <div class="sticky top-24 bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
 
@@ -29,6 +36,14 @@
                 <p class="text-sm text-gray-500">{{ $i18n['no_price'] ?? 'Belum ada harga untuk paket ini.' }}
                 </p>
             </template>
+        </div>
+        {{-- HIGH SEASON WARNING --}}
+        <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
+            <p class="font-semibold">
+                {!! $isEn
+                ? 'For <span class="uppercase font-extrabold">high season</span>, you must chat admin before booking.'
+                : 'Untuk <span class="uppercase font-extrabold">high season</span> Wajib Chat admin sebelum Booking.' !!}
+            </p>
         </div>
 
         {{-- BUTTON --}}

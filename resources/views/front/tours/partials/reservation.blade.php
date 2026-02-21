@@ -153,6 +153,14 @@ $tiersInternational = $package->tiers
             </template>
 
         </div>
+        {{-- HIGH SEASON WARNING --}}
+        <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
+            <p class="font-semibold">
+                {!! $isEn
+                ? 'For <span class="uppercase font-extrabold">high season</span>, you must chat admin before booking.'
+                : 'Untuk <span class="uppercase font-extrabold">high season</span> Wajib Chat admin sebelum Booking.' !!}
+            </p>
+        </div>
 
         {{-- BUTTON --}}
         <button

@@ -1,10 +1,14 @@
 @php
 $isEn = app()->getLocale() === 'en';
+$highSeasonNotice = $isEn
+? 'For high season, you must chat admin before booking.'
+: 'Untuk high season Wajib Chat admin sebelum Booking';
 $i18n = [
 'reservation' => $isEn ? 'Ship Reservation' : 'Reservasi Sewa Kapal',
 'no_price' => $isEn ? 'No price available for this category yet.' : 'Belum ada harga untuk kategori ini.',
 'continue' => $isEn ? 'Continue Booking' : 'Lanjut Booking',
 'per_pax' => $isEn ? '/ pax' : '/ pax',
+
 ];
 @endphp
 
@@ -57,6 +61,14 @@ $i18n = [
       <template x-if="!tiers[active] || tiers[active].length === 0">
         <p class="text-sm text-gray-500">{{ $i18n['no_price'] }}</p>
       </template>
+    </div>
+    {{-- HIGH SEASON WARNING --}}
+    <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
+      <p class="font-semibold">
+        {!! $isEn
+        ? 'For <span class="uppercase font-extrabold">high season</span>, you must chat admin before booking.'
+        : 'Untuk <span class="uppercase font-extrabold">high season</span> Wajib Chat admin sebelum Booking.' !!}
+      </p>
     </div>
 
     <button
