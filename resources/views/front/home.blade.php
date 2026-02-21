@@ -51,7 +51,7 @@
             {{ $siteSettings['hero_title'] ?? ($isEn ? 'Comfortable & Trusted Trips' : 'Perjalanan Nyaman & Terpercaya') }}
         </h1>
 
-        <p class="mt-5 text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-14">
+        <p class="mt-5 text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-8 md:mb-14">
             {{ $siteSettings['hero_subtitle'] ?? ($isEn ? 'We help you plan your trip with professional service and transparent pricing.' : 'Kami membantu Anda merencanakan perjalanan dengan layanan profesional dan harga transparan.') }}
         </p>
 
@@ -90,6 +90,29 @@
   tabs: @js($tabsWithId),
   active: (@js(($tabsWithId[0]['id'] ?? ''))),
 
+    // MOBILE pagination (Traveloka style)
+  page: 0,
+  pageSize: 10,
+
+  get pageCount() {
+    return Math.max(1, Math.ceil(this.tabs.length / this.pageSize));
+  },
+
+  get mobilePageTabs() {
+    const start = this.page * this.pageSize;
+    return this.tabs.slice(start, start + this.pageSize);
+  },
+get mobileCols() {
+  const n = this.mobilePageTabs.length;
+  return Math.max(1, Math.ceil(n / 2)); // 5 => 3 kolom, 6 => 3 kolom, 10 => 5 kolom
+},
+  setPage(i) {
+    this.page = i;
+    this.$nextTick(() => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  },
+
   canPrev: false,
   canNext: false,
 
@@ -97,7 +120,7 @@
     // default aktif: To Do kalau ada
     const todo = this.tabs.find(t => t.is_todo);
     if (todo) this.active = todo.id;
-
+    this.page = 0;
     this.$nextTick(() => {
       if (window.lucide) window.lucide.createIcons();
       this.syncArrows();
@@ -141,7 +164,59 @@
 
                 class="relative mx-auto max-w-6xl">
                 {{-- TABS BAR --}}
-                {{-- TABS BAR (NO SCROLLBAR + ARROWS) --}}
+
+                {{-- MOBILE (Traveloka-like): full width, mentok kiri-kanan, grid 5 kolom (2 baris), dots --}}
+                <div class="md:hidden w-full">
+                    {{-- full width container --}}
+                    <div class="w-full px-4">
+                        <div class="w-full bg-white/95 backdrop-blur border border-white/70 shadow-[0_16px_40px_rgba(2,6,23,0.18)] rounded-[22px] p-4">
+                            <div class="grid grid-cols-6 gap-x-2 gap-y-4 justify-items-center">
+                                <template x-for="(t, idx) in mobilePageTabs" :key="t.id">
+                                    <a
+                                        :href="t.url"
+                                        @click="clickTab($event, t)"
+                                        class="col-span-2 flex flex-col items-center gap-2"
+                                        :class="(mobilePageTabs.length === 5 && idx === 3) ? 'col-start-2' :
+                                 (mobilePageTabs.length === 5 && idx === 4) ? 'col-start-4' : ''">
+                                        <span
+                                            class="h-14 w-14 rounded-full grid place-items-center border transition overflow-hidden"
+                                            :class="active === t.id
+                                    ? 'bg-[rgba(1,148,243,0.10)] border-[rgba(1,148,243,0.45)] shadow-[0_10px_18px_rgba(1,148,243,0.16)]'
+                                    : 'bg-white border-slate-200/70'
+                                ">
+                                            <template x-if="t.icon_src">
+                                                <img :src="t.icon_src" alt="" class="h-full w-full object-cover">
+                                            </template>
+
+                                            <template x-if="!t.icon_src">
+                                                <i :data-lucide="t.icon" class="w-5 h-5" style="color:#0194F3;"></i>
+                                            </template>
+                                        </span>
+
+                                        <span class="text-[11px] font-extrabold text-slate-700 leading-tight text-center"
+                                            x-text="t.label"></span>
+                                    </a>
+                                </template>
+                            </div>
+
+                            {{-- dots --}}
+                            <div class="mt-3 flex items-center justify-center gap-2" x-show="pageCount > 1" x-cloak>
+                                <template x-for="i in pageCount" :key="i">
+                                    <button
+                                        type="button"
+                                        class="h-2 w-2 rounded-full transition"
+                                        :class="(page === (i-1)) ? 'bg-[#0194F3]' : 'bg-slate-300'"
+                                        @click="setPage(i-1)"
+                                        aria-label="page"></button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- DESKTOP: keep existing pill + arrows --}}
+            <div class="hidden md:block">
                 <div class="absolute left-1/2 -translate-x-1/2 w-[min(100%,980px)] px-3" style="top:-28px;">
                     <div class="relative rounded-full bg-white/95 backdrop-blur border border-white/70 shadow-[0_16px_40px_rgba(2,6,23,0.18)] px-3 py-2">
 
@@ -163,7 +238,6 @@
                             x-show="canNext"
                             x-cloak
                             @click="scrollTabs(1)"
-                            aria-label="{{ $isEn ? 'Next' : 'Berikutnya' }}"
                             aria-label="{{ $isEn ? 'Next' : 'Berikutnya' }}">
                             <i data-lucide="chevron-right" class="w-5 h-5"></i>
                         </button>
@@ -181,21 +255,18 @@
                                         @click="clickTab($event, t)"
                                         class="group shrink-0 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold border transition-all duration-200"
                                         :class="active === t.id
-              ? 'bg-[rgba(1,148,243,0.12)] border-[rgba(1,148,243,0.55)] text-[#055a93] shadow-[0_10px_18px_rgba(1,148,243,0.18)]'
-              : 'bg-white border-slate-200/70 text-slate-700 hover:-translate-y-[1px] hover:bg-[rgba(1,148,243,0.06)] hover:border-[rgba(1,148,243,0.45)] hover:text-[#055a93] hover:shadow-[0_10px_18px_rgba(1,148,243,0.16)]'
-            ">
+                                ? 'bg-[rgba(1,148,243,0.12)] border-[rgba(1,148,243,0.55)] text-[#055a93] shadow-[0_10px_18px_rgba(1,148,243,0.18)]'
+                                : 'bg-white border-slate-200/70 text-slate-700 hover:-translate-y-[1px] hover:bg-[rgba(1,148,243,0.06)] hover:border-[rgba(1,148,243,0.45)] hover:text-[#055a93] hover:shadow-[0_10px_18px_rgba(1,148,243,0.16)]'
+                            ">
                                         <span
                                             class="h-9 w-9 rounded-full grid place-items-center border transition overflow-hidden"
                                             :class="active === t.id
-                ? 'bg-white border-[rgba(1,148,243,0.35)]'
-                : 'bg-slate-50 border-slate-200/70 group-hover:bg-[rgba(1,148,243,0.10)] group-hover:border-[rgba(1,148,243,0.35)]'
-              ">
-                                            {{-- ICON IMAGE (kalau ada) --}}
+                                    ? 'bg-white border-[rgba(1,148,243,0.35)]'
+                                    : 'bg-slate-50 border-slate-200/70 group-hover:bg-[rgba(1,148,243,0.10)] group-hover:border-[rgba(1,148,243,0.35)]'
+                                ">
                                             <template x-if="t.icon_src">
                                                 <img :src="t.icon_src" alt="" class="h-full w-full object-cover">
                                             </template>
-
-                                            {{-- FALLBACK LUCIDE --}}
                                             <template x-if="!t.icon_src">
                                                 <i :data-lucide="t.icon" class="w-4 h-4" style="color:#0194F3;"></i>
                                             </template>
@@ -209,25 +280,26 @@
 
                     </div>
                 </div>
+            </div>
 
 
-                {{-- PANEL CARD: CUMA UNTUK TO DO --}}
-                <div class="pt-[45px]">
-                    <div class="rounded-[28px] bg-white/95 backdrop-blur border border-white/70 shadow-[0_18px_60px_rgba(2,6,23,0.22)] overflow-hidden">
-                        <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
-                            <div class="text-base font-extrabold text-slate-900">
-                                {{ $siteSettings['home_search_title'] ?? ($isEn ? 'Find Tour Packages' : 'Cari Paket Wisata') }}
-                            </div>
-                            <div class="text-sm text-slate-600 mt-1">
-                                {{ $siteSettings['home_search_desc'] ?? ($isEn ? 'Find packages by destination, category, and departure date.' : 'Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.') }}
-                            </div>
+            {{-- PANEL CARD: CUMA UNTUK TO DO --}}
+            <div class="hidden md:block pt-[45px]">
+                <div class="rounded-[28px] bg-white/95 backdrop-blur border border-white/70 shadow-[0_18px_60px_rgba(2,6,23,0.22)] overflow-hidden">
+                    <div class="px-6 pt-7 pb-5 border-b border-slate-200/70">
+                        <div class="text-base font-extrabold text-slate-900">
+                            {{ $siteSettings['home_search_title'] ?? ($isEn ? 'Find Tour Packages' : 'Cari Paket Wisata') }}
                         </div>
+                        <div class="text-sm text-slate-600 mt-1">
+                            {{ $siteSettings['home_search_desc'] ?? ($isEn ? 'Find packages by destination, category, and departure date.' : 'Temukan paket sesuai destinasi, kategori, dan tanggal keberangkatan.') }}
+                        </div>
+                    </div>
 
 
-                        <div class="p-6">
-                            <div x-show="tabs.find(x => x.id === active)?.is_todo" x-cloak>
-                                <form method="GET" action="{{ route('tours.index') }}"
-                                    x-data="{
+                    <div class="p-6">
+                        <div x-show="tabs.find(x => x.id === active)?.is_todo" x-cloak>
+                            <form method="GET" action="{{ route('tours.index') }}"
+                                x-data="{
                 submit(){
                   const base = '{{ url('/paket-tour') }}';
                   const raw = (this.$refs.categorySelect?.value || '').trim();
@@ -261,91 +333,91 @@
                   window.location.href = qs ? (path + '?' + qs) : path;
                 }
               }"
-                                    @submit.prevent="submit()">
+                                @submit.prevent="submit()">
 
-                                    <div class="grid gap-3 md:grid-cols-12 items-end">
+                                <div class="grid gap-3 md:grid-cols-12 items-end">
 
-                                        <div class="md:col-span-5">
-                                            <label class="text-[11px] font-extrabold text-slate-600">
-                                                {{ $isEn ? 'Destination / Keywords' : 'Destinasi / Kata Kunci' }}
-                                            </label>
-                                            <div class="mt-1 relative">
-                                                <input type="text" name="q" x-ref="q"
-                                                    placeholder="{{ $isEn ? 'Example: Bali, Lombok, Japan, Labuan Bajo...' : 'Contoh: Bali, Lombok, Jepang, Labuan Bajo...' }}"
-                                                    class="w-full rounded-2xl border border-slate-200 pl-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
-                                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                                    <i data-lucide="search" class="w-5 h-5"></i>
-                                                </span>
-                                            </div>
+                                    <div class="md:col-span-5">
+                                        <label class="text-[11px] font-extrabold text-slate-600">
+                                            {{ $isEn ? 'Destination / Keywords' : 'Destinasi / Kata Kunci' }}
+                                        </label>
+                                        <div class="mt-1 relative">
+                                            <input type="text" name="q" x-ref="q"
+                                                placeholder="{{ $isEn ? 'Example: Bali, Lombok, Japan, Labuan Bajo...' : 'Contoh: Bali, Lombok, Jepang, Labuan Bajo...' }}"
+                                                class="w-full rounded-2xl border border-slate-200 pl-11 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
+                                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <i data-lucide="search" class="w-5 h-5"></i>
+                                            </span>
                                         </div>
+                                    </div>
 
-                                        <div class="md:col-span-3">
-                                            <label class="text-[11px] font-extrabold text-slate-600">
-                                                {{ $isEn ? 'Category' : 'Kategori' }}
-                                            </label>
+                                    <div class="md:col-span-3">
+                                        <label class="text-[11px] font-extrabold text-slate-600">
+                                            {{ $isEn ? 'Category' : 'Kategori' }}
+                                        </label>
 
-                                            <div class="mt-1">
-                                                <select
-                                                    x-ref="categorySelect"
-                                                    class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white">
-                                                    <option value="">{{ $isEn ? 'All Categories' : 'Semua Kategori' }}</option>
+                                        <div class="mt-1">
+                                            <select
+                                                x-ref="categorySelect"
+                                                class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25 bg-white">
+                                                <option value="">{{ $isEn ? 'All Categories' : 'Semua Kategori' }}</option>
 
-                                                    @foreach(($tourMainCategories ?? collect()) as $cat)
-                                                    <option value="cat:{{ $cat->slug }}">{{ strtoupper($cat->name) }}</option>
+                                                @foreach(($tourMainCategories ?? collect()) as $cat)
+                                                <option value="cat:{{ $cat->slug }}">{{ strtoupper($cat->name) }}</option>
 
-                                                    @foreach(($cat->children ?? collect()) as $sub)
-                                                    <option value="sub:{{ $cat->slug }}/{{ $sub->slug }}">ㅤㅤ{{ $sub->name }}</option>
-                                                    @endforeach
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                                                @foreach(($cat->children ?? collect()) as $sub)
+                                                <option value="sub:{{ $cat->slug }}/{{ $sub->slug }}">ㅤㅤ{{ $sub->name }}</option>
+                                                @endforeach
+                                                @endforeach
+                                            </select>
                                         </div>
+                                    </div>
 
 
 
-                                        <div class="md:col-span-2">
-                                            <label class="text-[11px] font-extrabold text-slate-600">
-                                                {{ $isEn ? 'Departure Date' : 'Tanggal Berangkat' }}
-                                            </label>
-                                            <input type="date" name="date" x-ref="date"
-                                                class="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
-                                        </div>
+                                    <div class="md:col-span-2">
+                                        <label class="text-[11px] font-extrabold text-slate-600">
+                                            {{ $isEn ? 'Departure Date' : 'Tanggal Berangkat' }}
+                                        </label>
+                                        <input type="date" name="date" x-ref="date"
+                                            class="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0194F3]/25">
+                                    </div>
 
-                                        <div class="md:col-span-2">
-                                            <button type="submit"
-                                                class="w-full rounded-2xl px-5 py-3 text-sm font-extrabold text-white transition-all duration-200
+                                    <div class="md:col-span-2">
+                                        <button type="submit"
+                                            class="w-full rounded-2xl px-5 py-3 text-sm font-extrabold text-white transition-all duration-200
                            shadow-[0_14px_22px_rgba(1,148,243,0.30)] hover:-translate-y-[1px]
                            hover:shadow-[0_18px_28px_rgba(1,148,243,0.36)]"
-                                                style="background:#0194F3"
-                                                onmouseover="this.style.background='#0186DB'"
-                                                onmouseout="this.style.background='#0194F3'">
-                                                {{ $isEn ? 'Search' : 'Ayo Cari' }}
-                                            </button>
-                                        </div>
-
+                                            style="background:#0194F3"
+                                            onmouseover="this.style.background='#0186DB'"
+                                            onmouseout="this.style.background='#0194F3'">
+                                            {{ $isEn ? 'Search' : 'Ayo Cari' }}
+                                        </button>
                                     </div>
 
-                                    <div class="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                        <span class="mt-0.5">
-                                            <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
-                                        </span>
-                                        <span class="text-sm text-slate-600">
-                                            {{ $siteSettings['home_search_hint'] ?? ($isEn ? 'Use specific keywords to get more relevant results.' : 'Pakai kata kunci yang spesifik agar hasil lebih relevan.') }}
-                                        </span>
+                                </div>
 
-                                    </div>
-                                </form>
-                            </div>
+                                <div class="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <span class="mt-0.5">
+                                        <i data-lucide="sparkles" class="w-4 h-4" style="color:#0194F3;"></i>
+                                    </span>
+                                    <span class="text-sm text-slate-600">
+                                        {{ $siteSettings['home_search_hint'] ?? ($isEn ? 'Use specific keywords to get more relevant results.' : 'Pakai kata kunci yang spesifik agar hasil lebih relevan.') }}
+                                    </span>
 
-                            {{-- kalau aktif bukan To Do, panelnya gak usah tampil apa-apa (karena tab lain navigasi halaman) --}}
-                            <div x-show="!tabs.find(x => x.id === active)?.is_todo" x-cloak class="hidden"></div>
-
+                                </div>
+                            </form>
                         </div>
+
+                        {{-- kalau aktif bukan To Do, panelnya gak usah tampil apa-apa (karena tab lain navigasi halaman) --}}
+                        <div x-show="!tabs.find(x => x.id === active)?.is_todo" x-cloak class="hidden"></div>
+
                     </div>
                 </div>
             </div>
         </div>
-        @endif
+    </div>
+    @endif
 
 
     </div>
