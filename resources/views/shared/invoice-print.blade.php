@@ -20,7 +20,7 @@ $qty = 1;
 if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah') {
 $qty = (int) ($order->participants ?? 1);
 } elseif (($order->type ?? '') === 'rent_car') {
-$qty = (int) ($order->total_days ?? 1);
+$qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
 }
 if ($qty <= 0) $qty=1;
 

@@ -22,17 +22,15 @@
 
       $nav = [
       ['type' => 'link', 'label' => $isEn ? 'Home' : 'Beranda', 'route' => 'home', 'icon' => 'home'],
-      ['type' => 'link', 'label' => $isEn ? 'Tour Packages' : 'Paket Tour','route' => 'tours.index', 'icon' => 'map'],
+      ['type' => 'link', 'label' => $isEn ? 'Tour Packages' : 'Paket Tour', 'route' => 'tours.index', 'icon' => 'map'],
       ['type' => 'link', 'label' => $isEn ? 'Car Rental' : 'carter pribadi', 'route' => 'rentcar.index', 'icon' => 'car'],
       ['type' => 'link', 'label' => $isEn ? 'Private Charter' : 'Sewa Kapal', 'route' => 'ship.index', 'icon' => 'anchor'],
       ['type' => 'link', 'label' => $isEn ? 'Umrah' : 'Umrah', 'route' => 'umrah.index', 'icon' => 'landmark'],
       ['type' => 'link', 'label' => $isEn ? 'MICE' : 'MICE', 'route' => 'mice.index', 'icon' => 'briefcase'],
 
-      // ✅ Documentation harus setelah Umrah
       ['type' => 'docs_dropdown'],
 
-      ['type' => 'link', 'label' => $isEn ? 'About' : 'Tentang', 'route' => 'about', 'icon' => 'info'],
-      ['type' => 'link', 'label' => $isEn ? 'Articles' : 'Artikel', 'route' => 'articles', 'icon' => 'newspaper'],
+      ['type' => 'others_dropdown'],
       ];
       @endphp
 
@@ -58,7 +56,7 @@
           style="background:#0194F3;"></span>
       </a>
 
-      @else
+      @elseif(($n['type'] ?? '') === 'docs_dropdown')
       {{-- DROPDOWN: DOKUMENTASI (posisi setelah Umrah) --}}
       @php
       $docsActive = request()->routeIs('docs') || request()->routeIs('docs.*') || request()->is('dokumentasi*');
@@ -112,6 +110,65 @@
             {{ $isEn ? 'Umrah Documentation' : 'Dokumentasi Umrah' }}
           </a>
 
+
+        </div>
+      </div>
+      @elseif(($n['type'] ?? '') === 'others_dropdown')
+      {{-- DROPDOWN: LAINNYA (Tentang + Dokumen) --}}
+      @php
+      $othersActive =
+      request()->routeIs('about')
+      || request()->routeIs('articles')
+      || request()->routeIs('travel-documents')
+      || request()->is('Document*')
+      || request()->is('document*');
+      @endphp
+
+      <div x-data="{ open:false }"
+        class="relative"
+        @mouseenter="open=true"
+        @mouseleave="open=false">
+
+        <button type="button"
+          class="group relative px-3 py-2 rounded-xl text-sm font-semibold transition hover:bg-slate-50 flex items-center gap-2 whitespace-nowrap
+                         {{ $othersActive ? 'text-slate-900' : 'text-slate-700 hover:text-slate-900' }}">
+          <i data-lucide="layout-grid"
+            class="w-4 h-4 {{ $othersActive ? '' : 'text-slate-500' }}"
+            style="{{ $othersActive ? 'color:#0194F3;' : '' }}"></i>
+
+          <span>{{ $isEn ? 'More' : 'Lainnya' }}</span>
+
+          <svg class="w-4 h-4 ml-1 {{ $othersActive ? 'text-slate-700' : 'text-slate-400' }}"
+            viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+
+          {{-- underline --}}
+          <span
+            class="absolute left-3 right-3 -bottom-0.5 h-[2px] rounded-full transition-all duration-300
+                       {{ $othersActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100' }}"
+            style="background:#0194F3;"></span>
+        </button>
+
+        {{-- dropdown menu --}}
+        <div x-show="open" x-transition x-cloak
+          class="absolute left-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden z-50">
+
+          <a href="{{ route('about') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="info" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'About' : 'Tentang' }}
+          </a>
+          <a href="{{ route('articles') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="newspaper" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'Articles' : 'Artikel' }}
+          </a>
+          <a href="{{ route('travel-documents') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="file-text" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'Documents' : 'Dokumen' }}
+          </a>
 
         </div>
       </div>

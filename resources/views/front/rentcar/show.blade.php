@@ -41,7 +41,7 @@ $i18n = [
 'book_car' => $isEn ? 'Car Booking' : 'Booking Mobil',
 'pickup_date' => $isEn ? 'Pickup Date' : 'Tanggal Pickup',
 'return_date' => $isEn ? 'Return Date' : 'Tanggal Return',
-'total_days' => $isEn ? 'Total Hour' : 'Total Jam',
+'total_days' => $isEn ? 'Total Hours' : 'Total Jam',
 'total_price' => $isEn ? 'Total Price' : 'Total Harga',
 'book_now' => $isEn ? 'Book Now' : 'Booking Sekarang',
 'description' => $isEn ? 'Description' : 'Deskripsi',
@@ -90,7 +90,7 @@ $i18n = [
 
         <div class="mt-3 flex items-end gap-2">
           <div class="text-3xl font-extrabold text-brand-600">
-            Rp{{ number_format($package->price_per_day, 0, ',', '.') }}
+            Rp{{ number_format($package->price_per_hour, 0, ',', '.') }}
           </div>
           <span class="text-slate-500 text-sm mb-1">{{ $i18n['per_day'] }}</span>
         </div>
@@ -124,7 +124,7 @@ $i18n = [
     <aside class="lg:col-span-1">
       <div
         id="rentcarBookingBox"
-        data-price-per-day="{{ (int) $package->price_per_day }}"
+        data-price-per-hour="{{ (int) $package->price_per_hour }}"
         class="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-soft p-6">
 
         <h3 class="text-lg font-extrabold text-slate-900 mb-4">
@@ -136,13 +136,13 @@ $i18n = [
 
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['pickup_date'] }}</label>
-            <input type="date" id="pickup"
+            <input type="datetime-local" id="pickup"
               class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
           </div>
 
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['return_date'] }}</label>
-            <input type="date" id="return"
+            <input type="datetime-local" id="return"
               class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
           </div>
 
@@ -392,9 +392,8 @@ $i18n = [
     const daysEl = document.getElementById('days');
     const totalEl = document.getElementById('total');
     const btnBook = document.getElementById('btnBook');
-
     const box = document.getElementById('rentcarBookingBox');
-    const pricePerDay = box ? parseInt(box.dataset.pricePerDay || '0', 10) : 0;
+    const pricePerHour = box ? parseInt(box.dataset.pricePerHour || '0', 10) : 0;
 
     if (!pickup || !ret || !daysEl || !totalEl || !btnBook) return;
 
@@ -416,10 +415,10 @@ $i18n = [
         return;
       }
 
-      const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-      daysEl.textContent = diffDays;
+      const diffHours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
+      daysEl.textContent = diffHours;
 
-      const total = diffDays * pricePerDay;
+      const total = diffHours * pricePerHour;
       totalEl.textContent = 'Rp' + total.toLocaleString('id-ID');
 
       btnBook.disabled = false;

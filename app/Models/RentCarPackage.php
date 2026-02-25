@@ -14,7 +14,7 @@ class RentCarPackage extends Model
         'label',
         'slug',
         'category_id',
-        'price_per_day',
+        'price_per_hour',
         'thumbnail_path',
         'is_active',
         'features',
@@ -24,17 +24,17 @@ class RentCarPackage extends Model
         'seo_keywords',
         'seo_description',
         'created_by_partner_id',
-'partner_review_status',
-'partner_review_note',
-'partner_reviewed_by',
-'partner_reviewed_at',
-'title_en',
-'label_en',
-'long_description_en',
-'features_en',
-'seo_title_en',
-'seo_keywords_en',
-'seo_description_en',
+        'partner_review_status',
+        'partner_review_note',
+        'partner_reviewed_by',
+        'partner_reviewed_at',
+        'title_en',
+        'label_en',
+        'long_description_en',
+        'features_en',
+        'seo_title_en',
+        'seo_keywords_en',
+        'seo_description_en',
 
 
     ];
@@ -42,7 +42,7 @@ class RentCarPackage extends Model
 
 
     protected $casts = [
-        'price_per_day' => 'float',
+        'price_per_hour' => 'float',
         'is_active' => 'boolean',
         'features' => 'array',
         'features_en' => 'array',

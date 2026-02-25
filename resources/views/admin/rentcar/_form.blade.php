@@ -41,9 +41,9 @@
         <div>
             <label class="block text-sm font-extrabold text-slate-800 mb-1">Price Per Hour</label>
             <input type="number"
-                name="price_per_day"
+                name="price_per_hour"
                 step="0.01"
-                value="{{ old('price_per_day', $package->price_per_day ?? '') }}"
+                value="{{ old('price_per_hour', $package->price_per_hour ?? '') }}"
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                 required>
             <div class="text-xs text-slate-500 mt-1">Contoh: 350000</div>

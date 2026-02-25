@@ -35,9 +35,9 @@ class RentCarController extends Controller
         }
 
         if ($sort === 'price_asc') {
-            $query->orderBy('price_per_day', 'asc');
+            $query->orderBy('price_per_hour', 'asc');
         } elseif ($sort === 'price_desc') {
-            $query->orderBy('price_per_day', 'desc');
+            $query->orderBy('price_per_hour', 'desc');
         } elseif ($sort === 'title_asc') {
             $query->orderBy('title', 'asc');
         } else {
@@ -74,12 +74,13 @@ class RentCarController extends Controller
 
         $package = RentCarPackage::where('slug', $slug)->firstOrFail();
 
-        // hitung hari
+        // hitung jam (ceil per jam)
         $start = new \Carbon\Carbon($request->pickup_date);
         $end   = new \Carbon\Carbon($request->return_date);
 
-        $days = $start->diffInDays($end) + 1;
-        $total = $days * $package->price_per_day;
+        $minutes = $start->diffInMinutes($end);
+        $hours = max(1, (int) ceil($minutes / 60));
+        $total = $hours * $package->price_per_hour;
 
         // UNTUK SEKARANG:
         // CUMA RETURN VIEW SEMENTARA (belum buat halaman pembayaran)
@@ -87,7 +88,7 @@ class RentCarController extends Controller
             'package' => $package,
             'pickup'  => $request->pickup_date,
             'return'  => $request->return_date,
-            'days'    => $days,
+            'hours'   => $hours,
             'total'   => $total,
         ]);
     }

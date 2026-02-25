@@ -15,9 +15,9 @@ class Order extends Model
         'type',           // tour / rent_car
         'product_id',
         'product_name',
-// PROMO (guest: enforce by email/phone)
-'promo_id',
-'promo_code',
+        // PROMO (guest: enforce by email/phone)
+        'promo_id',
+        'promo_code',
         // CUSTOMER
         'customer_name',
         'customer_email',
@@ -32,6 +32,7 @@ class Order extends Model
 
         // DATA KHUSUS RENT CAR
         'total_days',
+        'total_hours',
 
         // BILLING ADDRESS
         'billing_first_name',
@@ -52,24 +53,24 @@ class Order extends Model
 
         // PAYMENT
         'payment_method',
-        'payment_status',   
-        'order_status',    
+        'payment_status',
+        'order_status',
         'affiliate_user_id',
-'affiliate_link_id',
-'affiliate_ref',
-'affiliate_commission_type',
-'affiliate_commission_value',
-'affiliate_commission_amount',
-'affiliate_commission_status',
-'affiliate_commission_set_by',
-'affiliate_commission_set_at',
+        'affiliate_link_id',
+        'affiliate_ref',
+        'affiliate_commission_type',
+        'affiliate_commission_value',
+        'affiliate_commission_amount',
+        'affiliate_commission_status',
+        'affiliate_commission_set_by',
+        'affiliate_commission_set_at',
     ];
 
     protected $casts = [
-         'user_id' => 'integer',
+        'user_id' => 'integer',
         'departure_date' => 'date',
-        'pickup_date' => 'date',
-        'return_date' => 'date',
+        'pickup_date' => 'datetime',
+        'return_date' => 'datetime',
         'affiliate_commission_set_at' => 'datetime',
 
     ];
@@ -85,16 +86,15 @@ class Order extends Model
         return $this->hasMany(\App\Models\Payment::class);
     }
     protected static function booted()
-{
-    static::saved(function (Order $order) {
-        // cegah call kalau bukan paid+approved (service juga ngecek, ini buat hemat query)
-        if ($order->payment_status !== 'paid' || $order->order_status !== 'approved') {
-            return;
-        }
+    {
+        static::saved(function (Order $order) {
+            // cegah call kalau bukan paid+approved (service juga ngecek, ini buat hemat query)
+            if ($order->payment_status !== 'paid' || $order->order_status !== 'approved') {
+                return;
+            }
 
-        // jalankan payout sekali
-        app(PartnerPayoutService::class)->creditIfEligible($order);
-    });
-}
-
+            // jalankan payout sekali
+            app(PartnerPayoutService::class)->creditIfEligible($order);
+        });
+    }
 }

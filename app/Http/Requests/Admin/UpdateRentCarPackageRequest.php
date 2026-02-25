@@ -17,10 +17,10 @@ class UpdateRentCarPackageRequest extends FormRequest
             'title' => 'required|string|max:255',
             'label' => ['nullable', 'string', 'max:30'],
 
-            'price_per_day' => 'required|numeric|min:0',
+            'price_per_hour' => 'required|numeric|min:0',
             'thumbnail' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
-        
+
             'features' => 'nullable|array',
             'features.*.name' => 'required|string|max:255',
             'features.*.available' => 'nullable',

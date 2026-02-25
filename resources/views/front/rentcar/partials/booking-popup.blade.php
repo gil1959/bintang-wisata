@@ -26,7 +26,7 @@ $i18n = [
 
 
 <div
-  x-data="rentcarBookingPopup({{ (int) $package->price_per_day }}, '{{ $package->slug }}')"
+  x-data="rentcarBookingPopup({{ (int) $package->price_per_hour }}, '{{ $package->slug }}')"
   x-on:open-rentcar-booking.window="open($event.detail)"
   x-cloak>
   {{-- backdrop --}}
@@ -117,7 +117,7 @@ $i18n = [
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm">
           <div class="flex justify-between">
             <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
-            <b x-text="days"></b>
+            <b x-text="hours"></b>
           </div>
           <div class="flex justify-between mt-1">
             <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
@@ -162,7 +162,7 @@ $i18n = [
       ret: '',
 
       base: basePrice,
-      days: 0,
+      hours: 0,
       total: 0,
 
       // inject token langsung dari blade (ANTI 419)
@@ -200,19 +200,19 @@ $i18n = [
 
       calc() {
         if (!this.pickup || !this.ret) {
-          this.days = 0;
+          this.hours = 0;
           this.total = 0;
           return;
         }
         const start = new Date(this.pickup);
         const end = new Date(this.ret);
         if (end < start) {
-          this.days = 0;
+          this.hours = 0;
           this.total = 0;
           return;
         }
-        const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-        this.days = diff;
+        const diff = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
+        this.hours = diff;
         this.total = diff * this.base;
       },
 

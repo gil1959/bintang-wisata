@@ -8,14 +8,14 @@
     <div class="p-4 shadow-sm rounded" style="background:#f8faff;">
 
         <h4 class="fw-semibold">{{ $package->title }}</h4>
-        <p class="text-muted mb-2">Rp{{ number_format($package->price_per_day) }} / Jam</p>
+        <p class="text-muted mb-2">Rp{{ number_format($package->price_per_hour) }} / Jam</p>
 
         <hr>
 
         <p><strong>Pickup:</strong> {{ $pickup }}</p>
         <p><strong>Return:</strong> {{ $return }}</p>
 
-        <p><strong>Total Hari:</strong> {{ $days }}</p>
+        <p><strong>Total Jam:</strong> {{ $hours }}</p>
 
         <p class="fw-bold">
             Total Harga: Rp{{ number_format($total, 0, ',', '.') }}

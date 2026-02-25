@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\RentCarPackage;
 use App\Models\Order;
 use App\Models\Promo;
-
+use Carbon\Carbon;
 
 
 class RentCarOrderController extends Controller
@@ -30,12 +30,14 @@ class RentCarOrderController extends Controller
         ]);
 
         // ===================== HITUNG DURASI ======================
-        $start = strtotime($data['pickup']);
-        $end   = strtotime($data['return']);
+        // ===================== HITUNG DURASI (PER JAM) ======================
+        $start = Carbon::parse($data['pickup']);
+        $end   = Carbon::parse($data['return']);
 
-        $days = max(1, floor(($end - $start) / 86400) + 1);
+        $minutes = $start->diffInMinutes($end);
+        $hours = max(1, (int) ceil($minutes / 60));
 
-        $subtotal = $days * $package->price_per_day;
+        $subtotal = $hours * $package->price_per_hour;
 
         // ===================== PROMO ======================
         $discount = 0;
@@ -54,7 +56,7 @@ class RentCarOrderController extends Controller
             'type'           => 'rent_car',
             'product_id'     => $package->id,
             'product_name'   => $package->title,
-'user_id'        => auth()->check() ? auth()->id() : null,
+            'user_id'        => auth()->check() ? auth()->id() : null,
             'customer_name'  => $data['name'],
             'customer_email' => $data['email'],
             'customer_phone' => $data['phone'],
@@ -64,7 +66,8 @@ class RentCarOrderController extends Controller
             'departure_date' => null,
             'participants'   => null,
 
-            'total_days'     => $days,
+            'total_days'     => null,
+            'total_hours'    => $hours,
 
             'subtotal'       => $subtotal,
             'discount'       => $discount,

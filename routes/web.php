@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\BankAccountController;
 use App\Http\Controllers\Admin\TourReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\PopupWidgetController;
-
+use App\Http\Controllers\Admin\TravelDocumentPageController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RentCarPackageController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -44,10 +44,11 @@ use App\Http\Controllers\Partner\OrderController as PartnerOrderController;
 |--------------------------------------------------------------------------
 */
 use App\Http\Controllers\Front\TourController;
-use App\Http\Controllers\Front\TourOrderController;        // <— DRAFT BOOKING TOUR
+use App\Http\Controllers\Front\TourOrderController;
 use App\Http\Controllers\Front\RentCarController;
-use App\Http\Controllers\Front\RentCarOrderController;   // <— DRAFT BOOKING RENTCAR
+use App\Http\Controllers\Front\RentCarOrderController;
 use App\Http\Controllers\Front\ReviewController;
+use App\Http\Controllers\Front\TravelDocumentController;
 use App\Http\Controllers\Front\BookingController as FrontBookingController;
 use App\Http\Controllers\Front\CheckoutController;
 // Promo validator (frontend)
@@ -122,7 +123,13 @@ Route::prefix('bw-admin')
         Route::post('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])
             ->name('notifications.store')
             ->middleware('permission:admin.notifications.manage');
+        Route::get('travel-documents-page', [TravelDocumentPageController::class, 'edit'])
+            ->name('travel-documents.edit')
+            ->middleware('permission:admin.legal-pages.manage');
 
+        Route::post('travel-documents-page', [TravelDocumentPageController::class, 'update'])
+            ->name('travel-documents.update')
+            ->middleware('permission:admin.legal-pages.manage');
         Route::prefix('partners')->name('partners.')->group(function () {
 
             Route::get('/applications', [PartnerApplicationController::class, 'index'])->name('applications.index')->middleware('permission:admin.dashboard.view');
@@ -604,6 +611,9 @@ Route::get('/paket-tour/{categorySlug?}/{subcategorySlug?}', [TourController::cl
 Route::get('/dokumentasi', [FrontDocumentationController::class, 'tour'])->name('docs');
 Route::get('/dokumentasi/sewa-kapal', [FrontDocumentationController::class, 'ship'])->name('docs.ship');
 Route::get('/dokumentasi/umrah', [FrontDocumentationController::class, 'umrah'])->name('docs.umrah');
+Route::get('/document', [TravelDocumentController::class, 'index'])->name('travel-documents');
+
+Route::get('/Document', [TravelDocumentController::class, 'index']);
 Route::view('/about', 'front.pages.about')->name('about');
 
 Route::post('/review', [ReviewController::class, 'store'])

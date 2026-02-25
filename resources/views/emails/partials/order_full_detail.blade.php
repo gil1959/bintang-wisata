@@ -26,8 +26,8 @@ default => (string)($order->type ?? '-'),
 };
 
 $departure = $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-';
-$pickup = $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y') : '-';
-$return = $order->return_date ? $order->return_date->translatedFormat('d F Y') : '-';
+$pickup = $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-';
+$return = $order->return_date ? $order->return_date->translatedFormat('d F Y H:i') : '-';
 
 $latestPayment = $order->payments?->sortByDesc('id')->first();
 @endphp
@@ -117,7 +117,9 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
       </tr>
       <tr>
         <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Duration' : 'Durasi' }}</td>
-        <td style="padding:8px 0;">{{ $order->total_days ? $order->total_days . ($isEn ? ' days' : ' hari') : '-' }}</td>
+        <td style="padding:8px 0;">
+          {{ $order->total_hours ? $order->total_hours . ($isEn ? ' hours' : ' jam') : ($order->total_days ? $order->total_days . ($isEn ? ' days' : ' hari') : '-') }}
+        </td>
       </tr>
       @endif
 
