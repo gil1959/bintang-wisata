@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use App\Models\FooterLogo;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -658,6 +659,14 @@ class AppServiceProvider extends ServiceProvider
                 }
                 return $settings[$key] ?? $default;
             };
+
+            $footerLogos = FooterLogo::where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->limit(9)
+                ->get();
+
+            $view->with('footerLogos', $footerLogos);
 
             $rawHomeTabs = null;
 

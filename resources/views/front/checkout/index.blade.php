@@ -130,7 +130,7 @@ Harap perbaiki hal berikut:' }}</div>
         'value' => "manual:{$m->id}",
         'title' => $m->method_name,
         'subtitle' => $m->account_number ? $m->account_number : null,
-        'meta' => $m->account_holder ? "A/n: {$m->account_holder}" : null,
+
         'icon_url' => null, // manual ga punya icon_url
         'source' => 'manual',
         ];
@@ -176,37 +176,106 @@ Harap perbaiki hal berikut:' }}</div>
         // helper: render tile (biar ga duplikatif)
         @endphp
 
-        <div
-          x-data="{
-    open: 'bank',
-    showOtherBanks: false
-  }"
-          class="space-y-3">
-          {{-- ACCORDION: BANK TRANSFER --}}
+        @php
+        $selected = old('payment_method', $order->payment_method ?? null);
+
+        // ---------------------------
+        // 1) Manual bank methods
+        // ---------------------------
+        $manualTiles = [];
+        foreach ($manualMethods as $m) {
+        $manualTiles[] = [
+        'value' => "manual:{$m->id}",
+        'title' => $m->method_name,
+        'subtitle' => $m->account_number ?: null,
+        'meta' => $m->account_holder ? "A/n: {$m->account_holder}" : null,
+        'icon_url' => null,
+        'kind' => 'manual',
+        ];
+        }
+
+        // ---------------------------
+        // 2) Gateway: Virtual Account (prefer Xendit invoice)
+        // ---------------------------
+        $vaTile = null;
+
+        // prefer Xendit invoice (sesuai screenshot)
+        foreach (($gatewayOptions ?? []) as $opt) {
+        if (($opt['gateway'] ?? null) === 'xendit' && ($opt['channel_code'] ?? null) === 'invoice') {
+        $vaTile = [
+        'value' => $opt['value'],
+        'title' => 'Virtual Account',
+        'subtitle' => $opt['gateway_label'] ?? 'Xendit',
+        'meta' => null,
+        'icon_url' => $opt['icon_url'] ?? null,
+        'kind' => 'va',
+        ];
+        break;
+        }
+        }
+
+        // fallback: kalau tidak ada xendit invoice, ambil 1 channel gateway yang kelihatan VA/bank
+        if (!$vaTile) {
+        foreach (($gatewayOptions ?? []) as $opt) {
+        $group = strtolower((string)($opt['group'] ?? ''));
+        $name = strtolower((string)($opt['name'] ?? $opt['label'] ?? ''));
+        if (str_contains($group, 'virtual') || str_contains($group, 'va') || str_contains($group, 'bank') || str_contains($name, 'va') || str_contains($name, 'virtual')) {
+        $vaTile = [
+        'value' => $opt['value'],
+        'title' => 'Virtual Account',
+        'subtitle' => $opt['gateway_label'] ?? ($opt['gateway'] ?? 'Gateway'),
+        'meta' => null,
+        'icon_url' => $opt['icon_url'] ?? null,
+        'kind' => 'va',
+        ];
+        break;
+        }
+        }
+        }
+
+        // ---------------------------
+        // 3) Gateway: PayPal Checkout
+        // ---------------------------
+        $paypalTile = null;
+        foreach (($gatewayOptions ?? []) as $opt) {
+        if (($opt['gateway'] ?? null) === 'paypal' && ($opt['channel_code'] ?? null) === 'checkout') {
+        $paypalTile = [
+        'value' => $opt['value'],
+        'title' => 'PayPal Checkout',
+        'subtitle' => $opt['gateway_label'] ?? 'PayPal',
+        'meta' => null,
+        'icon_url' => $opt['icon_url'] ?? null,
+        'kind' => 'paypal',
+        ];
+        break;
+        }
+        }
+
+        // ---------------------------
+        // Compose tiles: manual + VA + PayPal dalam 1 container
+        // ---------------------------
+        $tiles = $manualTiles;
+
+        if ($vaTile) $tiles[] = $vaTile;
+        if ($paypalTile) $tiles[] = $paypalTile;
+
+        // UI: biar gak kepanjangan, tampilkan max 6 tile dulu, sisanya bisa dibuka
+        $firstTiles = array_slice($tiles, 0, 6);
+        $restTiles = array_slice($tiles, 6);
+        @endphp
+
+        <div x-data="{ showMore: false }" class="space-y-3">
           <div class="rounded-2xl border border-slate-200 bg-white">
-            <button type="button"
-              class="w-full flex items-center justify-between px-4 py-4"
-              @click="open = (open === 'bank' ? null : 'bank')">
+            <div class="px-4 py-4 flex items-center justify-between">
               <div class="text-left">
                 <div class="text-sm font-extrabold text-slate-900">Bank Transfer</div>
                 <div class="text-xs text-slate-500">Transfer bank / Virtual Account</div>
               </div>
-              <svg class="h-5 w-5 text-slate-500 transition-transform"
-                :class="open==='bank' ? 'rotate-180' : ''"
-                viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
-              </svg>
-            </button>
+            </div>
 
-            <div x-show="open==='bank'" x-collapse class="px-4 pb-4">
-              @php
-              // biar mirip screenshot: tampilkan max 6 dulu, sisanya masuk "Other Banks"
-              $bankFirst = array_slice($bankItems, 0, 6);
-              $bankRest = array_slice($bankItems, 6);
-              @endphp
-
+            <div class="px-4 pb-4">
               <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @foreach($bankFirst as $it)
+                @foreach($firstTiles as $it)
                 <label class="cursor-pointer">
                   <input
                     type="radio"
@@ -226,26 +295,27 @@ Harap perbaiki hal berikut:' }}</div>
                       @if(!empty($it['subtitle']))
                       <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
                       @endif
+
                     </div>
                     @endif
                   </div>
                 </label>
                 @endforeach
 
-                @if(count($bankRest) > 0)
+                @if(count($restTiles) > 0)
                 <button type="button"
                   class="rounded-2xl border border-slate-200 bg-white p-4 text-center
                    hover:border-[#0194F3]/60 hover:bg-slate-50"
-                  @click="showOtherBanks = !showOtherBanks">
-                  <div class="text-sm font-extrabold text-slate-900">Other Banks</div>
-                  <div class="mt-1 text-[11px] text-slate-500" x-text="showOtherBanks ? 'Sembunyikan' : 'Lihat lainnya'"></div>
+                  @click="showMore = !showMore">
+                  <div class="text-sm font-extrabold text-slate-900"> {{ $isEn ? 'Other' : 'Lainnya' }}</div>
+                  <div class="mt-1 text-[11px] text-slate-500" x-text="showMore ? 'Sembunyikan' : 'Lihat lainnya'"></div>
                 </button>
                 @endif
               </div>
 
-              @if(count($bankRest) > 0)
-              <div x-show="showOtherBanks" x-collapse class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @foreach($bankRest as $it)
+              @if(count($restTiles) > 0)
+              <div x-show="showMore" x-collapse class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                @foreach($restTiles as $it)
                 <label class="cursor-pointer">
                   <input
                     type="radio"
@@ -264,6 +334,9 @@ Harap perbaiki hal berikut:' }}</div>
                       <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
                       @if(!empty($it['subtitle']))
                       <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
+                      @endif
+                      @if(!empty($it['meta']))
+                      <div class="mt-1 text-[11px] text-slate-400">{{ $it['meta'] }}</div>
                       @endif
                     </div>
                     @endif
@@ -272,155 +345,9 @@ Harap perbaiki hal berikut:' }}</div>
                 @endforeach
               </div>
               @endif
+
             </div>
           </div>
-
-          {{-- ACCORDION: E-WALLET --}}
-          @if(count($ewalletItems) > 0)
-          <div class="rounded-2xl border border-slate-200 bg-white">
-            <button type="button"
-              class="w-full flex items-center justify-between px-4 py-4"
-              @click="open = (open === 'ewallet' ? null : 'ewallet')">
-              <div class="text-left">
-                <div class="text-sm font-extrabold text-slate-900">E-Wallet</div>
-                <div class="text-xs text-slate-500">OVO, DANA, ShopeePay, dll</div>
-              </div>
-              <svg class="h-5 w-5 text-slate-500 transition-transform"
-                :class="open==='ewallet' ? 'rotate-180' : ''"
-                viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
-              </svg>
-            </button>
-
-            <div x-show="open==='ewallet'" x-collapse class="px-4 pb-4">
-              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @foreach($ewalletItems as $it)
-                <label class="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="{{ $it['value'] }}"
-                    class="peer sr-only"
-                    @if($selected===$it['value']) checked @endif
-                    required />
-                  <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
-                          hover:border-[#0194F3]/60 hover:bg-slate-50
-                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
-                    @if(!empty($it['icon_url']))
-                    <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
-                    @else
-                    <div class="text-center">
-                      <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
-                      @if(!empty($it['subtitle']))
-                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
-                      @endif
-                    </div>
-                    @endif
-                  </div>
-                </label>
-                @endforeach
-              </div>
-            </div>
-          </div>
-          @endif
-
-          {{-- ACCORDION: QR PAYMENTS --}}
-          @if(count($qrItems) > 0)
-          <div class="rounded-2xl border border-slate-200 bg-white">
-            <button type="button"
-              class="w-full flex items-center justify-between px-4 py-4"
-              @click="open = (open === 'qr' ? null : 'qr')">
-              <div class="text-left">
-                <div class="text-sm font-extrabold text-slate-900">QR Payments</div>
-                <div class="text-xs text-slate-500">QRIS / QR pembayaran</div>
-              </div>
-              <svg class="h-5 w-5 text-slate-500 transition-transform"
-                :class="open==='qr' ? 'rotate-180' : ''"
-                viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
-              </svg>
-            </button>
-
-            <div x-show="open==='qr'" x-collapse class="px-4 pb-4">
-              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @foreach($qrItems as $it)
-                <label class="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="{{ $it['value'] }}"
-                    class="peer sr-only"
-                    @if($selected===$it['value']) checked @endif
-                    required />
-                  <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
-                          hover:border-[#0194F3]/60 hover:bg-slate-50
-                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
-                    @if(!empty($it['icon_url']))
-                    <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
-                    @else
-                    <div class="text-center">
-                      <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
-                      @if(!empty($it['subtitle']))
-                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
-                      @endif
-                    </div>
-                    @endif
-                  </div>
-                </label>
-                @endforeach
-              </div>
-            </div>
-          </div>
-          @endif
-
-          {{-- ACCORDION: OTHER PAYMENTS --}}
-          @if(count($otherItems) > 0)
-          <div class="rounded-2xl border border-slate-200 bg-white">
-            <button type="button"
-              class="w-full flex items-center justify-between px-4 py-4"
-              @click="open = (open === 'other' ? null : 'other')">
-              <div class="text-left">
-                <div class="text-sm font-extrabold text-slate-900">Other Payments</div>
-                <div class="text-xs text-slate-500">Minimarket / metode lain</div>
-              </div>
-              <svg class="h-5 w-5 text-slate-500 transition-transform"
-                :class="open==='other' ? 'rotate-180' : ''"
-                viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
-              </svg>
-            </button>
-
-            <div x-show="open==='other'" x-collapse class="px-4 pb-4">
-              <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @foreach($otherItems as $it)
-                <label class="cursor-pointer">
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="{{ $it['value'] }}"
-                    class="peer sr-only"
-                    @if($selected===$it['value']) checked @endif
-                    required />
-                  <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-center
-                          hover:border-[#0194F3]/60 hover:bg-slate-50
-                          peer-checked:border-[#0194F3] peer-checked:ring-2 peer-checked:ring-[#0194F3]/20">
-                    @if(!empty($it['icon_url']))
-                    <img src="{{ $it['icon_url'] }}" alt="{{ $it['title'] }}" class="h-8 object-contain">
-                    @else
-                    <div class="text-center">
-                      <div class="text-sm font-extrabold text-slate-900 leading-tight">{{ $it['title'] }}</div>
-                      @if(!empty($it['subtitle']))
-                      <div class="mt-1 text-[11px] text-slate-500">{{ $it['subtitle'] }}</div>
-                      @endif
-                    </div>
-                    @endif
-                  </div>
-                </label>
-                @endforeach
-              </div>
-            </div>
-          </div>
-          @endif
         </div>
 
 

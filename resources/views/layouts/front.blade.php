@@ -2,31 +2,32 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
+  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=3">
 
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>@yield('title', $siteSettings['seo_site_title'] ?? config('app.name', 'Bintang Wisata'))</title>
-
-  <meta name="description" content="@yield('meta_description', $siteSettings['seo_meta_description'] ?? '')">
-  <meta name="keywords" content="@yield('meta_keywords', $siteSettings['seo_keywords'] ?? '')">
-
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://bintangwisataholiday.com/sitemap.xml">
+  <title>Bintang Wisata Holiday | Paket Tour & Paket Wisata Eksklusif Terpercaya</title>
+  <meta name="description" content="Rasakan pengalaman liburan tak terlupakan dengan paket tour terbaik dari Bintang Wisata Holiday. Layanan profesional untuk paket wisata domestik dan internasional.">
+  <meta name="keywords" content="paket tour, paket wisata, paket tour eksklusif, agen perjalanan wisata, paket liburan keluarga, paket tour domestik, paket tour internasional, bintang wisata holiday, paket wisata premium">
+  <meta name="author" content="Bintang Wisata Holiday">
+  <meta name="robots" content="index, follow">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://bintangwisataholiday.com/">
-  <meta property="og:title" content="Paket Tour Murah 2026 - Agen Travel Resmi | Bintang Wisata Holiday">
-  <meta property="og:description" content="Cek Harga Promo Paket Tour Terbaru. Agen Travel Resmi, Aman, &amp; Terpercaya. Amankan slot liburanmu sekarang!">
+  <meta property="og:title" content="Bintang Wisata Holiday | Layanan Wisata Pilihan Keluarga">
+  <meta property="og:description" content="Liburan impian jadi nyata dengan pelayanan bintang lima. Pilih paket tour favorit Anda dengan fasilitas lengkap dan kenyamanan maksimal.">
   <meta property="og:image" content="https://bintangwisataholiday.com/logo-atau-banner.jpg">
-  <meta property="og:site_name" content="Bintang Wisata Holiday">
 
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://bintangwisataholiday.com/">
-  <meta property="twitter:title" content="Paket Tour Murah - Agen Travel Resmi | Bintang Wisata">
-  <meta property="twitter:description" content="Dapatkan harga paket wisata termurah dan terpercaya hanya di Bintang Wisata Holiday. Promo terbatas!">
+  <meta property="twitter:title" content="Bintang Wisata Holiday | Paket Wisata Terbaik & Profesional">
+  <meta property="twitter:description" content="Cari paket tour berkualitas? Bintang Wisata Holiday solusinya. Cek pilihan paket wisata premium terbaru kami di sini!">
   <meta property="twitter:image" content="https://bintangwisataholiday.com/logo-atau-banner.jpg">
+
+  <link rel="canonical" href="https://bintangwisataholiday.com/">
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://bintangwisataholiday.com/sitemap.xml">
   <style>
     .quill-content .ql-align-center {
       text-align: center;

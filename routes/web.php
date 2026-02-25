@@ -274,7 +274,17 @@ Route::prefix('bw-admin')
         Route::post('settings/home', [HomeSettingController::class, 'update'])
             ->name('settings.home.save')
             ->middleware('permission:admin.dashboard.view');
+        Route::post('settings/home/footer-logos', [HomeSettingController::class, 'storeFooterLogo'])
+            ->name('settings.home.footer-logos.store')
+            ->middleware('permission:admin.dashboard.view');
 
+        Route::put('settings/home/footer-logos/{footerLogo}', [HomeSettingController::class, 'updateFooterLogo'])
+            ->name('settings.home.footer-logos.update')
+            ->middleware('permission:admin.dashboard.view');
+
+        Route::delete('settings/home/footer-logos/{footerLogo}', [HomeSettingController::class, 'destroyFooterLogo'])
+            ->name('settings.home.footer-logos.destroy')
+            ->middleware('permission:admin.dashboard.view');
         Route::get('settings/popup', [PopupWidgetController::class, 'edit'])
             ->name('settings.popup.edit')
             ->middleware('permission:admin.dashboard.view');

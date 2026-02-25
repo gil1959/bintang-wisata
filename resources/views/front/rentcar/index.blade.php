@@ -272,7 +272,7 @@
                         <span class="font-extrabold text-rose-600">
                             Rp {{ number_format((int)$package->price_per_day, 0, ',', '.') }}
                         </span>
-                        <span class="text-slate-500">{{ $isEn ? '/day' : '/hari' }}</span>
+                        <span class="text-slate-500">{{ $isEn ? '/Hour' : '/Jam' }}</span>
                     </div>
                 </div>
 

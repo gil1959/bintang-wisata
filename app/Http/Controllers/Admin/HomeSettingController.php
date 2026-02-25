@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Article;
 use App\Services\TranslateService;
+use App\Models\FooterLogo;
+use Illuminate\Support\Facades\Storage;
 
 
 class HomeSettingController extends Controller
@@ -82,6 +84,7 @@ class HomeSettingController extends Controller
                 'button_url'  => $articlesButtonUrl,
                 'mode'    => $articlesMode,
                 'custom_ids' => $customIds,
+                'footerLogos' => FooterLogo::orderBy('sort_order')->orderBy('id')->get(),
             ],
             'selectedArticles' => $selectedArticles,
         ]);
@@ -288,6 +291,88 @@ class HomeSettingController extends Controller
         }
 
         return back()->with('success', 'Home tabs berhasil disimpan.');
+    }
+
+    public function storeFooterLogo(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'image' => ['required', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
+            'url' => ['nullable', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $isActive = (bool)($validated['is_active'] ?? true);
+
+        if ($isActive) {
+            $activeCount = FooterLogo::where('is_active', true)->count();
+            if ($activeCount >= 9) {
+                return back()->withErrors(['footer_logo' => 'Maksimal 9 logo aktif. Nonaktifkan/hapus salah satu dulu.'])->withInput();
+            }
+        }
+
+        $path = $request->file('image')->store('uploads/footer-logos', 'public');
+
+        FooterLogo::create([
+            'name' => $validated['name'],
+            'image_path' => $path,
+            'url' => $validated['url'] ?? null,
+            'sort_order' => (int)($validated['sort_order'] ?? 0),
+            'is_active' => $isActive,
+        ]);
+
+        return back()->with('success', 'Footer logo berhasil ditambahkan.');
+    }
+
+    public function updateFooterLogo(Request $request, FooterLogo $footerLogo)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
+            'url' => ['nullable', 'string', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:999'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $isActive = (bool)($validated['is_active'] ?? false);
+
+        if ($isActive && !$footerLogo->is_active) {
+            $activeCount = FooterLogo::where('is_active', true)->count();
+            if ($activeCount >= 9) {
+                return back()->withErrors(['footer_logo' => 'Maksimal 9 logo aktif. Nonaktifkan/hapus salah satu dulu.'])->withInput();
+            }
+        }
+
+        $data = [
+            'name' => $validated['name'],
+            'url' => $validated['url'] ?? null,
+            'sort_order' => (int)($validated['sort_order'] ?? 0),
+            'is_active' => $isActive,
+        ];
+
+        if ($request->hasFile('image')) {
+            // hapus file lama
+            if ($footerLogo->image_path && Storage::disk('public')->exists($footerLogo->image_path)) {
+                Storage::disk('public')->delete($footerLogo->image_path);
+            }
+            $data['image_path'] = $request->file('image')->store('uploads/footer-logos', 'public');
+        }
+
+        $footerLogo->update($data);
+
+        return back()->with('success', 'Footer logo berhasil diupdate.');
+    }
+
+    public function destroyFooterLogo(FooterLogo $footerLogo)
+    {
+        if ($footerLogo->image_path && Storage::disk('public')->exists($footerLogo->image_path)) {
+            Storage::disk('public')->delete($footerLogo->image_path);
+        }
+
+        $footerLogo->delete();
+
+        return back()->with('success', 'Footer logo berhasil dihapus.');
     }
 
     public function searchArticles(Request $request)

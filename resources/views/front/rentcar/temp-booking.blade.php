@@ -8,7 +8,7 @@
     <div class="p-4 shadow-sm rounded" style="background:#f8faff;">
 
         <h4 class="fw-semibold">{{ $package->title }}</h4>
-        <p class="text-muted mb-2">Rp{{ number_format($package->price_per_day) }} / hari</p>
+        <p class="text-muted mb-2">Rp{{ number_format($package->price_per_day) }} / Jam</p>
 
         <hr>
 

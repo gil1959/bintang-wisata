@@ -35,13 +35,13 @@ $galleryImages[] = [
 }
 
 $i18n = [
-'per_day' => $isEn ? '/ day' : '/ hari',
+'per_day' => $isEn ? '/ Hour' : '/ Jam',
 'package_features' => $isEn ? 'Package Features' : 'Fitur Paket',
 'no_features' => $isEn ? 'No features added yet.' : 'Belum ada fitur yang ditambahkan.',
 'book_car' => $isEn ? 'Car Booking' : 'Booking Mobil',
 'pickup_date' => $isEn ? 'Pickup Date' : 'Tanggal Pickup',
 'return_date' => $isEn ? 'Return Date' : 'Tanggal Return',
-'total_days' => $isEn ? 'Total Days' : 'Total Hari',
+'total_days' => $isEn ? 'Total Hour' : 'Total Jam',
 'total_price' => $isEn ? 'Total Price' : 'Total Harga',
 'book_now' => $isEn ? 'Book Now' : 'Booking Sekarang',
 'description' => $isEn ? 'Description' : 'Deskripsi',
