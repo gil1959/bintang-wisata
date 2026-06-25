@@ -83,6 +83,111 @@
                         </div>
                     </div>
 
+                    {{-- Jadwal/Tanggal --}}
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4" style="color:#0194F3;"></i>
+                            Jadwal / Tanggal
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-700">
+                            @if(in_array($order->type, ['tour','umrah','mice']))
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">
+                                    @if($order->type === 'umrah')
+                                    Tanggal Booking
+                                    @elseif($order->type === 'mice')
+                                    Jadwal / Tanggal
+                                    @else
+                                    Keberangkatan
+                                    @endif
+                                </div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($order->type === 'ship')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Tanggal Sewa</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Qty</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') : 1 }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($order->type === 'rent_car')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Pickup</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Return</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->return_date ? $order->return_date->translatedFormat('d F Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <div class="text-xs font-extrabold text-slate-500">Durasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->total_hours ? $order->total_hours . ' jam' : ($order->total_days ? $order->total_days . ' hari' : '-') }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($order->type === 'restoran')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Tanggal & Jam Reservasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($order->type === 'hotel')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-in</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-out</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->return_date ? \Carbon\Carbon::parse($order->return_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <div class="text-xs font-extrabold text-slate-500">Durasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->total_days ? $order->total_days . ' malam' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
                     @php
                         $wa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($order->customer_phone);
                         $waText = "Halo {$order->customer_name}, terkait order {$order->invoice_number} untuk {$order->product_name}.";

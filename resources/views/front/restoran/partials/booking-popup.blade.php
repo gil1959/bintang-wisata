@@ -77,8 +77,8 @@ $i18n = [
         {{-- Pickup/Return readonly (biar user tau yang kepilih) --}}
         <div class="grid sm:grid-cols-2 gap-3">
           <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <div class="text-xs text-slate-500">Visit Date</div>
-            <div class="text-sm font-bold text-slate-900" x-text="departure_date || '-'"></div>
+            <div class="text-xs text-slate-500">Visit Date & Time</div>
+            <div class="text-sm font-bold text-slate-900" x-text="(departure_date || '-') + (pickup_time ? (' ' + pickup_time) : '')"></div>
           </div>
           <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
             <div class="text-xs text-slate-500">Participants</div>
@@ -159,6 +159,7 @@ $i18n = [
       promoLoading: false,
 
       departure_date: '',
+      pickup_time: '',
       participants: 1,
 
       base: basePrice,
@@ -170,6 +171,7 @@ $i18n = [
 
       open(detail) {
         this.departure_date = detail?.departure_date || '';
+        this.pickup_time = detail?.pickup_time || '';
         this.participants = detail?.participants || 1;
         this.isOpen = true;
 
@@ -275,7 +277,7 @@ $i18n = [
           alert(I18N.required_fields);
           return;
         }
-        if (!this.departure_date || !this.participants) {
+        if (!this.departure_date || !this.pickup_time || !this.participants) {
           alert(I18N.required_dates);
           return;
         }
@@ -294,6 +296,7 @@ $i18n = [
               email: this.email,
               phone: this.phone,
               departure_date: this.departure_date,
+              pickup_time: this.pickup_time,
               participants: this.participants,
               promo_id: this.promoId ? Number(this.promoId) : null,
               final_price: this.total

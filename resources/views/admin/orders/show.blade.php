@@ -166,6 +166,42 @@
                             </div>
                             @endif
 
+                            @if($order->type === 'restoran')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Tanggal & Jam Reservasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($order->type === 'hotel')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-in</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-out</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->return_date ? \Carbon\Carbon::parse($order->return_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <div class="text-xs font-extrabold text-slate-500">Durasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->total_days ? $order->total_days . ' malam' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+
                         </div>
 
                     </div>

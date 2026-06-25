@@ -27,6 +27,7 @@ class RestoranOrderController extends Controller
             'email' => 'required|email',
             'phone' => 'required|string|max:50',
             'departure_date' => 'required|date|after_or_equal:today',
+            'pickup_time' => 'required|date_format:H:i',
             'participants' => 'required|integer|min:1|max:9999',
             'promo_id' => 'nullable|integer',
         ]);
@@ -114,7 +115,7 @@ class RestoranOrderController extends Controller
             'departure_date' => $data['departure_date'],
             'participants'   => (int) $data['participants'],
 
-            'pickup_date'    => null,
+            'pickup_date'    => $data['departure_date'] . ' ' . $data['pickup_time'] . ':00',
             'return_date'    => null,
             'total_days'     => null,
 

@@ -17,10 +17,10 @@ $totalDue = (int) ($order->final_price ?? max(0, $subtotal - $discount));
 
 // Qty heuristic sesuai struktur order
 $qty = 1;
-if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah') {
-$qty = (int) ($order->participants ?? 1);
-} elseif (($order->type ?? '') === 'rent_car') {
-$qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
+if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah' || ($order->type ?? '') === 'restoran') {
+    $qty = (int) ($order->participants ?? 1);
+} elseif (($order->type ?? '') === 'rent_car' || ($order->type ?? '') === 'hotel') {
+    $qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
 }
 if ($qty <= 0) $qty=1;
 

@@ -140,6 +140,12 @@ $i18n = [
           </div>
 
           <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $isEn ? 'Reservation Time' : 'Jam Reservasi' }}</label>
+            <input type="time" id="pickup_time"
+              class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+          </div>
+
+          <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['total_days'] }}</label>
             <input type="number" id="participants" min="1" value="1"
               class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
@@ -387,6 +393,7 @@ $i18n = [
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const departure_date = document.getElementById('departure_date');
+    const pickup_time = document.getElementById('pickup_time');
     const participants = document.getElementById('participants');
     const daysEl = document.getElementById('days');
     const totalEl = document.getElementById('total');
@@ -397,7 +404,7 @@ $i18n = [
     if (!departure_date || !participants || !daysEl || !totalEl || !btnBook) return;
 
     function recalc() {
-      if (!departure_date.value || !participants.value || participants.value < 1) {
+      if (!departure_date.value || !pickup_time.value || !participants.value || participants.value < 1) {
         daysEl.textContent = '0';
         totalEl.textContent = 'Rp0';
         btnBook.disabled = true;
@@ -414,6 +421,7 @@ $i18n = [
     }
 
     departure_date.addEventListener('change', recalc);
+    pickup_time.addEventListener('change', recalc);
     participants.addEventListener('input', recalc);
     participants.addEventListener('change', recalc);
 
@@ -424,6 +432,7 @@ $i18n = [
         new CustomEvent('open-restoran-booking', {
           detail: {
             departure_date: departure_date.value,
+            pickup_time: pickup_time.value,
             participants: participants.value
           },
         })

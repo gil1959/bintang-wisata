@@ -138,7 +138,35 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
       </tr>
       @endif
 
+      @if($order->type === 'restoran')
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Reservation Date & Time' : 'Tanggal & Jam Reservasi' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $pickup }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Participants' : 'Partisipan' }}</td>
+        <td style="padding:8px 0;">
+          {{ $order->participants ? number_format($order->participants,0,',','.') . ($isEn ? ' people' : ' orang') : '-' }}
+        </td>
+      </tr>
+      @endif
 
+      @if($order->type === 'hotel')
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Check-in' : 'Check-in' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $pickup }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Check-out' : 'Check-out' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $return }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Duration' : 'Durasi' }}</td>
+        <td style="padding:8px 0;">
+          {{ $order->total_days ? $order->total_days . ($isEn ? ' nights' : ' malam') : '-' }}
+        </td>
+      </tr>
+      @endif
     </table>
   </div>
 </div>

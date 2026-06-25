@@ -132,6 +132,40 @@
                 </div>
             </div>
             @endif
+
+            @if($order->type === 'restoran')
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Reservation Date & Time' : 'Tanggal & Jam Reservasi' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y, H:i') : '-' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Participants' : 'Jumlah Peserta' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">{{ $order->participants ?? '-' }}</div>
+            </div>
+            @endif
+
+            @if($order->type === 'hotel')
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Check-in Date' : 'Tanggal Check-in' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y') : '-' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Check-out Date' : 'Tanggal Check-out' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->return_date ? \Carbon\Carbon::parse($order->return_date)->format('d M Y') : '-' }}
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Duration' : 'Durasi' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->total_days ? $order->total_days . ($isEn ? ' nights' : ' malam') : '-' }}
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
