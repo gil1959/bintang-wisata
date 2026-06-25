@@ -71,7 +71,7 @@ class HotelPackageController extends Controller
     public function edit(HotelPackage $hotel_package)
     {
         
-        abort_unless((int)$hotel_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         $package = $hotel_package;
         return view('admin.hotel.edit', compact('package'));
@@ -80,7 +80,7 @@ class HotelPackageController extends Controller
     public function update(Request $request, HotelPackage $hotel_package)
     {
         
-        abort_unless((int)$hotel_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -129,7 +129,7 @@ class HotelPackageController extends Controller
     public function destroy(HotelPackage $hotel_package)
     {
         
-        abort_unless((int)$hotel_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         if ($hotel_package->thumbnail_path) {
             Storage::disk('public')->delete($hotel_package->thumbnail_path);

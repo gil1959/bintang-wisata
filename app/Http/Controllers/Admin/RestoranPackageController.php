@@ -71,7 +71,7 @@ class RestoranPackageController extends Controller
     public function edit(RestoranPackage $restoran_package)
     {
         
-        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         $package = $restoran_package;
         return view('admin.restoran.edit', compact('package'));
@@ -80,7 +80,7 @@ class RestoranPackageController extends Controller
     public function update(Request $request, RestoranPackage $restoran_package)
     {
         
-        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -129,7 +129,7 @@ class RestoranPackageController extends Controller
     public function destroy(RestoranPackage $restoran_package)
     {
         
-        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
 
         if ($restoran_package->thumbnail_path) {
             Storage::disk('public')->delete($restoran_package->thumbnail_path);
