@@ -65,9 +65,14 @@ class PayPalWebhookController extends Controller
 
                     $order = $payment->order;
                    if ($order && $order->payment_status !== 'paid') {
+    $prevOrderStatus = $order->order_status;
     $order->payment_status = 'paid';
     $order->order_status   = 'approved';
     $order->save();
+    
+    if ($order->order_status !== $prevOrderStatus && $order->order_status === 'approved') {
+        app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($order, 'approved');
+    }
 }
 
                 }

@@ -129,8 +129,17 @@ class OrderController extends Controller
                     if (!empty($adminEmail)) {
                         Mail::to($adminEmail)->send(new OrderVerificationMail($order, 'approved', true));
                     }
+
+                    $payoutService = app(\App\Services\PartnerPayoutService::class);
+                    $partnerId = $payoutService->resolvePartnerIdFromOrder($order);
+                    if ($partnerId) {
+                        $partner = \App\Models\User::find($partnerId);
+                        if ($partner && $partner->email !== $order->customer_email) {
+                            Mail::to($partner->email)->send(new OrderVerificationMail($order, 'approved', true));
+                        }
+                    }
                 } catch (\Throwable $e) {
-                    Log::warning('Email verifikasi (approved) gagal dikirim', [
+                    Log::error('Email verifikasi (approved) gagal dikirim', [
                         'invoice' => $order->invoice_number,
                         'err' => $e->getMessage(),
                     ]);
@@ -165,8 +174,17 @@ class OrderController extends Controller
                     if (!empty($adminEmail)) {
                         Mail::to($adminEmail)->send(new OrderVerificationMail($order, 'rejected', true));
                     }
+
+                    $payoutService = app(\App\Services\PartnerPayoutService::class);
+                    $partnerId = $payoutService->resolvePartnerIdFromOrder($order);
+                    if ($partnerId) {
+                        $partner = \App\Models\User::find($partnerId);
+                        if ($partner && $partner->email !== $order->customer_email) {
+                            Mail::to($partner->email)->send(new OrderVerificationMail($order, 'rejected', true));
+                        }
+                    }
                 } catch (\Throwable $e) {
-                    Log::warning('Email verifikasi (rejected) gagal dikirim', [
+                    Log::error('Email verifikasi (rejected) gagal dikirim', [
                         'invoice' => $order->invoice_number,
                         'err' => $e->getMessage(),
                     ]);

@@ -157,7 +157,7 @@ if ($affLinkId) {
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('Invoice email gagal dikirim', [
+            Log::error('Invoice email gagal dikirim', [
                 'invoice' => $order->invoice_number,
                 'error' => $e->getMessage(),
             ]);
