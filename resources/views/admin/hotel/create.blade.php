@@ -1,4 +1,4 @@
-@extends('partner.layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Tambah Paket Hotel/Vila')
 @section('page-title', 'Tambah Paket Hotel/Vila')
@@ -21,7 +21,7 @@
           method="POST"
           enctype="multipart/form-data"
           class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-        @include('partner.hotel._form', ['buttonText' => 'Create Package'])
+        @include('admin.hotel._form', ['buttonText' => 'Create Package'])
     </form>
 
 </div>

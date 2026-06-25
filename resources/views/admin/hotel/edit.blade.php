@@ -1,4 +1,4 @@
-@extends('partner.layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Edit Paket Hotel/Vila')
 @section('page-title', 'Edit Paket Hotel/Vila')
@@ -26,7 +26,7 @@
           enctype="multipart/form-data"
           class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
         @method('PUT')
-        @include('partner.hotel._form', ['buttonText' => 'Update Package', 'package' => $package])
+        @include('admin.hotel._form', ['buttonText' => 'Update Package', 'package' => $package])
     </form>
 
 </div>

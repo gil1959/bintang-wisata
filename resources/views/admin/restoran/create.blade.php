@@ -1,4 +1,4 @@
-@extends('partner.layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Tambah Paket Restoran')
 @section('page-title', 'Tambah Paket Restoran')
@@ -21,7 +21,7 @@
           method="POST"
           enctype="multipart/form-data"
           class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-        @include('partner.restoran._form', ['buttonText' => 'Create Package'])
+        @include('admin.restoran._form', ['buttonText' => 'Create Package'])
     </form>
 
 </div>

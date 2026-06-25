@@ -1,4 +1,4 @@
-@extends('partner.layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Hotel/Vila')
 @section('page-title', 'Hotel/Vila')
