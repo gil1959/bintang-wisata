@@ -1,5 +1,5 @@
 @extends('layouts.front')
-
+@php $isEn = app()->getLocale() === 'en'; @endphp
 @section('title', $isEn ? 'Restoran' : 'Restoran')
 
 @section('content')
