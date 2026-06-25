@@ -231,6 +231,8 @@ Route::prefix('bw-admin')
         Route::resource('users', AdminUserController::class);
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::resource('restoran-packages', \App\Http\Controllers\Admin\RestoranPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::resource('hotel-packages', \App\Http\Controllers\Admin\HotelPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
         Route::resource('ship-packages', ShipPackageController::class)->middleware('permission:admin.dashboard.view');

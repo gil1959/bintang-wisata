@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\TourPackage;
 use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
+use App\Models\RestoranPackage;
+use App\Models\HotelPackage;
+use App\Models\RestoranPackage;
+use App\Models\HotelPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -65,6 +69,28 @@ class PartnerProductReviewController extends Controller
                 ->get()
                 ->map(fn($p) => $this->toItem($p, 'ship'));
             $items = $items->concat($ship);
+        }
+
+        if ($type === 'restoran' || empty($type)) {
+            $restoran = $applyFilters(
+                RestoranPackage::query()->whereNotNull('created_by_partner_id')
+            )
+                ->latest()
+                ->take(300)
+                ->get()
+                ->map(fn($p) => $this->toItem($p, 'restoran'));
+            $items = $items->concat($restoran);
+        }
+
+        if ($type === 'hotel' || empty($type)) {
+            $hotel = $applyFilters(
+                HotelPackage::query()->whereNotNull('created_by_partner_id')
+            )
+                ->latest()
+                ->take(300)
+                ->get()
+                ->map(fn($p) => $this->toItem($p, 'hotel'));
+            $items = $items->concat($hotel);
         }
 
         // sort gabungan by created_at desc
@@ -138,6 +164,8 @@ class PartnerProductReviewController extends Controller
             'tour' => TourPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             'rentcar' => RentCarPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             'ship' => ShipPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
+            'restoran' => RestoranPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
+            'hotel' => HotelPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             default => abort(404, 'Unknown type'),
         };
     }
@@ -157,6 +185,8 @@ class PartnerProductReviewController extends Controller
                 'tour' => route('admin.tour-packages.edit', $p->id),
                 'rentcar' => route('admin.rent-car-packages.edit', $p->id),
                 'ship' => route('admin.ship-packages.edit', $p->id),
+                'restoran' => route('admin.restoran-packages.edit', $p->id),
+                'hotel' => route('admin.hotel-packages.edit', $p->id),
                 default => '#'
             },
         ];
