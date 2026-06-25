@@ -39,14 +39,25 @@
         </div>
 
         <div>
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">Price Per Hour</label>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Harga 12 Jam</label>
             <input type="number"
-                name="price_per_hour"
+                name="price_per_12_hours"
                 step="0.01"
-                value="{{ old('price_per_hour', $package->price_per_hour ?? '') }}"
+                value="{{ old('price_per_12_hours', $package->price_per_12_hours ?? '') }}"
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                 required>
             <div class="text-xs text-slate-500 mt-1">Contoh: 350000</div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Harga 24 Jam</label>
+            <input type="number"
+                name="price_per_24_hours"
+                step="0.01"
+                value="{{ old('price_per_24_hours', $package->price_per_24_hours ?? '') }}"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                required>
+            <div class="text-xs text-slate-500 mt-1">Contoh: 700000</div>
         </div>
     </div>
 

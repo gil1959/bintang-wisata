@@ -35,9 +35,9 @@ class RentCarController extends Controller
         }
 
         if ($sort === 'price_asc') {
-            $query->orderBy('price_per_hour', 'asc');
+            $query->orderBy('price_per_12_hours', 'asc');
         } elseif ($sort === 'price_desc') {
-            $query->orderBy('price_per_hour', 'desc');
+            $query->orderBy('price_per_12_hours', 'desc');
         } elseif ($sort === 'title_asc') {
             $query->orderBy('title', 'asc');
         } else {
@@ -80,7 +80,8 @@ class RentCarController extends Controller
 
         $minutes = $start->diffInMinutes($end);
         $hours = max(1, (int) ceil($minutes / 60));
-        $total = $hours * $package->price_per_hour;
+        $pricePerHour = round($package->price_per_12_hours / 12);
+        $total = $hours * $pricePerHour;
 
         // UNTUK SEKARANG:
         // CUMA RETURN VIEW SEMENTARA (belum buat halaman pembayaran)

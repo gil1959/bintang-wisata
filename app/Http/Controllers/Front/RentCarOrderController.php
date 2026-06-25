@@ -33,6 +33,8 @@ class RentCarOrderController extends Controller
             'return'       => 'nullable|date',
             'pickup_date'  => 'nullable|date',
             'return_date'  => 'nullable|date',
+            
+            'duration_type' => 'required|string|in:12_hours,24_hours,custom',
 
             'promo_id' => 'nullable|integer',
         ]);
@@ -79,15 +81,26 @@ class RentCarOrderController extends Controller
         }
 
         // ===================== HITUNG DURASI ======================
-        // ===================== HITUNG DURASI (PER JAM) ======================
         $start = Carbon::parse($pickupDate);
         $end   = Carbon::parse($returnDate);
 
         // hitung menit dulu biar bisa ceil ke jam
         $minutes = $start->diffInMinutes($end);
-        $hours = max(1, (int) ceil($minutes / 60));
-
-        $subtotal = $hours * $package->price_per_hour;
+        $diffHours = max(1, (int) ceil($minutes / 60));
+        
+        $durationType = $validated['duration_type'] ?? 'custom';
+        
+        if ($durationType === '12_hours') {
+            $hours = 12;
+            $subtotal = $package->price_per_12_hours;
+        } elseif ($durationType === '24_hours') {
+            $hours = 24;
+            $subtotal = $package->price_per_24_hours;
+        } else {
+            $hours = max(12, $diffHours);
+            $pricePerHour = round($package->price_per_12_hours / 12);
+            $subtotal = $hours * $pricePerHour;
+        }
 
         // ===================== PROMO ======================
         $discount = 0;

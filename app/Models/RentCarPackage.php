@@ -15,6 +15,8 @@ class RentCarPackage extends Model
         'slug',
         'category_id',
         'price_per_hour',
+        'price_per_12_hours',
+        'price_per_24_hours',
         'thumbnail_path',
         'is_active',
         'features',
@@ -43,6 +45,8 @@ class RentCarPackage extends Model
 
     protected $casts = [
         'price_per_hour' => 'float',
+        'price_per_12_hours' => 'float',
+        'price_per_24_hours' => 'float',
         'is_active' => 'boolean',
         'features' => 'array',
         'features_en' => 'array',

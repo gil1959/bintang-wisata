@@ -124,7 +124,8 @@ $i18n = [
     <aside class="lg:col-span-1">
       <div
         id="rentcarBookingBox"
-        data-price-per-hour="{{ (int) $package->price_per_hour }}"
+        data-price-12="{{ (int) $package->price_per_12_hours }}"
+        data-price-24="{{ (int) $package->price_per_24_hours }}"
         class="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-soft p-6">
 
         <h3 class="text-lg font-extrabold text-slate-900 mb-4">
@@ -134,29 +135,69 @@ $i18n = [
         <form id="bookingForm" onsubmit="return false;" class="space-y-4">
           @csrf
 
-          <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['pickup_date'] }}</label>
-            <input type="datetime-local" id="pickup"
-              class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+          {{-- PILIHAN DURASI --}}
+          <div class="space-y-3">
+            <label class="cursor-pointer flex items-center justify-between rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition duration-option" data-type="12_hours">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="duration_type" value="12_hours" class="w-4 h-4 text-brand-500 focus:ring-brand-500">
+                <div>
+                  <div class="font-extrabold text-slate-900">Rental 12 Jam</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-extrabold text-brand-600 text-lg">Rp {{ number_format($package->price_per_12_hours, 0, ',', '.') }}</div>
+                <div class="text-xs text-slate-500">Durasi 12 Jam</div>
+              </div>
+            </label>
+
+            <label class="cursor-pointer flex items-center justify-between rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition duration-option" data-type="24_hours">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="duration_type" value="24_hours" class="w-4 h-4 text-brand-500 focus:ring-brand-500">
+                <div>
+                  <div class="font-extrabold text-slate-900">Rental 24 Jam</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-extrabold text-brand-600 text-lg">Rp {{ number_format($package->price_per_24_hours, 0, ',', '.') }}</div>
+                <div class="text-xs text-slate-500">Durasi 24 Jam</div>
+              </div>
+            </label>
+
+            <label class="cursor-pointer flex items-center justify-between rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition duration-option" data-type="custom">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="duration_type" value="custom" class="w-4 h-4 text-brand-500 focus:ring-brand-500">
+                <div class="font-extrabold text-brand-600">Pilih DURASI Sendiri</div>
+              </div>
+            </label>
           </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['return_date'] }}</label>
-            <input type="datetime-local" id="return"
-              class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+          {{-- CUSTOM DATES (Hidden by default) --}}
+          <div id="customDatesBox" class="hidden space-y-4 pt-3 border-t border-slate-100">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['pickup_date'] }}</label>
+              <input type="datetime-local" id="pickup"
+                class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['return_date'] }}</label>
+              <input type="datetime-local" id="return"
+                class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+            </div>
+
+            {{-- SUMMARY FOR CUSTOM --}}
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
+                <strong id="days">0 Jam</strong>
+              </div>
+              <div class="flex justify-between mt-2">
+                <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
+                <strong id="total">Rp0</strong>
+              </div>
+            </div>
           </div>
 
-          {{-- SUMMARY --}}
-          <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm">
-            <div class="flex justify-between">
-              <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
-              <strong id="days">0</strong>
-            </div>
-            <div class="flex justify-between mt-2">
-              <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
-              <strong id="total">Rp0</strong>
-            </div>
-          </div>
           {{-- HIGH SEASON WARNING --}}
           <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
             <p class="font-semibold">
@@ -170,8 +211,8 @@ $i18n = [
             id="btnBook"
             disabled
             class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-3 text-sm font-bold text-white hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed transition">
-            <i data-lucide="calendar-check" class="w-4 h-4"></i>
-            {{ $i18n['book_now'] }}
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+            Lanjut Booking
           </button>
         </form>
 
@@ -387,19 +428,54 @@ $i18n = [
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="duration_type"]');
+    const customDatesBox = document.getElementById('customDatesBox');
     const pickup = document.getElementById('pickup');
     const ret = document.getElementById('return');
     const daysEl = document.getElementById('days');
     const totalEl = document.getElementById('total');
     const btnBook = document.getElementById('btnBook');
     const box = document.getElementById('rentcarBookingBox');
-    const pricePerHour = box ? parseInt(box.dataset.pricePerHour || '0', 10) : 0;
+    
+    const price12 = box ? parseInt(box.dataset.price12 || '0', 10) : 0;
+    const price24 = box ? parseInt(box.dataset.price24 || '0', 10) : 0;
+    
+    // Perhitungan per jam berdasar harga 12 jam
+    const pricePerHour = Math.round(price12 / 12);
 
-    if (!pickup || !ret || !daysEl || !totalEl || !btnBook) return;
+    let currentDurationType = null;
+    let finalCustomHours = 0;
+    let finalCustomPrice = 0;
 
-    function recalc() {
+    function resetCustomStyles() {
+      document.querySelectorAll('.duration-option').forEach(el => {
+        el.classList.remove('bg-blue-50', 'border-blue-500');
+        el.classList.add('bg-white', 'border-slate-200');
+      });
+    }
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        currentDurationType = this.value;
+        resetCustomStyles();
+        this.closest('.duration-option').classList.remove('bg-white', 'border-slate-200');
+        this.closest('.duration-option').classList.add('bg-blue-50', 'border-blue-500');
+
+        if (this.value === 'custom') {
+          customDatesBox.classList.remove('hidden');
+          recalcCustom();
+        } else {
+          customDatesBox.classList.add('hidden');
+          btnBook.disabled = false;
+        }
+      });
+    });
+
+    function recalcCustom() {
+      if (currentDurationType !== 'custom') return;
+
       if (!pickup.value || !ret.value) {
-        daysEl.textContent = '0';
+        daysEl.textContent = '0 Jam';
         totalEl.textContent = 'Rp0';
         btnBook.disabled = true;
         return;
@@ -408,37 +484,47 @@ $i18n = [
       const start = new Date(pickup.value);
       const end = new Date(ret.value);
 
-      if (end < start) {
-        daysEl.textContent = '0';
+      if (end <= start) {
+        daysEl.textContent = '0 Jam';
         totalEl.textContent = 'Rp0';
         btnBook.disabled = true;
         return;
       }
 
-      const diffHours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
-      daysEl.textContent = diffHours;
+      let diffHours = Math.ceil((end - start) / (1000 * 60 * 60));
+      // Minimal 12 jam
+      if (diffHours < 12) {
+        diffHours = 12;
+      }
 
-      const total = diffHours * pricePerHour;
-      totalEl.textContent = 'Rp' + total.toLocaleString('id-ID');
+      finalCustomHours = diffHours;
+      finalCustomPrice = diffHours * pricePerHour;
 
+      daysEl.textContent = diffHours + ' Jam';
+      totalEl.textContent = 'Rp' + finalCustomPrice.toLocaleString('id-ID');
       btnBook.disabled = false;
     }
 
-    pickup.addEventListener('change', recalc);
-    ret.addEventListener('change', recalc);
+    if(pickup) pickup.addEventListener('change', recalcCustom);
+    if(ret) ret.addEventListener('change', recalcCustom);
 
-    recalc();
-
-    btnBook.addEventListener('click', function() {
-      window.dispatchEvent(
-        new CustomEvent('open-rentcar-booking', {
-          detail: {
-            pickup: pickup.value,
-            ret: ret.value
-          },
-        })
-      );
-    });
+    if(btnBook) {
+      btnBook.addEventListener('click', function() {
+        window.dispatchEvent(
+          new CustomEvent('open-rentcar-booking', {
+            detail: {
+              durationType: currentDurationType,
+              pickup: pickup ? pickup.value : '',
+              ret: ret ? ret.value : '',
+              customHours: finalCustomHours,
+              customPrice: finalCustomPrice,
+              price12: price12,
+              price24: price24
+            },
+          })
+        );
+      });
+    }
   });
 </script>
 
