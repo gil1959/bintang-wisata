@@ -76,7 +76,7 @@ public function store(Request $request)
         'permissions.*' => ['string', 'exists:permissions,name'],
 
         // partner fields (wajib kalau role partner)
-        'partner_type' => ['nullable', 'in:agency_paket_tour,agency_rental_mobil'],
+        'partner_type' => ['nullable', 'in:agency_paket_tour,agency_rental_mobil,agency_restoran,agency_hotel_vila'],
         'partner_bank_name' => ['nullable', 'string', 'max:100'],
         'partner_bank_account_number' => ['nullable', 'string', 'max:50'],
         'partner_bank_account_holder' => ['nullable', 'string', 'max:100'],
@@ -84,7 +84,7 @@ public function store(Request $request)
 
     if ($data['role'] === 'partner') {
         $request->validate([
-           'partner_type' => ['required', 'in:agency_paket_tour,agency_rental_mobil'],
+           'partner_type' => ['required', 'in:agency_paket_tour,agency_rental_mobil,agency_restoran,agency_hotel_vila'],
             'partner_bank_name' => ['required', 'string', 'max:100'],
             'partner_bank_account_number' => ['required', 'string', 'max:50'],
             'partner_bank_account_holder' => ['required', 'string', 'max:100'],
