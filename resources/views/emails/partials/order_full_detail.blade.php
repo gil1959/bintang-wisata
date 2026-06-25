@@ -25,9 +25,9 @@ $typeLabel = match($order->type) {
 default => (string)($order->type ?? '-'),
 };
 
-$departure = $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-';
-$pickup = $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-';
-$return = $order->return_date ? $order->return_date->translatedFormat('d F Y H:i') : '-';
+$departure = $order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-';
+$pickup = $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d F Y H:i') : '-';
+$return = $order->return_date ? \Carbon\Carbon::parse($order->return_date)->translatedFormat('d F Y H:i') : '-';
 
 $latestPayment = $order->payments?->sortByDesc('id')->first();
 @endphp

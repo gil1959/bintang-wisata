@@ -129,8 +129,6 @@ $userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
             'subtotal'       => $subtotal,
             'discount'       => $discount,
             'final_price'    => $final,
- 'discount'       => $discount,
-    'final_price'    => $final,
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);
