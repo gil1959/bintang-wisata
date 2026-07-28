@@ -8,6 +8,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  @hasSection('meta')
+    @yield('meta')
+  @else
   <title>Bintang Wisata Holiday | Paket Tour & Paket Wisata Eksklusif Terpercaya</title>
   <meta name="description" content="Rasakan pengalaman liburan tak terlupakan dengan paket tour terbaik dari Bintang Wisata Holiday. Layanan profesional untuk paket wisata domestik dan internasional.">
   <meta name="keywords" content="paket tour, paket wisata, paket tour eksklusif, agen perjalanan wisata, paket liburan keluarga, paket tour domestik, paket tour internasional, bintang wisata holiday, paket wisata premium">
@@ -25,6 +28,7 @@
   <meta property="twitter:title" content="Bintang Wisata Holiday | Paket Wisata Terbaik & Profesional">
   <meta property="twitter:description" content="Cari paket tour berkualitas? Bintang Wisata Holiday solusinya. Cek pilihan paket wisata premium terbaru kami di sini!">
   <meta property="twitter:image" content="https://bintangwisataholiday.com/logo-atau-banner.jpg">
+  @endif
 
   <link rel="canonical" href="https://bintangwisataholiday.com/">
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://bintangwisataholiday.com/sitemap.xml">

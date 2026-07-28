@@ -42,6 +42,9 @@ class HotelPackageController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
         ]);
 
         $data['slug'] = Str::slug($data['title']);
@@ -62,6 +65,11 @@ class HotelPackageController extends Controller
         }
         $data['features'] = $cleanFeatures;
 
+        
+        if ($request->hasFile('seo_image')) {
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+        
         HotelPackage::create($data);
 
         return redirect()->route('partner.hotel-packages.index')
@@ -92,6 +100,9 @@ class HotelPackageController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
         ]);
 
         $data['slug'] = Str::slug($data['title']);
@@ -112,6 +123,14 @@ class HotelPackageController extends Controller
         }
         $data['features'] = $cleanFeatures;
 
+        
+        if ($request->hasFile('seo_image')) {
+            if ($hotel_package->seo_image_path) {
+                Storage::disk('public')->delete($hotel_package->seo_image_path);
+            }
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+        
         $hotel_package->update($data);
 
         $hotel_package->update([

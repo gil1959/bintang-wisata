@@ -197,29 +197,8 @@
             placeholder="Deskripsi paket...">{{ old('long_description', $package->long_description ?? '') }}</textarea>
     </div>
 
-    {{-- SEO --}}
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-4">
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Title</label>
-            <input type="text" name="seo_title"
-                value="{{ old('seo_title', $package->seo_title ?? '') }}"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-        </div>
+    @include('partials._seo_form', ['model' => $package ?? null])
 
-        <div class="md:col-span-4">
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Keywords</label>
-            <input type="text" name="seo_keywords"
-                value="{{ old('seo_keywords', $package->seo_keywords ?? '') }}"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-        </div>
-
-        <div class="md:col-span-4">
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Description</label>
-            <input type="text" name="seo_description"
-                value="{{ old('seo_description', $package->seo_description ?? '') }}"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-        </div>
-    </div>
 
     {{-- Actions --}}
     <div class="flex items-center justify-end gap-2 pt-2">

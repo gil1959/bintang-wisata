@@ -52,6 +52,8 @@ class UpdateMicePackageRequest extends FormRequest
 
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:1000',
+            'social_title'     => 'nullable|string|max:255',
+            'social_description' => 'nullable|string|max:1000',
             'seo_keywords' => 'nullable|string|max:1000',
         ];
     }

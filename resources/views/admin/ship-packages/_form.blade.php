@@ -141,81 +141,8 @@
   <div class="h-px bg-slate-200"></div>
 
   {{-- Harga Weekday/Weekend --}}
-  <div x-data="shipPricing()" x-init="init()" class="rounded-2xl border border-slate-200 bg-white p-5">
-    <div class="flex items-center justify-between gap-3">
-      <div>
-        <div class="text-sm font-extrabold text-slate-900">Harga Sewa Kapal</div>
-        <div class="text-xs text-slate-500 mt-0.5">Tab weekday/weekend. Input: teks bebas + harga.</div>
-      </div>
-      <button type="button"
-              class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold border border-slate-200 bg-white hover:bg-slate-50"
-              @click="addRow(active)">
-        <i data-lucide="plus" class="w-4 h-4" style="color:#0194F3;"></i>
-        Tambah Baris
-      </button>
-    </div>
+  @include('partials._seo_form', ['model' => $package ?? null])
 
-    <div class="mt-4 flex bg-slate-100 rounded-full p-1 text-sm font-semibold">
-      <button type="button"
-              class="flex-1 py-2 rounded-full transition"
-              :class="active==='weekday' ? 'bg-[#0194F3] text-white shadow-sm' : 'text-slate-600'"
-              @click="active='weekday'">
-        Weekday
-      </button>
-
-      <button type="button"
-              class="flex-1 py-2 rounded-full transition"
-              :class="active==='weekend' ? 'bg-[#0194F3] text-white shadow-sm' : 'text-slate-600'"
-              @click="active='weekend'">
-        Weekend
-      </button>
-    </div>
-
-    {{-- FIX UTAMA: render SEMUA rows (biar submit kirim weekday+weekend),
-         tapi tampilkan sesuai tab via x-show --}}
-    <div class="mt-4 space-y-2">
-      <template x-for="row in rows" :key="row.__key">
-        <div class="rounded-2xl border border-slate-200 bg-white p-3"
-             x-show="row.type === active"
-             style="display:none;">
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            <div class="md:col-span-7">
-              <label class="block text-xs font-extrabold text-slate-600 mb-1">Teks</label>
-              <input type="text"
-                     class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                     placeholder="Contoh: Kapal A (max 10 orang) / 4 jam"
-                     :name="`tiers[${row.__idx}][label_text]`"
-                     x-model="row.label_text"
-                     required>
-            </div>
-
-            <div class="md:col-span-4">
-              <label class="block text-xs font-extrabold text-slate-600 mb-1">Harga</label>
-              <input type="number"
-                     class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                     :name="`tiers[${row.__idx}][price]`"
-                     x-model.number="row.price"
-                     min="0"
-                     required>
-            </div>
-
-            <div class="md:col-span-1 md:text-right">
-              <button type="button"
-                      class="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold text-white"
-                      style="background:#ef4444"
-                      onmouseover="this.style.background='#dc2626'"
-                      onmouseout="this.style.background='#ef4444'"
-                      @click="removeRow(row.__key)">
-                <i data-lucide="x" class="w-4 h-4"></i>
-              </button>
-            </div>
-
-            <input type="hidden" :name="`tiers[${row.__idx}][type]`" :value="row.type">
-          </div>
-        </div>
-      </template>
-    </div>
-  </div>
 
   {{-- Features --}}
   <div>

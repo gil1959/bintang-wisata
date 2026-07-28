@@ -42,12 +42,15 @@ class RestoranPackageController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
         ]);
 
         $data['slug'] = Str::slug($data['title']);
-        $data['is_active'] = 0;
-        $data['created_by_partner_id'] = auth()->id();
-        $data['partner_review_status'] = 'pending';
+        $data['is_active'] = $request->input('is_active', 1);
+        $data['created_by_partner_id'] = null;
+        $data['partner_review_status'] = 'approved';
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail_path'] = $request->file('thumbnail')->store('restoran', 'public');
@@ -62,10 +65,15 @@ class RestoranPackageController extends Controller
         }
         $data['features'] = $cleanFeatures;
 
+        
+        if ($request->hasFile('seo_image')) {
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+        
         RestoranPackage::create($data);
 
         return redirect()->route('admin.restoran-packages.index')
-            ->with('success', 'Paket restoran berhasil dibuat dan menunggu persetujuan admin.');
+            ->with('success', 'Paket restoran berhasil dibuat.');
     }
 
     public function edit(RestoranPackage $restoran_package)
@@ -92,6 +100,9 @@ class RestoranPackageController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
         ]);
 
         $data['slug'] = Str::slug($data['title']);
@@ -112,18 +123,20 @@ class RestoranPackageController extends Controller
         }
         $data['features'] = $cleanFeatures;
 
+        // Optional: admin might change is_active, which is handled in $data.
+        $data['is_active'] = $request->input('is_active', 1);
+        
+        if ($request->hasFile('seo_image')) {
+            if ($restoran_package->seo_image_path) {
+                Storage::disk('public')->delete($restoran_package->seo_image_path);
+            }
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+        
         $restoran_package->update($data);
 
-        $restoran_package->update([
-            'is_active'            => 0,
-            'partner_review_status'=> 'pending',
-            'partner_review_note'  => null,
-            'partner_reviewed_by'  => null,
-            'partner_reviewed_at'  => null,
-        ]);
-
         return redirect()->route('admin.restoran-packages.index')
-            ->with('success', 'Paket restoran berhasil diperbarui dan menunggu persetujuan admin.');
+            ->with('success', 'Paket restoran berhasil diperbarui.');
     }
 
     public function destroy(RestoranPackage $restoran_package)

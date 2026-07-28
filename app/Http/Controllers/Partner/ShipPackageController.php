@@ -103,6 +103,14 @@ class ShipPackageController extends Controller
 
 
         $this->syncTiers($pkg, $data['tiers'] ?? []);
+
+            if ($request->hasFile('seo_image')) {
+                if ($pkg->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($pkg->seo_image_path);
+                }
+                $pkg->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
+
         \App\Jobs\Translate\ShipPackageToEn::dispatch($pkg->id)
             ->onQueue('translations')
             ->afterCommit();
@@ -167,6 +175,14 @@ class ShipPackageController extends Controller
 
 
         $this->syncTiers($ship_package, $data['tiers'] ?? []);
+
+            if ($request->hasFile('seo_image')) {
+                if ($ship_package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($ship_package->seo_image_path);
+                }
+                $ship_package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
+
         \App\Jobs\Translate\ShipPackageToEn::dispatch($ship_package->id)
             ->onQueue('translations')
             ->afterCommit();

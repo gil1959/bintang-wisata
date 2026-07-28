@@ -32,6 +32,8 @@ class UpdateUmrahPackageRequest extends FormRequest
             'seo_title' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string',
             'seo_description' => 'nullable|string',
+            'social_title'     => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
 
             'thumbnail' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:4096',
             'gallery' => 'nullable|array',

@@ -80,6 +80,14 @@ class RentCarPackageController extends Controller
 
             $package = RentCarPackage::create($data);
 
+
+            if ($request->hasFile('seo_image')) {
+                if ($package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($package->seo_image_path);
+                }
+                $package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
+
             \App\Jobs\Translate\RentCarPackageToEn::dispatch($package->id)
                 ->onQueue('translations')
                 ->afterCommit();
@@ -124,6 +132,14 @@ class RentCarPackageController extends Controller
             $data['features'] = $cleanFeatures;
 
             $rent_car_package->update($data);
+
+
+            if ($request->hasFile('seo_image')) {
+                if ($rent_car_package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($rent_car_package->seo_image_path);
+                }
+                $rent_car_package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
 
             \App\Jobs\Translate\RentCarPackageToEn::dispatch($rent_car_package->id)
                 ->onQueue('translations')

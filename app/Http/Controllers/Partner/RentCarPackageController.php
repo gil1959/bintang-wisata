@@ -65,6 +65,10 @@ return view('partner.rentcar.create', compact('categories'));
         }
         $data['features'] = $cleanFeatures;
 
+        if ($request->hasFile('seo_image')) {
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+
         RentCarPackage::create($data);
 
         return redirect()->route('partner.rent-car-packages.index')
@@ -113,6 +117,13 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
             ];
         }
         $data['features'] = $cleanFeatures;
+
+        if ($request->hasFile('seo_image')) {
+            if ($rent_car_package->seo_image_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($rent_car_package->seo_image_path);
+            }
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
 
         $rent_car_package->update($data);
 

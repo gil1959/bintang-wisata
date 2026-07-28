@@ -203,42 +203,8 @@
 </div>
 
 {{-- SEO --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-  <button type="button" @click="open=!open"
-    class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-    style="background:#0194F3;">
-    <span>SEO Paket Umrah</span>
-    <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-  </button>
+@include('partials._seo_form', ['model' => $pkg ?? null])
 
-  <div x-show="open" x-cloak class="p-5 space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
-        <input type="text" name="seo_title"
-               value="{{ old('seo_title', $pkg->seo_title ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="Judul meta (opsional)">
-      </div>
-
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
-        <input type="text" name="seo_keywords"
-               value="{{ old('seo_keywords', $pkg->seo_keywords ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="contoh: paket umrah, umrah ramadhan, umrah murah">
-        <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma.</div>
-      </div>
-
-      <div class="md:col-span-12">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
-        <textarea name="seo_description" rows="3"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                  placeholder="Deskripsi meta (opsional)">{{ old('seo_description', $pkg->seo_description ?? '') }}</textarea>
-      </div>
-    </div>
-  </div>
-</div>
 
 {{-- DESKRIPSI --}}
 <div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">

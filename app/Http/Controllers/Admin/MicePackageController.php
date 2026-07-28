@@ -85,6 +85,8 @@ class MicePackageController extends Controller
                 'seo_title' => $data['seo_title'] ?? null,
                 'seo_description' => $data['seo_description'] ?? null,
                 'seo_keywords' => $data['seo_keywords'] ?? null,
+                'social_title' => $data['social_title'] ?? null,
+                'social_description' => $data['social_description'] ?? null,
             ]);
 
             // tiers
@@ -97,6 +99,14 @@ class MicePackageController extends Controller
                     $package->photos()->create(['file_path' => $path]);
                 }
             }
+
+            if ($request->hasFile('seo_image')) {
+                if ($package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($package->seo_image_path);
+                }
+                $package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
+
             \App\Jobs\Translate\MicePackageToEn::dispatch($package->id)
                 ->onQueue('translations')
                 ->afterCommit();
@@ -149,6 +159,8 @@ class MicePackageController extends Controller
                 'seo_title' => $data['seo_title'] ?? null,
                 'seo_description' => $data['seo_description'] ?? null,
                 'seo_keywords' => $data['seo_keywords'] ?? null,
+                'social_title' => $data['social_title'] ?? null,
+                'social_description' => $data['social_description'] ?? null,
             ])->save();
 
             $this->syncTiers($mice_package, $data['tiers'] ?? []);
@@ -159,6 +171,14 @@ class MicePackageController extends Controller
                     $mice_package->photos()->create(['file_path' => $path]);
                 }
             }
+
+            if ($request->hasFile('seo_image')) {
+                if ($mice_package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($mice_package->seo_image_path);
+                }
+                $mice_package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
+
             \App\Jobs\Translate\MicePackageToEn::dispatch($mice_package->id)
                 ->onQueue('translations')
                 ->afterCommit();

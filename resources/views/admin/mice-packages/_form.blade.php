@@ -345,35 +345,8 @@
 </div>
 
 {{-- SEO (pola sama: seo_title, seo_description, seo_keywords) --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-  <button type="button" @click="open=!open"
-          class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-          style="background:#0194F3;">
-    <span>SEO</span>
-    <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-  </button>
+@include('partials._seo_form', ['model' => $pkg ?? null])
 
-  <div x-show="open" x-cloak class="p-5 space-y-4">
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title (opsional)</label>
-      <input type="text" name="seo_title"
-             value="{{ old('seo_title', $pkg->seo_title ?? '') }}"
-             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-    </div>
-
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description (opsional)</label>
-      <textarea name="seo_description" rows="4"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('seo_description', $pkg->seo_description ?? '') }}</textarea>
-    </div>
-
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords (opsional)</label>
-      <textarea name="seo_keywords" rows="3"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('seo_keywords', $pkg->seo_keywords ?? '') }}</textarea>
-    </div>
-  </div>
-</div>
 
 <script>
 function previewMiceThumb(input) {

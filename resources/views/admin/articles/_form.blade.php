@@ -38,35 +38,8 @@
 
 
     </div>
-{{-- SEO --}}
-<div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-    <div class="sm:col-span-6">
-        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Title</label>
-        <input type="text"
-               name="seo_title"
-               value="{{ old('seo_title', $article->seo_title ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="Judul untuk meta title (opsional)">
-    </div>
+@include('partials._seo_form', ['model' => $article ?? null])
 
-    <div class="sm:col-span-6">
-        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Keywords</label>
-        <input type="text"
-               name="seo_keywords"
-               value="{{ old('seo_keywords', $article->seo_keywords ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="contoh: paket wisata, bali, liburan keluarga">
-        <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma kalau banyak.</div>
-    </div>
-
-    <div class="sm:col-span-12">
-        <label class="block text-sm font-extrabold text-slate-800 mb-1">SEO Description</label>
-        <textarea name="seo_description"
-                  rows="3"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                  placeholder="Meta description (opsional)">{{ old('seo_description', $article->seo_description ?? '') }}</textarea>
-    </div>
-</div>
 
 {{-- Tags --}}
 <div>
