@@ -26,13 +26,61 @@ class RestoranOrderController extends Controller
             'name' => 'required|string|max:120',
             'email' => 'required|email',
             'phone' => 'required|string|max:50',
-            'departure_date' => 'required|date|after_or_equal:today',
+            'departure_date' => 'required|date|after:today',
             'pickup_time' => 'required|date_format:H:i',
             'participants' => 'required|integer|min:1|max:9999',
             'promo_id' => 'nullable|integer',
+            'menus' => 'required|array|min:1',
+            'menus.*.id' => 'required|integer',
+            'menus.*.qty' => 'required|integer|min:1|max:999',
+        ], [
+            'departure_date.after' => 'Waktu reservasi minimal harus H-1 (mulai besok).',
         ]);
 
-        $subtotal = (float)$package->price_per_pax * (int)$data['participants'];
+        // Verifikasi menu langsung ke database
+        $menuIds = collect($data['menus'])->pluck('id')->unique();
+        $dbMenus = \App\Models\RestoranMenu::where('restoran_package_id', $package->id)
+            ->whereIn('id', $menuIds)
+            ->where('is_ready', 1)
+            ->get()
+            ->keyBy('id');
+
+        if ($dbMenus->isEmpty()) {
+            return response()->json([
+                'error' => 'Menu yang dipilih tidak tersedia.'
+            ], 422);
+        }
+
+        $cleanOrderItems = [];
+        $subtotal = 0;
+
+        foreach ($data['menus'] as $m) {
+            $menuId = (int)$m['id'];
+            if (!$dbMenus->has($menuId)) continue;
+
+            $dbMenu = $dbMenus->get($menuId);
+            $qty = max(1, (int)$m['qty']);
+            $unitPrice = (float)$dbMenu->price;
+            $lineTotal = $unitPrice * $qty;
+
+            $cleanOrderItems[] = [
+                'id' => $dbMenu->id,
+                'name' => $dbMenu->name,
+                'category' => $dbMenu->category ?? '',
+                'price' => $unitPrice,
+                'qty' => $qty,
+                'subtotal' => $lineTotal,
+                'thumbnail_path' => $dbMenu->thumbnail_path ?? '',
+            ];
+
+            $subtotal += $lineTotal;
+        }
+
+        if (empty($cleanOrderItems)) {
+            return response()->json([
+                'error' => 'Silakan pilih minimal 1 menu makanan yang tersedia.'
+            ], 422);
+        }
 
         $discount = 0;
         $promoUsed = null;
@@ -95,6 +143,7 @@ class RestoranOrderController extends Controller
             'type'           => 'restoran',
             'product_id'     => $package->id,
             'product_name'   => $package->title,
+            'order_items'    => $cleanOrderItems,
             'user_id'        => $userId,
 
             'promo_id'       => $promoUsed?->id,

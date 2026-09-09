@@ -113,6 +113,18 @@ class OrderController extends Controller
 
         $total = $order->payable_amount ?? $order->final_price;
 
+        $menuListText = '';
+        if ($order->type === 'restoran' && !empty($order->order_items) && is_array($order->order_items)) {
+            $menuListText = "\n" . ($isEn ? "Ordered Menus:" : "Menu yang Dipesan:") . "\n";
+            foreach ($order->order_items as $idx => $item) {
+                $num = $idx + 1;
+                $name = $item['name'] ?? '-';
+                $qty = $item['qty'] ?? 1;
+                $subtotal = number_format($item['subtotal'] ?? (($item['price'] ?? 0) * $qty), 0, ',', '.');
+                $menuListText .= "  {$num}. {$name} ({$qty}x) - Rp {$subtotal}\n";
+            }
+        }
+
         if ($isEn) {
             $msg =
                 "Hello {$targetName},\n"
@@ -122,6 +134,8 @@ class OrderController extends Controller
                 . "Email: {$order->customer_email}\n"
                 . "Customer WhatsApp: {$order->customer_phone}\n"
                 . "Product: {$order->product_name}\n"
+                . ($order->type === 'restoran' && $order->pickup_date ? "Reservation: " . \Carbon\Carbon::parse($order->pickup_date)->format('d M Y, H:i') . " ({$order->participants} pax)\n" : "")
+                . $menuListText
                 . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
                 . "Thank you.";
         } else {
@@ -133,6 +147,8 @@ class OrderController extends Controller
                 . "Email: {$order->customer_email}\n"
                 . "WA Customer: {$order->customer_phone}\n"
                 . "Produk: {$order->product_name}\n"
+                . ($order->type === 'restoran' && $order->pickup_date ? "Jadwal Reservasi: " . \Carbon\Carbon::parse($order->pickup_date)->format('d M Y, H:i') . " ({$order->participants} orang)\n" : "")
+                . $menuListText
                 . "Total: Rp " . number_format((int)$total, 0, ',', '.') . "\n\n"
                 . "Terima kasih.";
         }

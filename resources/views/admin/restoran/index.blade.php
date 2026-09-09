@@ -33,7 +33,7 @@
                 <tr class="text-xs font-extrabold text-slate-600">
                     <th class="px-5 py-3 w-[140px]">Thumbnail</th>
                     <th class="px-5 py-3">Title</th>
-                    <th class="px-5 py-3 w-[180px]">Category</th>
+                    <th class="px-5 py-3 w-[180px]">Kontak CS</th>
                     <th class="px-5 py-3 w-[120px]">Status</th>
                     <th class="px-5 py-3 text-right w-[190px]">Actions</th>
                 </tr>
@@ -58,7 +58,14 @@
                         </td>
 
                         <td class="px-5 py-4">
-                            -
+                            @if(!empty($p->cs_contact))
+                                <span class="font-semibold text-slate-800 inline-flex items-center gap-1.5">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-sky-500"></i>
+                                    {{ $p->cs_contact }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-xs">Default</span>
+                            @endif
                         </td>
 
                         <td class="px-5 py-4">

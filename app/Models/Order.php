@@ -15,6 +15,7 @@ class Order extends Model
         'type',           // tour / rent_car
         'product_id',
         'product_name',
+        'order_items',
         // PROMO (guest: enforce by email/phone)
         'promo_id',
         'promo_code',
@@ -68,6 +69,7 @@ class Order extends Model
 
     protected $casts = [
         'user_id' => 'integer',
+        'order_items' => 'array',
         'departure_date' => 'date',
         'pickup_date' => 'datetime',
         'return_date' => 'datetime',

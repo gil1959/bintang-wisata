@@ -231,7 +231,11 @@ Route::prefix('bw-admin')
         Route::resource('users', AdminUserController::class);
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Admin\RestoranPackageController::class, 'deletePhoto'])
+            ->name('restoran-packages.delete-photo')->middleware('permission:admin.dashboard.view');
         Route::resource('restoran-packages', \App\Http\Controllers\Admin\RestoranPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::delete('hotel-packages/photo/{photo}', [\App\Http\Controllers\Admin\HotelPackageController::class, 'deletePhoto'])
+            ->name('hotel-packages.delete-photo')->middleware('permission:admin.dashboard.view');
         Route::resource('hotel-packages', \App\Http\Controllers\Admin\HotelPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
@@ -480,9 +484,13 @@ Route::prefix('partner')->name('partner.')->middleware(['auth', 'role:partner'])
     Route::resource('rent-car-packages', \App\Http\Controllers\Partner\RentCarPackageController::class);
 
     // agency_restoran
+    Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Partner\RestoranPackageController::class, 'deletePhoto'])
+        ->name('restoran-packages.delete-photo');
     Route::resource('restoran-packages', \App\Http\Controllers\Partner\RestoranPackageController::class)->except(['show']);
 
     // agency_hotel_vila
+    Route::delete('hotel-packages/photo/{photo}', [\App\Http\Controllers\Partner\HotelPackageController::class, 'deletePhoto'])
+        ->name('hotel-packages.delete-photo');
     Route::resource('hotel-packages', \App\Http\Controllers\Partner\HotelPackageController::class)->except(['show']);
 
     // agency_kapal

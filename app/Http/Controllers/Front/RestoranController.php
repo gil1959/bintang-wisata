@@ -40,7 +40,10 @@ class RestoranController extends Controller
 
     public function show($slug)
     {
-        $package = RestoranPackage::where('slug', $slug)
+        $package = RestoranPackage::with(['photos', 'menus', 'reviews' => function($q) {
+                $q->approved()->latest();
+            }])
+            ->where('slug', $slug)
             ->where('is_active', 1)
             ->firstOrFail();
 

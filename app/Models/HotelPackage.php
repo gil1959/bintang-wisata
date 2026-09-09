@@ -11,9 +11,17 @@ class HotelPackage extends Model
 
     protected $fillable = [
         'title',
+        'property_type',
         'label',
         'slug',
         'price_per_night',
+        'address',
+        'maps_url',
+        'nearby_places',
+        'facilities',
+        'keunggulan',
+        'note',
+        'cs_contact',
         'thumbnail_path',
         'is_active',
         'features',
@@ -32,8 +40,12 @@ class HotelPackage extends Model
         'partner_reviewed_at',
         'title_en',
         'label_en',
+        'address_en',
+        'note_en',
         'long_description_en',
         'features_en',
+        'facilities_en',
+        'keunggulan_en',
         'seo_title_en',
         'seo_keywords_en',
         'seo_description_en',
@@ -44,7 +56,27 @@ class HotelPackage extends Model
         'is_active' => 'boolean',
         'features' => 'array',
         'features_en' => 'array',
+        'nearby_places' => 'array',
+        'facilities' => 'array',
+        'facilities_en' => 'array',
+        'keunggulan' => 'array',
+        'keunggulan_en' => 'array',
     ];
+
+    public function photos()
+    {
+        return $this->hasMany(HotelPackagePhoto::class, 'hotel_package_id');
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(HotelRoom::class, 'hotel_package_id')->orderBy('sort_order');
+    }
+
+    public function partner()
+    {
+        return $this->belongsTo(User::class, 'created_by_partner_id');
+    }
 
     public function reviews()
     {

@@ -206,65 +206,85 @@
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
             @forelse ($packages as $package)
-            <a href="{{ route('restoran.show', $package->slug) }}"
-                class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+            @php
+            $cardTitle = $isEn ? ($package->title_en ?: $package->title) : $package->title;
+            $cardFeatSrc = $isEn ? ($package->features_en ?: $package->features) : $package->features;
+            $thumbUrl = \Illuminate\Support\Str::startsWith($package->thumbnail_path, ['http://', 'https://']) 
+                ? $package->thumbnail_path 
+                : ($package->thumbnail_path ? asset('storage/' . $package->thumbnail_path) : asset('images/default.jpg'));
 
-                <div class="relative h-44 overflow-hidden bg-slate-100">
+            $kList = $package->keunggulan;
+            $infoText = '';
+            if (!empty($package->label) && is_string($package->label)) {
+                $infoText = $package->label;
+            } elseif (!empty($kList)) {
+                if (is_array($kList)) {
+                    $firstK = reset($kList);
+                    $infoText = is_array($firstK) ? ($firstK['title'] ?? $firstK['name'] ?? reset($firstK)) : (string)$firstK;
+                } else {
+                    $infoText = (string)$kList;
+                }
+            } elseif (!empty($cardFeatSrc[0]['name'])) {
+                $infoText = (string)$cardFeatSrc[0]['name'];
+            } elseif (!empty($package->address)) {
+                $infoText = (string)$package->address;
+            } else {
+                $infoText = $isEn ? 'Best Resto in town' : 'Resto Terbaik di Jogja';
+            }
+            @endphp
+            <a href="{{ route('restoran.show', $package->slug) }}"
+                class="group block bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+
+                {{-- IMAGE --}}
+                <div class="relative h-48 sm:h-52 overflow-hidden bg-slate-100">
                     <img
-                        src="{{ asset('storage/' . $package->thumbnail_path) }}"
+                        src="{{ $thumbUrl }}"
                         alt="{{ $package->title }}"
-                        class="h-full w-full object-cover"
+                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy">
 
                     {{-- badge kiri --}}
                     <div class="absolute top-3 left-3">
-                        <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
-                            <i data-lucide="utensils" class="w-4 h-4" style="color:#0194F3;"></i>
-                            {{ $isEn ? 'Restoran' : 'Restoran' }}
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/40 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                            <i data-lucide="utensils" class="w-3.5 h-3.5 text-[#0194F3]"></i>
+                            <span>{{ $isEn ? 'Restaurant' : 'Restoran' }}</span>
                         </span>
                     </div>
 
                     {{-- label kanan --}}
                     @if(!empty($package->label))
                     <div class="absolute top-3 right-3">
-                        <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
+                        <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-2.5 py-0.5 text-[11px] font-bold text-slate-900 shadow-sm">
                             {{ $package->label }}
                         </span>
                     </div>
                     @endif
                 </div>
 
-                <div class="px-4 pt-4 pb-3">
-                    <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
-                        @php
-                        $cardTitle = $isEn ? ($package->title_en ?: $package->title) : $package->title;
-                        $cardFeatSrc = $isEn ? ($package->features_en ?: $package->features) : $package->features;
-                        @endphp
-
+                {{-- CONTENT --}}
+                <div class="p-4">
+                    <div class="text-[17px] font-bold text-[#0194F3] group-hover:text-[#007fd1] line-clamp-1 leading-snug transition-colors">
                         {{ $cardTitle }}
                     </div>
 
-                    <div class="mt-2 text-sm">
-                        <span class="text-slate-600">{{ $isEn ? 'From ' : 'Mulai ' }}</span>
-                        <span class="font-extrabold text-rose-600">
-                            Rp {{ number_format((int)$package->price_per_pax, 0, ',', '.') }}
-                        </span>
-                        <span class="text-slate-500">{{ $isEn ? '/Pax' : '/Pax' }}</span>
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-200 px-4 pt-3 pb-4">
-                    {{-- ambil 1 feature biar “sesuai isi paket” tanpa bikin card jadi rame --}}
-                    <div class="flex items-center gap-2 text-xs text-slate-600">
-                        <i data-lucide="info" class="w-4 h-4" style="color:#0194F3;"></i>
-                        <span class="line-clamp-1">
-                            {{ !empty($cardFeatSrc[0]['name']) ? $cardFeatSrc[0]['name'] : ($isEn ? 'Unit available for booking' : 'Unit tersedia untuk booking') }}
-                        </span>
+                    <div class="mt-1 text-sm font-medium text-slate-600">
+                        {{ $isEn ? 'Start ' : 'Mulai ' }}<span class="font-bold text-rose-500">{{ $isEn ? 'Reservation' : 'Reservasi' }}</span>{{ $isEn ? ' Resto' : ' Resto' }}
                     </div>
 
-                    <div class="mt-3">
-                        <div class="btn btn-primary w-full justify-center !rounded-md !py-2">
-                            {{ $isEn ? 'Book Now' : 'Booking Sekarang' }}
+                    <div class="border-t border-slate-100 mt-3 pt-3">
+                        {{-- Info Line --}}
+                        <div class="flex items-center gap-2 text-[13px] font-medium text-slate-600">
+                            <i data-lucide="info" class="w-4 h-4 text-[#0194F3] shrink-0"></i>
+                            <span class="line-clamp-1">
+                                {{ $infoText }}
+                            </span>
+                        </div>
+
+                        {{-- Action Button --}}
+                        <div class="mt-3">
+                            <div class="w-full rounded-xl py-2.5 px-4 font-bold text-sm text-white text-center bg-[#0194F3] hover:bg-[#007fd1] shadow-sm hover:shadow transition flex items-center justify-center">
+                                {{ $isEn ? 'View Menu & Booking' : 'Lihat Menu & Booking' }}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -165,11 +165,23 @@
   <link rel="preload" as="style" href="{{ mix('css/app.css') }}">
   <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
+  {{-- Font Awesome CDN --}}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  {{-- Alpine (konsisten dengan admin, partner, dan user layout) --}}
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
   <script defer src="{{ mix('js/app.js') }}"></script>
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
+  <style>
+    [x-cloak] { display: none !important; }
+  </style>
+
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+  @stack('styles')
 
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0194F3">
@@ -314,6 +326,7 @@
   </div>
 
   @yield('scripts')
+  @stack('scripts')
 
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script>

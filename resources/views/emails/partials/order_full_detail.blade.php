@@ -22,6 +22,7 @@ $typeLabel = match($order->type) {
 'umrah' => ($isEn ? 'Umrah' : 'Umrah'),
 'rent_car' => ($isEn ? 'Car Rental' : 'Rental Mobil'),
 'ship' => ($isEn ? 'Ship Rental' : 'Sewa Kapal'),
+'restoran' => ($isEn ? 'Restaurant' : 'Restoran'),
 default => (string)($order->type ?? '-'),
 };
 
@@ -144,11 +145,34 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
         <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $pickup }}</td>
       </tr>
       <tr>
-        <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Participants' : 'Partisipan' }}</td>
-        <td style="padding:8px 0;">
+        <td style="padding:8px 0; {{ (!empty($order->order_items) && is_array($order->order_items)) ? 'border-bottom:1px solid #e2e8f0;' : '' }} color:#475569;">{{ $isEn ? 'Participants' : 'Partisipan' }}</td>
+        <td style="padding:8px 0; {{ (!empty($order->order_items) && is_array($order->order_items)) ? 'border-bottom:1px solid #e2e8f0;' : '' }}">
           {{ $order->participants ? number_format($order->participants,0,',','.') . ($isEn ? ' people' : ' orang') : '-' }}
         </td>
       </tr>
+      @if(!empty($order->order_items) && is_array($order->order_items))
+      <tr>
+        <td colspan="2" style="padding:10px 0 4px;">
+          <div style="font-weight:bold; font-size:12px; margin-bottom:6px; color:#334155;">{{ $isEn ? 'Ordered Menus:' : 'Menu yang Dipesan:' }}</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-size:12px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+            <tr style="background:#f8fafc; font-weight:bold; border-bottom:1px solid #e2e8f0;">
+              <th style="padding:6px 8px; text-align:left;">Menu</th>
+              <th style="padding:6px 8px; text-align:right;">Harga</th>
+              <th style="padding:6px 8px; text-align:center;">Qty</th>
+              <th style="padding:6px 8px; text-align:right;">Subtotal</th>
+            </tr>
+            @foreach($order->order_items as $item)
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:6px 8px;"><b>{{ $item['name'] }}</b></td>
+              <td style="padding:6px 8px; text-align:right;">Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
+              <td style="padding:6px 8px; text-align:center;">{{ $item['qty'] }}</td>
+              <td style="padding:6px 8px; text-align:right; font-weight:bold;">Rp {{ number_format($item['subtotal'] ?? ($item['price'] * $item['qty']), 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+          </table>
+        </td>
+      </tr>
+      @endif
       @endif
 
       @if($order->type === 'hotel')

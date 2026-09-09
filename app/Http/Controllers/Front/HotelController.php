@@ -40,7 +40,17 @@ class HotelController extends Controller
 
     public function show($slug)
     {
-        $package = HotelPackage::where('slug', $slug)
+        $package = HotelPackage::with([
+                'photos',
+                'rooms' => function ($q) {
+                    $q->orderBy('sort_order', 'asc')->orderBy('price', 'asc');
+                },
+                'reviews' => function ($q) {
+                    $q->latest();
+                },
+                'reviews.user',
+            ])
+            ->where('slug', $slug)
             ->where('is_active', 1)
             ->firstOrFail();
 

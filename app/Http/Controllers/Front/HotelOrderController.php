@@ -27,9 +27,15 @@ class HotelOrderController extends Controller
             'name'     => 'required|string|max:120',
             'email'    => 'required|email',
             'phone'    => 'required|string|max:50',
-            'checkin_date'  => 'required|date',
+            'checkin_date'  => 'required|date|after_or_equal:tomorrow',
             'checkout_date' => 'required|date|after:checkin_date',
             'promo_id' => 'nullable|integer',
+            'room_id'  => 'nullable|integer',
+            'with_breakfast' => 'nullable',
+            'room_count' => 'nullable|integer|min:1',
+        ], [
+            'checkin_date.after_or_equal' => 'Tanggal reservasi minimal sehari sebelumnya (minimal besok).',
+            'checkout_date.after' => 'Tanggal check-out harus setelah tanggal check-in.',
         ]);
 
         $checkinDate = $validated['checkin_date'];
@@ -61,8 +67,43 @@ class HotelOrderController extends Controller
         }
 
         $nights = max(1, $checkinCarbon->diffInDays($checkoutCarbon));
+        $roomCount = max(1, (int)($request->input('room_count', 1)));
+        $withBreakfast = (bool)$request->input('with_breakfast', false);
 
-        $subtotal = $nights * $package->price_per_night;
+        $room = null;
+        if (!empty($validated['room_id'])) {
+            $room = $package->rooms()->find($validated['room_id']);
+        }
+
+        if ($room) {
+            $roomRate = ($withBreakfast && $room->price_with_breakfast) ? (float)$room->price_with_breakfast : (float)$room->price;
+            $productName = $package->title . ' (' . $room->name . ($withBreakfast ? ' + Sarapan' : '') . ')';
+            $orderItems = [
+                'room_id' => $room->id,
+                'room_name' => $room->name,
+                'room_size' => $room->room_size,
+                'bed_type' => $room->bed_type,
+                'with_breakfast' => $withBreakfast,
+                'price_per_night' => $roomRate,
+                'nights' => $nights,
+                'room_count' => $roomCount,
+                'subtotal' => $nights * $roomRate * $roomCount,
+            ];
+        } else {
+            $roomRate = (float)$package->price_per_night;
+            $productName = $package->title;
+            $orderItems = [
+                'room_id' => null,
+                'room_name' => 'Standar / Pilihan Properti',
+                'with_breakfast' => false,
+                'price_per_night' => $roomRate,
+                'nights' => $nights,
+                'room_count' => $roomCount,
+                'subtotal' => $nights * $roomRate * $roomCount,
+            ];
+        }
+
+        $subtotal = $nights * $roomRate * $roomCount;
 
         $discount = 0;
         $promoUsed = null;
@@ -124,7 +165,8 @@ class HotelOrderController extends Controller
             'invoice_number' => 'INV-' . date('YmdHis') . rand(1000, 9999),
             'type'           => 'hotel',
             'product_id'     => $package->id,
-            'product_name'   => $package->title,
+            'product_name'   => $productName,
+            'order_items'    => $orderItems,
             'promo_id'   => $promoUsed?->id,
             'promo_code' => $promoUsed?->code,
 

@@ -10,8 +10,7 @@ return new class extends Migration {
         Schema::table('tour_price_tiers', function (Blueprint $table) {
             // harga per orang kalau user pilih "Dengan tiket pesawat"
             $table->decimal('price_with_flight_per_pax', 15, 2)
-                ->nullable()
-                ->after('price_per_pax');
+                ->nullable();
         });
     }
 

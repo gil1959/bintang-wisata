@@ -13,8 +13,16 @@ class AddLabelToTourAndRentcarPackagesTables extends Migration
      */
     public function up()
     {
-        Schema::table('tour_and_rentcar_packages_tables', function (Blueprint $table) {
-            //
+        Schema::table('tour_packages', function (Blueprint $table) {
+            if (!Schema::hasColumn('tour_packages', 'label')) {
+                $table->string('label')->nullable()->after('title');
+            }
+        });
+
+        Schema::table('rent_car_packages', function (Blueprint $table) {
+            if (!Schema::hasColumn('rent_car_packages', 'label')) {
+                $table->string('label')->nullable()->after('title');
+            }
         });
     }
 
@@ -25,8 +33,16 @@ class AddLabelToTourAndRentcarPackagesTables extends Migration
      */
     public function down()
     {
-        Schema::table('tour_and_rentcar_packages_tables', function (Blueprint $table) {
-            //
+        Schema::table('tour_packages', function (Blueprint $table) {
+            if (Schema::hasColumn('tour_packages', 'label')) {
+                $table->dropColumn('label');
+            }
+        });
+
+        Schema::table('rent_car_packages', function (Blueprint $table) {
+            if (Schema::hasColumn('rent_car_packages', 'label')) {
+                $table->dropColumn('label');
+            }
         });
     }
 }

@@ -158,11 +158,39 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="text-xs font-extrabold text-slate-500">Partisipan</div>
+                                <div class="text-xs font-extrabold text-slate-500">Partisipan / Tamu</div>
                                 <div class="mt-1 font-bold text-slate-900">
                                     {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
                                 </div>
                             </div>
+
+                            @if(!empty($order->order_items) && is_array($order->order_items))
+                            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-200">
+                                <div class="text-xs font-extrabold text-slate-700 mb-2">Daftar Menu yang Dipesan:</div>
+                                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-xs text-left">
+                                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-extrabold">
+                                            <tr>
+                                                <th class="p-2.5">Menu</th>
+                                                <th class="p-2.5 text-right">Harga Satuan</th>
+                                                <th class="p-2.5 text-center">Qty</th>
+                                                <th class="p-2.5 text-right">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach($order->order_items as $item)
+                                            <tr>
+                                                <td class="p-2.5 font-bold text-slate-800">{{ $item['name'] }}</td>
+                                                <td class="p-2.5 text-right text-slate-600">Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
+                                                <td class="p-2.5 text-center font-bold text-slate-800">{{ $item['qty'] }}</td>
+                                                <td class="p-2.5 text-right font-extrabold text-slate-900">Rp {{ number_format($item['subtotal'] ?? ($item['price'] * $item['qty']), 0, ',', '.') }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            @endif
                             @endif
 
                             @if($order->type === 'hotel')
@@ -191,6 +219,21 @@
                     @php
                         $wa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($order->customer_phone);
                         $waText = "Halo {$order->customer_name}, terkait order {$order->invoice_number} untuk {$order->product_name}.";
+                        if ($order->type === 'restoran' && !empty($order->order_items) && is_array($order->order_items)) {
+                            $waText .= "\n\nRincian Menu yang Dipesan:\n";
+                            foreach ($order->order_items as $idx => $mItem) {
+                                $waText .= ($idx + 1) . ". " . ($mItem['name'] ?? '-') . " (" . ($mItem['qty'] ?? 1) . "x) - Rp " . number_format($mItem['subtotal'] ?? 0, 0, ',', '.') . "\n";
+                            }
+                            $waText .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
+                        } elseif ($order->type === 'hotel' && !empty($order->order_items) && is_array($order->order_items)) {
+                            $waText .= "\n\nRincian Reservasi Kamar:\n";
+                            $waText .= "• Tipe Kamar: " . ($order->order_items['room_name'] ?? 'Standar') . "\n";
+                            $waText .= "• Opsi: " . (!empty($order->order_items['with_breakfast']) ? 'Termasuk Sarapan' : 'Tanpa Sarapan') . "\n";
+                            $waText .= "• Jumlah: " . ($order->order_items['room_count'] ?? 1) . " kamar\n";
+                            $waText .= "• Check-in: " . ($order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y') : '-') . "\n";
+                            $waText .= "• Check-out: " . ($order->return_date ? \Carbon\Carbon::parse($order->return_date)->format('d M Y') : '-') . " (" . ($order->total_days ?? 1) . " malam)\n";
+                            $waText .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
+                        }
                     @endphp
 
                     @if($wa)

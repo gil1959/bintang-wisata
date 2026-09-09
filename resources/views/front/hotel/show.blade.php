@@ -4,16 +4,16 @@
     @php
         $pkgOrArticle = isset($article) ? $article : ($package ?? null);
         $mTitle = $pkgOrArticle->seo_title ?? $pkgOrArticle->title ?? 'Bintang Wisata Holiday';
-        $mDesc = $pkgOrArticle->seo_description ?? $pkgOrArticle->short_description ?? $pkgOrArticle->excerpt ?? 'Liburan impian jadi nyata dengan pelayanan bintang lima.';
-        $mKey = $pkgOrArticle->seo_keywords ?? 'paket tour, paket wisata, bintang wisata holiday';
-        $mImage = !empty($pkgOrArticle->seo_image_path) ? asset('storage/' . $pkgOrArticle->seo_image_path) : asset('logo-atau-banner.jpg');
+        $mDesc = $pkgOrArticle->seo_description ?? $pkgOrArticle->short_description ?? 'Akomodasi pilihan terbaik dengan pelayanan prima di Bintang Wisata.';
+        $mKey = $pkgOrArticle->seo_keywords ?? 'hotel, vila, cottage, resort, penginapan, bintang wisata';
+        $mImage = !empty($pkgOrArticle->seo_image_path) ? asset('storage/' . $pkgOrArticle->seo_image_path) : (!empty($package->thumbnail_path) ? asset('storage/' . $package->thumbnail_path) : asset('logo-atau-banner.jpg'));
         $sTitle = $pkgOrArticle->social_title ?? $mTitle;
         $sDesc = $pkgOrArticle->social_description ?? $mDesc;
     @endphp
-    <title>{{ $mTitle }} | Bintang Wisata Holiday</title>
+    <title>{{ $mTitle }} | Bintang Wisata</title>
     <meta name="description" content="{{ $mDesc }}">
     <meta name="keywords" content="{{ $mKey }}">
-    <meta name="author" content="Bintang Wisata Holiday">
+    <meta name="author" content="Bintang Wisata">
     <meta name="robots" content="index, follow">
 
     <meta property="og:type" content="article">
@@ -29,447 +29,728 @@
     <meta property="twitter:image" content="{{ $mImage }}">
 @endsection
 
-
 @php
-$isEn = app()->getLocale() === 'en';
+    $isEn = app()->getLocale() === 'en';
+    $title = $isEn ? ($package->title_en ?: $package->title) : $package->title;
+    $address = $isEn ? ($package->address_en ?: $package->address) : $package->address;
+    $note = $isEn ? ($package->note_en ?: $package->note) : $package->note;
+    $descHtml = $isEn ? ($package->long_description_en ?: $package->long_description) : $package->long_description;
 
-$title = $isEn ? ($package->title_en ?: $package->title) : $package->title;
+    // Photos Collection
+    $allPhotos = [];
+    if (!empty($package->thumbnail_path)) {
+        $allPhotos[] = [
+            'src' => asset('storage/' . $package->thumbnail_path),
+            'alt' => $title . ' - Cover Utama',
+        ];
+    }
+    if ($package->photos && $package->photos->count() > 0) {
+        foreach ($package->photos as $idx => $photo) {
+            $allPhotos[] = [
+                'src' => asset('storage/' . $photo->file_path),
+                'alt' => $title . ' - Galeri ' . ($idx + 1),
+            ];
+        }
+    }
+    // Fallback if no photo uploaded
+    if (empty($allPhotos)) {
+        $allPhotos[] = [
+            'src' => 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
+            'alt' => $title,
+        ];
+    }
 
-$seoTitle = $isEn
-? ($package->seo_title_en ?: $package->seo_title ?: $title)
-: ($package->seo_title ?: $title);
+    // Nearby places
+    $defaultNearby = [
+        ['name' => 'Taman Wisata & Rekreasi', 'distance' => '1.2 km'],
+        ['name' => 'Pusat Kuliner & Belanja', 'distance' => '850 m'],
+        ['name' => 'Spot Panorama Alam', 'distance' => '2.5 km'],
+    ];
+    $nearbyList = !empty($package->nearby_places) && is_array($package->nearby_places) && count($package->nearby_places) > 0 
+        ? $package->nearby_places 
+        : $defaultNearby;
 
-$descHtml = $isEn
-? ($package->long_description_en ?: $package->long_description)
-: $package->long_description;
+    // Facilities
+    $defaultFacilities = ['WiFi Gratis', 'Parkir Luas', 'Kolam Renang', 'Resepsionis 24 Jam'];
+    $facilityList = !empty($package->facilities) && is_array($package->facilities) && count($package->facilities) > 0 
+        ? $package->facilities 
+        : $defaultFacilities;
 
+    // Keunggulan
+    $defaultKeunggulan = [
+        'Harga terbaik dan transparan di kelasnya',
+        'Kualitas layanan dan kebersihan terjamin',
+        'Lokasi strategis dekat berbagai tempat wisata'
+    ];
+    $keunggulanList = !empty($package->keunggulan) && is_array($package->keunggulan) && count($package->keunggulan) > 0 
+        ? $package->keunggulan 
+        : $defaultKeunggulan;
 
-$metaDesc = $isEn
-? ($package->seo_description_en ?: $package->seo_description ?: \Illuminate\Support\Str::limit(trim(strip_tags($descHtml ?? '')), 160))
-: ($package->seo_description ?: \Illuminate\Support\Str::limit(trim(strip_tags($descHtml ?? '')), 160));
+    $addressText = !empty($address) ? $address : 'Alamat akomodasi dapat dilihat pada rincian peta.';
+    $mapsUrl = !empty($package->maps_url) ? $package->maps_url : ('https://maps.google.com/?q=' . urlencode($title . ' ' . $addressText));
+    $noteText = !empty($note) ? $note : 'Untuk Informasi ketersediaan anda bisa menghubungi kontak Bintang Wisata.';
 
-$metaKeys = $isEn
-? ($package->seo_keywords_en ?: ($package->seo_keywords ?? ''))
-: ($package->seo_keywords ?? '');
+    // Real Customer Reviews
+    $approvedReviews = $package->reviews ? $package->reviews->where('status', 'approved') : collect();
+    $reviewCount = $approvedReviews->count();
+    $avgRating = $reviewCount > 0 ? round((float)$approvedReviews->avg('rating'), 1) : null;
+    $ratingScore10 = $avgRating ? number_format($avgRating > 5 ? $avgRating : ($avgRating * 2), 1, ',', '.') : '-';
+    
+    $ratingLabel = 'Mengesankan';
+    if ($avgRating) {
+        $r10 = $avgRating > 5 ? $avgRating : ($avgRating * 2);
+        if ($r10 >= 9.0) $ratingLabel = 'Luar Biasa';
+        elseif ($r10 >= 8.0) $ratingLabel = 'Mengesankan';
+        elseif ($r10 >= 7.0) $ratingLabel = 'Sangat Bagus';
+        else $ratingLabel = 'Bagus';
+    }
 
-$features = $isEn ? ($package->features_en ?: $package->features) : $package->features;
+    $csPhone = preg_replace('/[^0-9]/', '', $package->cs_contact ?: '628123456789');
+    $csWaUrl = "https://wa.me/{$csPhone}?text=" . urlencode("Halo CS Bintang Wisata, saya ingin informasi reservasi paket: {$title}");
 
-$galleryImages = [];
-
-if ($package->thumbnail_path) {
-$galleryImages[] = [
-'src' => asset('storage/' . $package->thumbnail_path),
-'alt' => $title,
-'is_thumb' => true,
-];
-}
-
-$i18n = [
-'per_day' => $isEn ? '/ Night' : '/ Malam',
-'package_features' => $isEn ? 'Package Features' : 'Fitur Paket',
-'no_features' => $isEn ? 'No features added yet.' : 'Belum ada fitur yang ditambahkan.',
-'book_car' => $isEn ? 'Hotel Booking' : 'Booking Hotel',
-'pickup_date' => $isEn ? 'Check-in Date' : 'Tanggal Check-in',
-'return_date' => $isEn ? 'Check-out Date' : 'Tanggal Check-out',
-'total_days' => $isEn ? 'Total Nights' : 'Total Malam',
-'total_price' => $isEn ? 'Total Price' : 'Total Harga',
-'book_now' => $isEn ? 'Book Now' : 'Booking Sekarang',
-'description' => $isEn ? 'Description' : 'Deskripsi',
-'high_season_notice' => $isEn
-? 'For high season, you must chat admin before booking.'
-: 'Untuk high season Wajib Chat admin sebelum Booking',
-];
+    $rooms = $package->rooms ?? collect();
+    $totalRoomsAvailable = $rooms->sum('available_rooms');
 @endphp
 
-@section('title', $seoTitle)
-@section('meta_description', $metaDesc)
-@section('meta_keywords', $metaKeys)
-
-
-
 @section('content')
-<section class="max-w-7xl mx-auto px-4 py-10">
+<div class="max-w-[1240px] mx-auto px-4 py-6 space-y-6 font-sans">
 
-  <div class="grid gap-10 lg:grid-cols-3">
+    {{-- BREADCRUMB --}}
+    <nav class="flex items-center gap-2 text-xs text-slate-500">
+        <a href="{{ route('home') }}" class="hover:text-sky-600 transition">Beranda</a>
+        <span>/</span>
+        <a href="{{ route('hotel.index') }}" class="hover:text-sky-600 transition">Hotel & Vila</a>
+        <span>/</span>
+        <span class="text-slate-800 font-semibold truncate max-w-[280px]">{{ $title }}</span>
+    </nav>
 
-    {{-- LEFT CONTENT --}}
-    <div class="lg:col-span-2 space-y-8">
-
-      {{-- IMAGE --}}
-      <div class="rounded-3xl overflow-hidden shadow-sm border border-slate-200 bg-white">
-        @if($package->thumbnail_path)
-        <button type="button" class="block w-full" data-lb-open="0">
-          <img
-            src="{{ asset('storage/' . $package->thumbnail_path) }}"
-            alt="{{ $title }}"
-            class="w-full h-[360px] object-cover cursor-zoom-in">
-        </button>
+    {{-- BEGIN: HERO PHOTO GALLERY (5 SLOTS OR ADAPTIVE) --}}
+    <section class="bg-white rounded-2xl p-2.5 sm:p-4 shadow-sm border border-slate-100 overflow-hidden">
+        @if(count($allPhotos) == 1)
+            {{-- Single Photo --}}
+            <div class="w-full h-[320px] md:h-[400px] rounded-xl overflow-hidden cursor-pointer group" onclick="openLightbox(0)">
+                <img alt="{{ $allPhotos[0]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[0]['src'] }}">
+            </div>
+        @elseif(count($allPhotos) <= 3)
+            {{-- 2 or 3 Photos --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 h-[320px] md:h-[380px] rounded-xl overflow-hidden">
+                <div class="md:col-span-2 h-full cursor-pointer overflow-hidden group" onclick="openLightbox(0)">
+                    <img alt="{{ $allPhotos[0]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[0]['src'] }}">
+                </div>
+                <div class="grid {{ count($allPhotos) == 3 ? 'grid-rows-2' : 'grid-rows-1' }} gap-2 h-full">
+                    <div class="overflow-hidden cursor-pointer group h-full" onclick="openLightbox(1)">
+                        <img alt="{{ $allPhotos[1]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[1]['src'] }}">
+                    </div>
+                    @if(isset($allPhotos[2]))
+                    <div class="overflow-hidden cursor-pointer group h-full" onclick="openLightbox(2)">
+                        <img alt="{{ $allPhotos[2]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[2]['src'] }}">
+                    </div>
+                    @endif
+                </div>
+            </div>
         @else
-        <img
-          src="https://via.placeholder.com/1200x600?text=Hotel"
-          alt="{{ $title }}"
-          class="w-full h-[360px] object-cover">
+            {{-- 4 or 5+ Photos: Full Stitch Grid --}}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 h-[320px] md:h-[390px] rounded-xl overflow-hidden">
+                {{-- Big Left Image --}}
+                <div class="md:col-span-2 h-full relative group cursor-pointer overflow-hidden" onclick="openLightbox(0)">
+                    <img alt="{{ $allPhotos[0]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[0]['src'] }}">
+                </div>
+
+                {{-- Middle Column: 2 Stacked Images --}}
+                <div class="grid grid-rows-2 gap-2 h-full">
+                    <div class="overflow-hidden cursor-pointer group" onclick="openLightbox(1)">
+                        <img alt="{{ $allPhotos[1]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[1]['src'] }}">
+                    </div>
+                    <div class="overflow-hidden cursor-pointer group" onclick="openLightbox(2)">
+                        <img alt="{{ $allPhotos[2]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[2]['src'] }}">
+                    </div>
+                </div>
+
+                {{-- Right Column: 2 Stacked Images with Overlay on the bottom one --}}
+                <div class="grid grid-rows-2 gap-2 h-full">
+                    <div class="overflow-hidden cursor-pointer group" onclick="openLightbox(3)">
+                        <img alt="{{ $allPhotos[3]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="{{ $allPhotos[3]['src'] }}">
+                    </div>
+                    @php $lastIdx = isset($allPhotos[4]) ? 4 : 3; @endphp
+                    <div class="relative overflow-hidden cursor-pointer group" onclick="openLightbox({{ $lastIdx }})">
+                        <img alt="{{ $allPhotos[$lastIdx]['alt'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 filter brightness-90" src="{{ $allPhotos[$lastIdx]['src'] }}">
+                        <button type="button" class="absolute inset-0 m-auto w-max h-max px-3.5 py-2 bg-black/60 hover:bg-black/75 text-white text-xs font-semibold rounded-lg backdrop-blur-sm flex items-center gap-1.5 transition pointer-events-none">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <span>Lihat Semua Foto ({{ count($allPhotos) }})</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         @endif
-      </div>
 
-      {{-- TITLE + PRICE --}}
-      <div>
-        <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900">
-          {{ $title }}
-        </h1>
+        {{-- HOTEL TITLE & PRICE HEADER --}}
+        <div class="mt-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">{{ $title }}</h1>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class="bg-sky-50 text-sky-600 text-xs font-extrabold px-2.5 py-0.5 rounded border border-sky-200">
+                        {{ $package->property_type ?? 'Hotel' }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-amber-50/80 px-2.5 py-0.5 rounded border border-amber-200">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#fbbf24" stroke="#d97706" stroke-width="1.5">
+                            <path d="M12 2L4 5v6.5C4 16.5 7.5 21.2 12 22.5c4.5-1.3 8-6 8-11V5l-8-3z"/>
+                            <path d="M9 12l2 2 4-4" stroke="#92400e" stroke-width="2"/>
+                        </svg>
+                        Preferred Partner <span class="font-bold text-amber-600">Plus</span>
+                    </span>
+                    @if(!empty($package->label))
+                    <span class="px-2.5 py-0.5 rounded text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {{ $package->label }}
+                    </span>
+                    @endif
+                </div>
+            </div>
 
-        <div class="mt-3 flex items-end gap-2">
-          <div class="text-3xl font-extrabold text-brand-600">
-            Rp{{ number_format($package->price_per_night, 0, ',', '.') }}
-          </div>
-          <span class="text-slate-500 text-sm mb-1">{{ $i18n['per_day'] }}</span>
+            <div class="flex items-center gap-4 self-end md:self-auto">
+                <div class="text-right">
+                    <p class="text-xs text-slate-500 font-medium">Harga/kamar/malam mulai dari</p>
+                    <p class="text-xl md:text-2xl font-black text-orange-600">
+                        Rp {{ number_format($package->price_per_night, 0, ',', '.') }}
+                    </p>
+                </div>
+                <a href="#room-selection"
+                   class="text-white font-extrabold text-sm px-6 py-2.5 rounded-xl shadow-sm transition flex items-center justify-center cursor-pointer hover:opacity-95"
+                   style="background:#0088f8;">
+                    Lihat Kamar
+                </a>
+            </div>
         </div>
-      </div>
 
-      {{-- FEATURES --}}
-      <section class="bg-white border border-slate-200 rounded-2xl p-6">
-        <h2 class="text-lg font-bold text-slate-900 mb-4">{{ $i18n['package_features'] }}</h2>
+        {{-- SCARCITY ALERT BANNER --}}
+        <div class="mt-4 rounded-xl p-3 flex items-center gap-3 text-xs md:text-sm text-slate-800"
+             style="background-color: #def0fc; border: 1px solid #bae6fd;">
+            <div style="width: 36px; height: 36px; background-color: #0353a4; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <svg class="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="13" r="8"/>
+                    <path d="M12 9v4l2.5 1.5"/>
+                    <path d="M12 5V2"/>
+                    <path d="M10 2h4"/>
+                </svg>
+            </div>
+            <div>
+                Jangan lewatkan! <span class="font-extrabold" style="color: #0088f8;">Sisa {{ $totalRoomsAvailable > 0 ? $totalRoomsAvailable : 1 }} kamar</span> untuk harga paling murah.
+            </div>
+        </div>
 
-        @if(!empty($features))
-        <ul class="grid sm:grid-cols-2 gap-3 text-sm">
-          @foreach ($features as $feat)
-          <li class="flex items-center gap-2">
-            @if(!empty($feat['available']))
-            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
-            @else
-            <i data-lucide="x-circle" class="w-4 h-4 text-red-400"></i>
-            @endif
-            <span class="text-slate-700">{{ $feat['name'] ?? '-' }}</span>
-          </li>
-          @endforeach
-        </ul>
-        @else
-        <div class="text-sm text-slate-500">{{ $i18n['no_features'] }}</div>
-        @endif
-      </section>
+        {{-- 3-CARD HIGHLIGHTS GRID --}}
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-5">
 
+            {{-- 1. Rating & Keunggulan Properti --}}
+            <div class="md:col-span-4 bg-gradient-to-br from-sky-50/70 via-white to-white border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl font-black text-sky-600">
+                            {{ $ratingScore10 }}<span class="text-sm font-normal text-slate-400">/10</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 leading-tight">{{ $ratingLabel }}</p>
+                            @if($reviewCount > 0)
+                            <a class="text-xs text-sky-600 hover:underline font-semibold" href="#customer-reviews">
+                                {{ $reviewCount }} ulasan &gt;
+                            </a>
+                            @else
+                            <a class="text-xs text-sky-600 hover:underline font-semibold" href="#customer-reviews">
+                                Belum ada ulasan &gt;
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mt-5 border-t border-slate-100 pt-3">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-900">Keunggulan Properti</span>
+                            <span class="text-[11px] text-sky-600 font-semibold">Terverifikasi</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mb-2 leading-relaxed">
+                            Sebagai Preferred Partner Bintang Wisata selalu menjaga performa terbaik yang secara rutin diverifikasi Bintang Wisata.
+                        </p>
+                        <ul class="space-y-1.5 text-xs text-slate-700">
+                            @foreach($keunggulanList as $kItem)
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="#fbbf24" stroke="#d97706" stroke-width="1.5">
+                                    <path d="M12 2L4 5v6.5C4 16.5 7.5 21.2 12 22.5c4.5-1.3 8-6 8-11V5l-8-3z"/>
+                                </svg>
+                                <span>{{ is_array($kItem) ? ($kItem['text'] ?? '') : $kItem }}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 2. Area Akomodasi Card with Subtle Top-Right Organic Watermark --}}
+            <div class="md:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden">
+                {{-- Subtle Map Watermark --}}
+                <div class="absolute top-0 right-0 w-48 h-full pointer-events-none overflow-hidden opacity-80" aria-hidden="true">
+                    <svg class="w-full h-full object-cover" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 0 C 120 40, 110 80, 135 120 S 185 170, 220 190" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+                        <path d="M135 10 C 160 5, 195 15, 210 35 C 215 50, 200 70, 180 75 C 155 80, 130 55, 130 35 Z" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+                        <path d="M145 90 C 175 85, 210 100, 215 130 C 210 155, 180 165, 155 160 C 130 155, 125 125, 135 100 Z" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+                        <path d="M115 0 C 135 45, 120 85, 145 125 S 195 175, 220 195" stroke="#e2e8f0" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-bold text-slate-900">Area Akomodasi</h3>
+                        <a class="text-[11px] text-sky-600 font-semibold hover:underline inline-flex items-center gap-1" href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer">
+                            Lihat Peta &gt;
+                        </a>
+                    </div>
+                    <div class="flex items-start gap-2 text-xs text-slate-600 mb-3">
+                        <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <p class="line-clamp-2 leading-relaxed">{{ $addressText }}</p>
+                    </div>
+
+                    <div class="inline-block bg-sky-50 text-sky-600 text-[11px] font-semibold px-2 py-0.5 rounded-md mb-3 border border-sky-200">
+                        Dekat tempat rekreasi
+                    </div>
+
+                    <div class="space-y-2 text-xs text-slate-700">
+                        @foreach(array_slice($nearbyList, 0, 3) as $np)
+                        <div class="flex justify-between items-center">
+                            <span class="flex items-center gap-1.5 truncate">
+                                <svg class="w-3 h-3 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                </svg>
+                                <span class="truncate">{{ $np['name'] ?? '-' }}</span>
+                            </span>
+                            <span class="text-slate-400 text-[11px] shrink-0 ml-2">{{ $np['distance'] ?? '' }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- 3. Fasilitas Utama & NOTE Card --}}
+            <div class="md:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-slate-900">Fasilitas Utama</h3>
+                        <span class="text-[11px] text-sky-600 font-semibold">{{ count($facilityList) }} Fasilitas</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-y-2.5 gap-x-2 text-xs text-slate-700">
+                        @foreach(array_slice($facilityList, 0, 6) as $fItem)
+                        @php $fName = is_array($fItem) ? ($fItem['name'] ?? '') : $fItem; @endphp
+                        <div class="flex items-center gap-2 truncate">
+                            <svg class="w-3.5 h-3.5 text-sky-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                            <span class="truncate">{{ $fName }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="mt-5 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] font-extrabold text-slate-800 block">NOTE:</span>
+                    <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{{ $noteText }}</p>
+                    <a href="{{ $csWaUrl }}" target="_blank" rel="noopener noreferrer"
+                       class="text-[11px] font-bold hover:underline block mt-2"
+                       style="color:#0088f8;">
+                        Hubungi Kontak CS &gt;
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {{-- END: HERO GALLERY SECTION --}}
+
+    {{-- BEGIN: PROMO BANNER --}}
+    <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-3.5 flex items-center gap-3 text-xs md:text-sm text-slate-800">
+        <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+        </div>
+        <div>
+            Suka penginapan ini? Dapatkan penawaran terbaik dan potongan harga dengan kode promo saat reservasi!
+        </div>
     </div>
+    {{-- END: PROMO BANNER --}}
 
-    {{-- RIGHT SIDEBAR — BOOKING --}}
-    <aside class="lg:col-span-1">
-      <div
-        id="hotelBookingBox"
-        data-price-per-night="{{ (int) $package->price_per_night }}"
-        class="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-soft p-6">
-
-        <h3 class="text-lg font-extrabold text-slate-900 mb-4">
-          {{ $i18n['book_car'] }}
-        </h3>
-
-        <form id="bookingForm" onsubmit="return false;" class="space-y-4">
-          @csrf
-
-          <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['pickup_date'] }}</label>
-            <input type="date" id="checkin_date"
-              class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['return_date'] }}</label>
-            <input type="date" id="checkout_date"
-              class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
-          </div>
-
-          {{-- SUMMARY --}}
-          <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm">
-            <div class="flex justify-between">
-              <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
-              <strong id="days">0</strong>
-            </div>
-            <div class="flex justify-between mt-2">
-              <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
-              <strong id="total">Rp0</strong>
-            </div>
-          </div>
-          {{-- HIGH SEASON WARNING --}}
-          <div class="mt-3 p-4 bg-red-50 border-l-4 border-red-400 rounded text-xs text-red-800 space-y-1">
-            <p class="font-semibold">
-              {!! $isEn
-              ? 'For <span class="uppercase font-extrabold">high season</span>, you must chat admin before booking.'
-              : 'Untuk <span class="uppercase font-extrabold">high season</span> Wajib Chat admin sebelum Booking.' !!}
+    {{-- BEGIN: ROOM SELECTION SECTION --}}
+    <section class="space-y-4" data-purpose="room-options-catalog" id="room-selection">
+        
+        {{-- Section Header --}}
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+            <h2 class="text-base md:text-lg font-black text-slate-900">
+                Tipe Kamar yang Tersedia di {{ $title }}
+            </h2>
+            <p class="text-xs text-slate-500">
+                Pilih kamar yang sesuai dengan rencana liburan dan kebutuhan menginap Anda.
             </p>
-          </div>
+        </div>
 
-          <button type="button"
-            id="btnBook"
-            disabled
-            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-3 text-sm font-bold text-white hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed transition">
-            <i data-lucide="calendar-check" class="w-4 h-4"></i>
-            {{ $i18n['book_now'] }}
-          </button>
-        </form>
+        {{-- ROOM CARDS REPEATER --}}
+        @forelse($rooms as $room)
+        <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:border-slate-300 transition">
+            {{-- Room Card Title --}}
+            <div class="bg-slate-50/80 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="font-extrabold text-slate-900 text-sm md:text-base">{{ $room->name }}</h3>
+                @if($room->is_ready)
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Tersedia
+                </span>
+                @else
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                    Habis Terjual
+                </span>
+                @endif
+            </div>
 
-      </div>
-    </aside>
+            <div class="grid grid-cols-1 lg:grid-cols-12">
+                {{-- Left: Room Photo & Key Specs --}}
+                <div class="lg:col-span-4 p-5 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="rounded-xl overflow-hidden h-44 w-full relative mb-3 bg-slate-100 border border-slate-200">
+                            @if(!empty($room->photo_path))
+                            <img alt="{{ $room->name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" src="{{ asset('storage/' . $room->photo_path) }}">
+                            @elseif(!empty($package->thumbnail_path))
+                            <img alt="{{ $room->name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" src="{{ asset('storage/' . $package->thumbnail_path) }}">
+                            @else
+                            <div class="w-full h-full flex items-center justify-center text-slate-400">
+                                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/>
+                                    <path d="M3 11h18"/>
+                                </svg>
+                            </div>
+                            @endif
+                        </div>
 
-  </div>
-  {{-- DESKRIPSI --}}
-  @if(!empty($package->long_description))
-  <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="text-lg font-extrabold text-slate-900 mb-4">{{ $i18n['description'] }}</div>
-    <div class="prose max-w-none break-all overflow-hidden">
-      @php
-      $descToRender = html_entity_decode((string)$descHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-      @endphp
-      {!! $descToRender !!}
+                        <div class="space-y-2 text-xs text-slate-700">
+                            @if(!empty($room->room_size))
+                            <p class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 3H3v18h18V3z"/>
+                                    <path d="M9 3v18"/>
+                                    <path d="M15 3v18"/>
+                                    <path d="M3 9h18"/>
+                                    <path d="M3 15h18"/>
+                                </svg>
+                                <span class="font-semibold">{{ $room->room_size }}</span>
+                            </p>
+                            @endif
+
+                            @if(!empty($room->bed_type))
+                            <p class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 4v16"/>
+                                    <path d="M2 8h18a2 2 0 0 1 2 2v10"/>
+                                    <path d="M2 17h20"/>
+                                    <path d="M6 8v9"/>
+                                </svg>
+                                <span>{{ $room->bed_type }}</span>
+                            </p>
+                            @endif
+
+                            <div class="flex items-center gap-4 pt-1 text-slate-600">
+                                @if($room->has_shower)
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <svg class="w-3.5 h-3.5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16v4H4z"/>
+                                        <path d="M10 8v12"/>
+                                    </svg>
+                                    Shower
+                                </span>
+                                @endif
+
+                                @if($room->has_wifi)
+                                <span class="flex items-center gap-1.5 font-medium">
+                                    <svg class="w-3.5 h-3.5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                                        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                                        <line x1="12" y1="20" x2="12.01" y2="20"/>
+                                    </svg>
+                                    Free WiFi
+                                </span>
+                                @endif
+                            </div>
+
+                            @if(!empty($room->description))
+                            <p class="text-[11px] text-slate-500 pt-1 leading-relaxed">{{ $room->description }}</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Room Plan Options Table --}}
+                <div class="lg:col-span-8 overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                <th class="py-3 px-4">Pilihan Paket</th>
+                                <th class="py-3 px-3 text-center w-16">Tamu</th>
+                                <th class="py-3 px-4 text-right">Harga / Malam</th>
+                                <th class="py-3 px-3 text-center w-28">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            {{-- Option 1: Tanpa Sarapan --}}
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="py-3.5 px-4 align-top">
+                                    <p class="font-extrabold text-slate-900 text-xs">Tanpa Sarapan</p>
+                                    @if(!empty($room->bed_type))
+                                    <p class="text-slate-500 mt-1 text-[11px]">{{ $room->bed_type }}</p>
+                                    @endif
+                                    <p class="text-slate-400 mt-1 text-[10px] flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="8" x2="12" y2="12"/>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                        </svg>
+                                        Bisa dijadwalkan ulang
+                                    </p>
+                                </td>
+
+                                <td class="py-3.5 px-3 align-middle text-center text-slate-700">
+                                    <span class="inline-flex items-center gap-1 font-bold">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        {{ $room->max_guests }}
+                                    </span>
+                                </td>
+
+                                <td class="py-3.5 px-4 align-middle text-right">
+                                    <span class="inline-block bg-orange-50 text-orange-600 text-[10px] font-extrabold px-2 py-0.5 rounded mb-1">
+                                        Special for you!
+                                    </span>
+                                    @if(!empty($room->original_price) && $room->original_price > $room->price)
+                                    <p class="line-through text-slate-400 text-[11px]">
+                                        Rp {{ number_format($room->original_price, 0, ',', '.') }}
+                                    </p>
+                                    @endif
+                                    <p class="text-base font-black text-orange-600">
+                                        Rp {{ number_format($room->price, 0, ',', '.') }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-400">Di luar pajak &amp; biaya</p>
+                                </td>
+
+                                <td class="py-3.5 px-3 align-middle text-center">
+                                    @if($room->is_ready)
+                                    <button type="button"
+                                            onclick="window.dispatchEvent(new CustomEvent('open-hotel-booking', { detail: { room_id: {{ $room->id }}, room_name: '{{ addslashes($room->name) }}', with_breakfast: false, price: {{ (float)$room->price }} } }))"
+                                            class="w-full text-white font-extrabold py-2 px-3 rounded-xl text-xs transition shadow-sm hover:opacity-95 cursor-pointer"
+                                            style="background:#0088f8;">
+                                        Pilih
+                                    </button>
+                                    <p class="text-[10px] text-red-500 font-bold mt-1">Sisa {{ $room->available_rooms }} kamar!</p>
+                                    @else
+                                    <button type="button" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-2 px-3 rounded-xl text-xs cursor-not-allowed">
+                                        Habis
+                                    </button>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Option 2: Sarapan untuk 2 / Pax --}}
+                            @if($room->has_breakfast || !empty($room->price_with_breakfast))
+                            @php
+                                $breakfastRate = $room->price_with_breakfast ?: ($room->price + 85000);
+                                $origBreakfastRate = !empty($room->original_price) ? ($room->original_price + 90000) : ($breakfastRate * 1.15);
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="py-3.5 px-4 align-top">
+                                    <div class="inline-flex items-center gap-1 bg-emerald-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full mb-1">
+                                        Kamar dengan sarapan
+                                    </div>
+                                    <p class="font-extrabold text-slate-900 text-xs">Sarapan untuk {{ $room->max_guests }} Orang</p>
+                                    @if(!empty($room->bed_type))
+                                    <p class="text-slate-500 mt-1 text-[11px]">{{ $room->bed_type }}</p>
+                                    @endif
+                                </td>
+
+                                <td class="py-3.5 px-3 align-middle text-center text-slate-700">
+                                    <span class="inline-flex items-center gap-1 font-bold">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        {{ $room->max_guests }}
+                                    </span>
+                                </td>
+
+                                <td class="py-3.5 px-4 align-middle text-right">
+                                    <span class="inline-block bg-orange-50 text-orange-600 text-[10px] font-extrabold px-2 py-0.5 rounded mb-1">
+                                        Special for you!
+                                    </span>
+                                    <p class="line-through text-slate-400 text-[11px]">
+                                        Rp {{ number_format($origBreakfastRate, 0, ',', '.') }}
+                                    </p>
+                                    <p class="text-base font-black text-orange-600">
+                                        Rp {{ number_format($breakfastRate, 0, ',', '.') }}
+                                    </p>
+                                    <p class="text-[10px] text-slate-400">Di luar pajak &amp; biaya</p>
+                                </td>
+
+                                <td class="py-3.5 px-3 align-middle text-center">
+                                    @if($room->is_ready)
+                                    <button type="button"
+                                            onclick="window.dispatchEvent(new CustomEvent('open-hotel-booking', { detail: { room_id: {{ $room->id }}, room_name: '{{ addslashes($room->name) }}', with_breakfast: true, price: {{ (float)$breakfastRate }} } }))"
+                                            class="w-full text-white font-extrabold py-2 px-3 rounded-xl text-xs transition shadow-sm hover:opacity-95 cursor-pointer"
+                                            style="background:#0088f8;">
+                                        Pilih
+                                    </button>
+                                    <p class="text-[10px] text-red-500 font-bold mt-1">Sisa {{ $room->available_rooms }} kamar!</p>
+                                    @else
+                                    <button type="button" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-2 px-3 rounded-xl text-xs cursor-not-allowed">
+                                        Habis
+                                    </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+        @empty
+        {{-- Fallback if no specific rooms added yet --}}
+        <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h3 class="text-base font-extrabold text-slate-900">Standar / Pilihan Properti</h3>
+                    <p class="text-xs text-slate-500">Reservasi langsung kamar utama penginapan ini.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Harga per malam</span>
+                        <span class="text-lg font-black text-orange-600">Rp {{ number_format($package->price_per_night, 0, ',', '.') }}</span>
+                    </div>
+                    <button type="button"
+                            onclick="window.dispatchEvent(new CustomEvent('open-hotel-booking', { detail: { room_id: null, room_name: 'Standar / Pilihan Properti', with_breakfast: false, price: {{ (float)$package->price_per_night }} } }))"
+                            class="px-6 py-2.5 text-white font-extrabold rounded-xl text-xs transition shadow"
+                            style="background:#0088f8;">
+                        Pilih &amp; Reservasi
+                    </button>
+                </div>
+            </div>
+        </article>
+        @endforelse
+
+    </section>
+    {{-- END: ROOM SELECTION SECTION --}}
+
+    {{-- BEGIN: DESKRIPSI LENGKAP --}}
+    @if(!empty($descHtml))
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Deskripsi Properti
+        </h3>
+        <div class="prose max-w-none text-slate-700 text-xs md:text-sm leading-relaxed overflow-hidden">
+            {!! html_entity_decode((string)$descHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8') !!}
+        </div>
+    </section>
+    @endif
+    {{-- END: DESKRIPSI LENGKAP --}}
+
+    {{-- BEGIN: CUSTOMER REVIEWS --}}
+    <div id="customer-reviews">
+        @include('front.partials.reviews', ['item' => $package, 'type' => 'hotel'])
     </div>
+    {{-- END: CUSTOMER REVIEWS --}}
 
-  </div>
-  @endif
+</div>
 
-  {{-- REVIEWS --}}
-  <div class="mt-14">
-    @include('front.partials.reviews', ['item' => $package, 'type' => 'hotel'])
-  </div>
-
-</section>
-
-{{-- Popup booking modern --}}
+{{-- MODAL POPUP RESERVATION --}}
 @include('front.hotel.partials.booking-popup', ['package' => $package])
 
-{{-- HOTEL LIGHTBOX --}}
-<div id="rentLb" class="fixed inset-0 z-[9999] hidden" aria-modal="true" role="dialog">
-  <div id="rentLbBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+{{-- LIGHTBOX MODAL --}}
+<div id="hotelLightbox" class="fixed inset-0 z-[99999] hidden" aria-modal="true" role="dialog">
+    <div id="hotelLbBackdrop" class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeLightbox()"></div>
 
-  <div class="absolute top-0 left-0 right-0 z-10">
-    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-          <svg class="w-5 h-5 text-white/85" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <path d="M3 16l5-5 4 4 3-3 6 6"></path>
-            <path d="M14 7h.01"></path>
-          </svg>
+    <div class="absolute top-0 left-0 right-0 z-10 px-4 py-3 flex items-center justify-between bg-black/40">
+        <div class="text-white text-xs sm:text-sm font-bold truncate max-w-[70%]">
+            <span id="lbCounter" class="mr-2 text-sky-400"></span>
+            <span id="lbTitle" class="text-white/80"></span>
         </div>
-        <div class="text-white/90 text-sm">
-          <span id="rentLbCounter" class="font-semibold"></span>
-          <span id="rentLbCaption" class="ml-2 text-white/70"></span>
-        </div>
-      </div>
-
-      <button id="rentLbClose" type="button"
-        class="w-10 h-10 rounded-full bg-white/10 border border-white/15 text-white/90 hover:bg-white/15 flex items-center justify-center">
-        <span class="text-2xl leading-none">×</span>
-      </button>
+        <button type="button" onclick="closeLightbox()" class="text-white/80 hover:text-white p-2 text-xl font-black transition">
+            ✕
+        </button>
     </div>
-  </div>
 
-  <div class="absolute inset-0 flex items-center justify-center px-4">
-    <div class="relative w-full max-w-5xl">
-      <div id="rentLbLoading" class="absolute inset-0 hidden items-center justify-center">
-        <div class="w-12 h-12 rounded-full border-4 border-white/30 border-t-white/90 animate-spin"></div>
-      </div>
-
-      <img id="rentLbMain"
-        class="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl select-none"
-        alt="Preview">
-
-      <button id="rentLbPrev" type="button"
-        class="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white/90 hover:bg-white/15 flex items-center justify-center">
-        ‹
-      </button>
-
-      <button id="rentLbNext" type="button"
-        class="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white/90 hover:bg-white/15 flex items-center justify-center">
-        ›
-      </button>
-
-      <div id="rentLbThumbs" class="mt-4 flex gap-2 overflow-x-auto"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 z-0">
+        <img id="lbMainImage" src="" alt="Preview" class="max-h-[85vh] max-w-[92vw] object-contain rounded-xl shadow-2xl transition duration-300">
     </div>
-  </div>
+
+    {{-- Lightbox Arrows --}}
+    <button type="button" onclick="prevLightbox()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button type="button" onclick="nextLightbox()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
 </div>
 
 <script>
-  (function() {
-    const gallery = @json($galleryImages);
+    const hotelPhotos = @json($allPhotos);
+    let curLbIdx = 0;
 
-    const modal = document.getElementById('rentLb');
-    const backdrop = document.getElementById('rentLbBackdrop');
-    const btnClose = document.getElementById('rentLbClose');
-    const btnPrev = document.getElementById('rentLbPrev');
-    const btnNext = document.getElementById('rentLbNext');
-    const mainImg = document.getElementById('rentLbMain');
-    const thumbs = document.getElementById('rentLbThumbs');
-    const counter = document.getElementById('rentLbCounter');
-    const caption = document.getElementById('rentLbCaption');
-    const loading = document.getElementById('rentLbLoading');
-
-    if (!modal || !mainImg || !Array.isArray(gallery) || gallery.length === 0) return;
-
-    let index = 0;
-
-    function show() {
-      modal.classList.remove('hidden');
-      document.body.classList.add('overflow-hidden');
+    function openLightbox(idx) {
+        if (!hotelPhotos || hotelPhotos.length === 0) return;
+        curLbIdx = Math.max(0, Math.min(idx, hotelPhotos.length - 1));
+        renderLightbox();
+        document.getElementById('hotelLightbox').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
 
-    function hide() {
-      modal.classList.add('hidden');
-      document.body.classList.remove('overflow-hidden');
+    function closeLightbox() {
+        document.getElementById('hotelLightbox').classList.add('hidden');
+        document.body.style.overflow = '';
     }
 
-    function setCounter() {
-      if (!counter) return;
-      counter.textContent = `${index + 1} / ${gallery.length}`;
-      const cap = gallery[index]?.alt || '';
-      if (caption) {
-        caption.textContent = cap;
-        caption.classList.toggle('hidden', !cap);
-      }
+    function renderLightbox() {
+        const photo = hotelPhotos[curLbIdx];
+        if (!photo) return;
+        document.getElementById('lbMainImage').src = photo.src;
+        document.getElementById('lbTitle').textContent = photo.alt || 'Foto Penginapan';
+        document.getElementById('lbCounter').textContent = `${curLbIdx + 1} / ${hotelPhotos.length}`;
     }
 
-    function setActiveThumb() {
-      if (!thumbs) return;
-      thumbs.querySelectorAll('img[data-thumb]').forEach((img) => {
-        const i = parseInt(img.getAttribute('data-thumb'), 10);
-        img.classList.toggle('ring-2', i === index);
-        img.classList.toggle('ring-white/70', i === index);
-        img.classList.toggle('opacity-70', i !== index);
-      });
+    function prevLightbox() {
+        if (curLbIdx > 0) curLbIdx--;
+        else curLbIdx = hotelPhotos.length - 1;
+        renderLightbox();
     }
 
-    function renderThumbs() {
-      if (!thumbs) return;
-      thumbs.innerHTML = '';
-
-      gallery.forEach((g, i) => {
-        const img = document.createElement('img');
-        img.src = g.src;
-        img.alt = g.alt || 'thumb';
-        img.setAttribute('data-thumb', String(i));
-        img.className = 'h-16 w-24 object-cover rounded-lg cursor-pointer ring-offset-2 ring-offset-black/70';
-        img.addEventListener('click', () => open(i));
-        thumbs.appendChild(img);
-      });
+    function nextLightbox() {
+        if (curLbIdx < hotelPhotos.length - 1) curLbIdx++;
+        else curLbIdx = 0;
+        renderLightbox();
     }
 
-    function open(i) {
-      if (!gallery.length) return;
-
-      index = Math.max(0, Math.min(i, gallery.length - 1));
-
-      if (loading) {
-        loading.classList.remove('hidden');
-        loading.classList.add('flex');
-      }
-
-      const src = gallery[index]?.src;
-      const alt = gallery[index]?.alt || '';
-
-      const img = new Image();
-      img.onload = () => {
-        mainImg.src = src;
-        mainImg.alt = alt;
-        if (loading) {
-          loading.classList.add('hidden');
-          loading.classList.remove('flex');
+    document.addEventListener('keydown', function(e) {
+        const lb = document.getElementById('hotelLightbox');
+        if (lb && !lb.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightbox();
+            if (e.key === 'ArrowRight') nextLightbox();
         }
-        setCounter();
-        setActiveThumb();
-        show();
-      };
-      img.onerror = () => {
-        if (loading) {
-          loading.classList.add('hidden');
-          loading.classList.remove('flex');
-        }
-      };
-      img.src = src;
-    }
-
-    function next() {
-      open(index + 1);
-    }
-
-    function prev() {
-      open(index - 1);
-    }
-
-    renderThumbs();
-
-    document.querySelectorAll('[data-lb-open]').forEach(el => {
-      el.addEventListener('click', () => {
-        const i = parseInt(el.getAttribute('data-lb-open'), 10);
-        open(Number.isFinite(i) ? i : 0);
-      });
     });
-
-    btnClose?.addEventListener('click', hide);
-    backdrop?.addEventListener('click', hide);
-    btnNext?.addEventListener('click', next);
-    btnPrev?.addEventListener('click', prev);
-
-    window.addEventListener('keydown', (e) => {
-      if (modal.classList.contains('hidden')) return;
-      if (e.key === 'Escape') hide();
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
-    });
-  })();
 </script>
-
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const checkin = document.getElementById('checkin_date');
-    const checkout = document.getElementById('checkout_date');
-    const daysEl = document.getElementById('days');
-    const totalEl = document.getElementById('total');
-    const btnBook = document.getElementById('btnBook');
-    const box = document.getElementById('hotelBookingBox');
-    const pricePerNight = box ? parseInt(box.dataset.pricePerNight || '0', 10) : 0;
-
-    if (!checkin || !checkout || !daysEl || !totalEl || !btnBook) return;
-
-    function recalc() {
-      if (!checkin.value || !checkout.value) {
-        daysEl.textContent = '0';
-        totalEl.textContent = 'Rp0';
-        btnBook.disabled = true;
-        return;
-      }
-
-      const start = new Date(checkin.value);
-      const end = new Date(checkout.value);
-
-      if (end <= start) {
-        daysEl.textContent = '0';
-        totalEl.textContent = 'Rp0';
-        btnBook.disabled = true;
-        return;
-      }
-
-      const diffNights = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-      daysEl.textContent = diffNights;
-
-      const total = diffNights * pricePerNight;
-      totalEl.textContent = 'Rp' + total.toLocaleString('id-ID');
-
-      btnBook.disabled = false;
-    }
-
-    checkin.addEventListener('change', recalc);
-    checkout.addEventListener('change', recalc);
-
-    recalc();
-
-    btnBook.addEventListener('click', function() {
-      window.dispatchEvent(
-        new CustomEvent('open-hotel-booking', {
-          detail: {
-            checkin_date: checkin.value,
-            checkout_date: checkout.value
-          },
-        })
-      );
-    });
-  });
-</script>
-
 @endsection
