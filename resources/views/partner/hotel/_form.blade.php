@@ -113,7 +113,7 @@
                         <div class="relative group rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100">
                             <img src="{{ asset('storage/' . $photo->file_path) }}" class="w-full h-full object-cover" alt="Galeri">
                             <button type="button"
-                                onclick="if(confirm('Hapus foto galeri ini?')) { document.getElementById('delete-photo-{{ $photo->id }}').submit(); }"
+                                onclick="window.__bwDeletePhoto('{{ route('partner.hotel-packages.delete-photo', $photo->id) }}')"
                                 class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded p-1 shadow transition opacity-80 hover:opacity-100"
                                 title="Hapus foto ini">
                                 <i data-lucide="trash-2" class="w-3 h-3"></i>
@@ -613,13 +613,3 @@
     </div>
 
 </div>
-
-{{-- Hidden Delete Forms for Gallery Photos --}}
-@if(isset($package) && $package->photos && $package->photos->count() > 0)
-    @foreach($package->photos as $photo)
-    <form id="delete-photo-{{ $photo->id }}" action="{{ route('partner.hotel-packages.delete-photo', $photo->id) }}" method="POST" class="hidden">
-        @csrf
-        @method('DELETE')
-    </form>
-    @endforeach
-@endif

@@ -230,7 +230,17 @@ class HotelPackageController extends Controller
             'seo_image' => 'nullable|image|max:2048',
         ]);
 
-        if ($data['title'] !== $hotel_package->title) {
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        if (!empty($customSlug) && $customSlug !== $hotel_package->slug) {
+            $slug = $customSlug;
+            $originalSlug = $slug;
+            $counter = 1;
+            while (HotelPackage::where('slug', $slug)->where('id', '!=', $hotel_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } elseif ($data['title'] !== $hotel_package->title) {
             $slug = Str::slug($data['title']);
             $originalSlug = $slug;
             $counter = 1;
@@ -244,6 +254,9 @@ class HotelPackageController extends Controller
         $data['property_type'] = $request->input('property_type', $hotel_package->property_type ?: 'Hotel');
         $data['is_active'] = 0;
         $data['partner_review_status'] = 'pending';
+        $data['partner_review_note'] = null;
+        $data['partner_reviewed_by'] = null;
+        $data['partner_reviewed_at'] = null;
 
         if ($request->hasFile('thumbnail')) {
             if (!empty($hotel_package->thumbnail_path)) {

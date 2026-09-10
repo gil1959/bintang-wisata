@@ -69,17 +69,25 @@
                         </td>
 
                         <td class="px-5 py-4">
-                            @if(!empty($p->is_active))
-                                <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border"
-                                      style="background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.25); color:#065f46;">
-                                    <span class="h-2 w-2 rounded-full" style="background:#10b981;"></span>
-                                    Active
+                            @if($p->partner_review_status === 'pending')
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-amber-50 border-amber-200 text-amber-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                    Menunggu Review
+                                </span>
+                            @elseif($p->partner_review_status === 'approved' && $p->is_active)
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-emerald-50 border-emerald-200 text-emerald-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    Aktif Disetujui
+                                </span>
+                            @elseif($p->partner_review_status === 'rejected')
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-red-50 border-red-200 text-red-700">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                                    Ditolak
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold border"
-                                      style="background: rgba(148,163,184,0.18); border-color: rgba(148,163,184,0.35); color:#475569;">
-                                    <span class="h-2 w-2 rounded-full" style="background:#94a3b8;"></span>
-                                    Inactive
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-slate-100 border-slate-200 text-slate-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                    Nonaktif
                                 </span>
                             @endif
                         </td>

@@ -205,7 +205,17 @@ class RestoranPackageController extends Controller
             'seo_image' => 'nullable|image|max:2048',
         ]);
 
-        if ($data['title'] !== $restoran_package->title) {
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        if (!empty($customSlug) && $customSlug !== $restoran_package->slug) {
+            $slug = $customSlug;
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RestoranPackage::where('slug', $slug)->where('id', '!=', $restoran_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } elseif ($data['title'] !== $restoran_package->title) {
             $slug = Str::slug($data['title']);
             $originalSlug = $slug;
             $counter = 1;
@@ -275,16 +285,14 @@ class RestoranPackageController extends Controller
             $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
         }
 
-        $restoran_package->update($data);
+        // Set status inactive for admin review on edit
+        $data['is_active'] = 0;
+        $data['partner_review_status'] = 'pending';
+        $data['partner_review_note'] = null;
+        $data['partner_reviewed_by'] = null;
+        $data['partner_reviewed_at'] = null;
 
-        // Reset partner review status when edited by partner
-        $restoran_package->update([
-            'is_active'             => 0,
-            'partner_review_status' => 'pending',
-            'partner_review_note'   => null,
-            'partner_reviewed_by'   => null,
-            'partner_reviewed_at'   => null,
-        ]);
+        $restoran_package->update($data);
 
         // Multiple gallery photos (add to existing)
         if ($request->hasFile('gallery')) {
