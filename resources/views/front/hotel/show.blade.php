@@ -418,11 +418,84 @@
                 {{-- Left: Room Photo & Key Specs --}}
                 <div class="lg:col-span-4 p-5 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col justify-between">
                     <div>
-                        <div class="rounded-xl overflow-hidden h-44 w-full relative mb-3 bg-slate-100 border border-slate-200">
-                            @if(!empty($room->photo_path))
-                            <img alt="{{ $room->name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" src="{{ asset('storage/' . $room->photo_path) }}">
-                            @elseif(!empty($package->thumbnail_path))
-                            <img alt="{{ $room->name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" src="{{ asset('storage/' . $package->thumbnail_path) }}">
+                        @php
+                            $roomPhotos = $room->all_photos;
+                            $roomPhotosFormatted = array_map(function($path) use ($room) {
+                                return [
+                                    'src' => asset('storage/' . $path),
+                                    'alt' => $room->name
+                                ];
+                            }, $roomPhotos);
+                            if (empty($roomPhotosFormatted) && !empty($package->thumbnail_path)) {
+                                $roomPhotosFormatted[] = [
+                                    'src' => asset('storage/' . $package->thumbnail_path),
+                                    'alt' => $room->name
+                                ];
+                            }
+                        @endphp
+                        <div class="rounded-xl overflow-hidden h-48 w-full relative mb-3 bg-slate-100 border border-slate-200 group">
+                            @if(count($roomPhotosFormatted) > 0)
+                            <div x-data="{
+                                active: 0,
+                                photos: {{ json_encode($roomPhotosFormatted) }},
+                                timer: null,
+                                startAuto() {
+                                    if (this.photos.length > 1) {
+                                        this.timer = setInterval(() => {
+                                            this.active = (this.active + 1) % this.photos.length;
+                                        }, 3500);
+                                    }
+                                },
+                                stopAuto() {
+                                    if (this.timer) clearInterval(this.timer);
+                                }
+                            }"
+                            x-init="startAuto()"
+                            @mouseenter="stopAuto()"
+                            @mouseleave="startAuto()"
+                            class="relative w-full h-full">
+                                {{-- Slides --}}
+                                <template x-for="(photo, pIdx) in photos" :key="pIdx">
+                                    <img :src="photo.src" 
+                                         :alt="photo.alt" 
+                                         x-show="active === pIdx"
+                                         x-transition:enter="transition ease-out duration-300"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         class="w-full h-full object-cover cursor-pointer"
+                                         @click="openLightbox(active, photos)">
+                                </template>
+
+                                {{-- Click to preview hover overlay --}}
+                                <button type="button" 
+                                        @click="openLightbox(active, photos)"
+                                        title="Klik untuk melihat foto lebih besar"
+                                        class="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer">
+                                    <span class="bg-black/60 backdrop-blur-xs text-white text-[10px] px-3 py-1 rounded-full flex items-center gap-1.5 font-semibold shadow">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg> Preview Foto
+                                    </span>
+                                </button>
+
+                                @if(count($roomPhotosFormatted) > 1)
+                                    {{-- Arrow Controls --}}
+                                    <button type="button" 
+                                            @click.stop="active = (active === 0 ? photos.length - 1 : active - 1)" 
+                                            class="absolute left-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px] cursor-pointer">
+                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                    </button>
+                                    <button type="button" 
+                                            @click.stop="active = (active + 1) % photos.length" 
+                                            class="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px] cursor-pointer">
+                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </button>
+
+                                    {{-- Photo Count Pill --}}
+                                    <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5 pointer-events-none">
+                                        <svg class="w-3 h-3 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                        <span x-text="(active + 1) + '/' + photos.length"></span>
+                                    </div>
+                                @endif
+                            </div>
                             @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400">
                                 <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -484,7 +557,10 @@
                             </div>
 
                             @if(!empty($room->description))
-                            <p class="text-[11px] text-slate-500 pt-1 leading-relaxed">{{ $room->description }}</p>
+                            <div class="pt-2.5 border-t border-slate-100 mt-2">
+                                <span class="font-bold text-slate-700 block text-[10px] uppercase tracking-wider text-slate-400 mb-1">Deskripsi Kamar:</span>
+                                <p class="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">{{ $room->description }}</p>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -542,6 +618,12 @@
                                         Rp {{ number_format($room->price, 0, ',', '.') }}
                                     </p>
                                     <p class="text-[10px] text-slate-400">Di luar pajak &amp; biaya</p>
+                                    @if(!empty($room->description))
+                                    <div class="mt-2 text-left bg-slate-50/90 p-2 rounded-lg border border-slate-100 text-[11px] text-slate-600 font-normal leading-relaxed">
+                                        <span class="font-bold text-slate-700 block text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">Deskripsi:</span>
+                                        {{ $room->description }}
+                                    </div>
+                                    @endif
                                 </td>
 
                                 <td class="py-3.5 px-3 align-middle text-center">
@@ -599,6 +681,12 @@
                                         Rp {{ number_format($breakfastRate, 0, ',', '.') }}
                                     </p>
                                     <p class="text-[10px] text-slate-400">Di luar pajak &amp; biaya</p>
+                                    @if(!empty($room->description))
+                                    <div class="mt-2 text-left bg-slate-50/90 p-2 rounded-lg border border-slate-100 text-[11px] text-slate-600 font-normal leading-relaxed">
+                                        <span class="font-bold text-slate-700 block text-[10px] uppercase tracking-wider text-slate-400 mb-0.5">Deskripsi:</span>
+                                        {{ $room->description }}
+                                    </div>
+                                    @endif
                                 </td>
 
                                 <td class="py-3.5 px-3 align-middle text-center">
@@ -699,21 +787,27 @@
     </div>
 
     {{-- Lightbox Arrows --}}
-    <button type="button" onclick="prevLightbox()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition">
+    <button id="lbPrevBtn" type="button" onclick="prevLightbox()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition cursor-pointer">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <button type="button" onclick="nextLightbox()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition">
+    <button id="lbNextBtn" type="button" onclick="nextLightbox()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition cursor-pointer">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
 </div>
 
 <script>
-    const hotelPhotos = @json($allPhotos);
+    const defaultHotelPhotos = @json($allPhotos);
+    let activeHotelPhotos = defaultHotelPhotos;
     let curLbIdx = 0;
 
-    function openLightbox(idx) {
-        if (!hotelPhotos || hotelPhotos.length === 0) return;
-        curLbIdx = Math.max(0, Math.min(idx, hotelPhotos.length - 1));
+    function openLightbox(idx, customPhotos = null) {
+        if (customPhotos && customPhotos.length > 0) {
+            activeHotelPhotos = customPhotos;
+        } else {
+            activeHotelPhotos = defaultHotelPhotos;
+        }
+        if (!activeHotelPhotos || activeHotelPhotos.length === 0) return;
+        curLbIdx = Math.max(0, Math.min(idx, activeHotelPhotos.length - 1));
         renderLightbox();
         document.getElementById('hotelLightbox').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -722,24 +816,39 @@
     function closeLightbox() {
         document.getElementById('hotelLightbox').classList.add('hidden');
         document.body.style.overflow = '';
+        activeHotelPhotos = defaultHotelPhotos;
     }
 
     function renderLightbox() {
-        const photo = hotelPhotos[curLbIdx];
+        const photo = activeHotelPhotos[curLbIdx];
         if (!photo) return;
         document.getElementById('lbMainImage').src = photo.src;
         document.getElementById('lbTitle').textContent = photo.alt || 'Foto Penginapan';
-        document.getElementById('lbCounter').textContent = `${curLbIdx + 1} / ${hotelPhotos.length}`;
+        document.getElementById('lbCounter').textContent = `${curLbIdx + 1} / ${activeHotelPhotos.length}`;
+
+        const prevBtn = document.getElementById('lbPrevBtn');
+        const nextBtn = document.getElementById('lbNextBtn');
+        if (prevBtn && nextBtn) {
+            if (activeHotelPhotos.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
     }
 
     function prevLightbox() {
+        if (activeHotelPhotos.length <= 1) return;
         if (curLbIdx > 0) curLbIdx--;
-        else curLbIdx = hotelPhotos.length - 1;
+        else curLbIdx = activeHotelPhotos.length - 1;
         renderLightbox();
     }
 
     function nextLightbox() {
-        if (curLbIdx < hotelPhotos.length - 1) curLbIdx++;
+        if (activeHotelPhotos.length <= 1) return;
+        if (curLbIdx < activeHotelPhotos.length - 1) curLbIdx++;
         else curLbIdx = 0;
         renderLightbox();
     }

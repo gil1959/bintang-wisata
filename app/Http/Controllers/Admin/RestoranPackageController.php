@@ -138,10 +138,36 @@ class RestoranPackageController extends Controller
                 $menuName = trim($m['name'] ?? '');
                 if (empty($menuName)) continue;
 
-                $menuThumbPath = null;
-                if ($request->hasFile("menus.{$idx}.thumbnail")) {
-                    $menuThumbPath = $request->file("menus.{$idx}.thumbnail")->store('restoran/menus', 'public');
+                $menuPhotos = [];
+                if (!empty($m['existing_photos'])) {
+                    $epList = is_array($m['existing_photos']) ? $m['existing_photos'] : json_decode($m['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $menuPhotos[] = $ep;
+                        }
+                    }
+                } elseif (!empty($m['existing_thumbnail'])) {
+                    $menuPhotos[] = $m['existing_thumbnail'];
                 }
+
+                if ($request->hasFile("menus.{$idx}.photos")) {
+                    $uploaded = $request->file("menus.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($menuPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $menuPhotos[] = $file->store('restoran/menus', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("menus.{$idx}.thumbnail")) {
+                    $file = $request->file("menus.{$idx}.thumbnail");
+                    if ($file && $file->isValid() && count($menuPhotos) < 6) {
+                        $menuPhotos[] = $file->store('restoran/menus', 'public');
+                    }
+                }
+
+                $menuPhotos = array_values(array_slice($menuPhotos, 0, 6));
+                $menuThumbPath = $menuPhotos[0] ?? null;
 
                 $isReady = isset($m['is_ready']) && ($m['is_ready'] == 1 || $m['is_ready'] === '1' || $m['is_ready'] === 'on' || $m['is_ready'] === true);
 
@@ -149,7 +175,9 @@ class RestoranPackageController extends Controller
                     'name' => $menuName,
                     'category' => trim($m['category'] ?? ''),
                     'price' => (float)($m['price'] ?? 0),
+                    'description' => trim($m['description'] ?? '') ?: null,
                     'thumbnail_path' => $menuThumbPath,
+                    'photos' => $menuPhotos,
                     'is_ready' => $isReady,
                     'sort_order' => $idx,
                 ]);
@@ -285,26 +313,55 @@ class RestoranPackageController extends Controller
                 if (empty($menuName)) continue;
 
                 $menuId = !empty($m['id']) ? (int)$m['id'] : null;
-                $thumbPath = $m['existing_thumbnail'] ?? null;
-
-                if ($request->hasFile("menus.{$idx}.thumbnail")) {
-                    if ($menuId) {
-                        $oldMenu = RestoranMenu::find($menuId);
-                        if ($oldMenu && $oldMenu->thumbnail_path) {
-                            Storage::disk('public')->delete($oldMenu->thumbnail_path);
+                $menuPhotos = [];
+                if (!empty($m['existing_photos'])) {
+                    $epList = is_array($m['existing_photos']) ? $m['existing_photos'] : json_decode($m['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $menuPhotos[] = $ep;
                         }
                     }
-                    $thumbPath = $request->file("menus.{$idx}.thumbnail")->store('restoran/menus', 'public');
+                } elseif (!empty($m['existing_thumbnail'])) {
+                    $menuPhotos[] = $m['existing_thumbnail'];
                 }
+
+                if ($request->hasFile("menus.{$idx}.photos")) {
+                    $uploaded = $request->file("menus.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($menuPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $menuPhotos[] = $file->store('restoran/menus', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("menus.{$idx}.thumbnail")) {
+                    $file = $request->file("menus.{$idx}.thumbnail");
+                    if ($file && $file->isValid() && count($menuPhotos) < 6) {
+                        $menuPhotos[] = $file->store('restoran/menus', 'public');
+                    }
+                }
+
+                $menuPhotos = array_values(array_slice($menuPhotos, 0, 6));
+                $thumbPath = $menuPhotos[0] ?? null;
 
                 $isReady = isset($m['is_ready']) && ($m['is_ready'] == 1 || $m['is_ready'] === '1' || $m['is_ready'] === 'on' || $m['is_ready'] === true);
 
                 if ($menuId && $menu = RestoranMenu::where('restoran_package_id', $restoran_package->id)->find($menuId)) {
+                    // Delete removed photo files
+                    $oldPhotos = $menu->all_photos;
+                    foreach ($oldPhotos as $op) {
+                        if (!in_array($op, $menuPhotos) && !empty($op)) {
+                            Storage::disk('public')->delete($op);
+                        }
+                    }
+
                     $menu->update([
                         'name' => $menuName,
                         'category' => trim($m['category'] ?? ''),
                         'price' => (float)($m['price'] ?? 0),
+                        'description' => trim($m['description'] ?? '') ?: null,
                         'thumbnail_path' => $thumbPath,
+                        'photos' => $menuPhotos,
                         'is_ready' => $isReady,
                         'sort_order' => $idx,
                     ]);
@@ -314,7 +371,9 @@ class RestoranPackageController extends Controller
                         'name' => $menuName,
                         'category' => trim($m['category'] ?? ''),
                         'price' => (float)($m['price'] ?? 0),
+                        'description' => trim($m['description'] ?? '') ?: null,
                         'thumbnail_path' => $thumbPath,
+                        'photos' => $menuPhotos,
                         'is_ready' => $isReady,
                         'sort_order' => $idx,
                     ]);
@@ -326,8 +385,10 @@ class RestoranPackageController extends Controller
         // Delete removed menus
         $deletedMenus = $restoran_package->menus()->whereNotIn('id', $existingMenuIds)->get();
         foreach ($deletedMenus as $dm) {
-            if ($dm->thumbnail_path) {
-                Storage::disk('public')->delete($dm->thumbnail_path);
+            foreach ($dm->all_photos as $p) {
+                if (!empty($p)) {
+                    Storage::disk('public')->delete($p);
+                }
             }
             $dm->delete();
         }

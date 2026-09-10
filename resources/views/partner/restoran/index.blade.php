@@ -9,21 +9,19 @@
     {{-- Header --}}
     <div class="flex items-start sm:items-center justify-between gap-3">
         <div>
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Restoran Packages</h2>
-            <p class="mt-1 text-sm text-slate-600">Kelola paket restoran.</p>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Restoran</h2>
+            <p class="mt-1 text-sm text-slate-600">Kelola daftar cabang restoran dan menu.</p>
         </div>
 
         <a href="{{ route('partner.restoran-packages.create') }}"
-           class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+           class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition shadow-sm"
            style="background:#0194F3;"
            onmouseover="this.style.background='#0186DB'"
            onmouseout="this.style.background='#0194F3'">
             <i data-lucide="plus" class="w-4 h-4"></i>
-            Add New
+            + Cabang
         </a>
     </div>
-
-   
 
     {{-- Table --}}
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -32,9 +30,9 @@
                 <thead class="bg-slate-50">
                 <tr class="text-xs font-extrabold text-slate-600">
                     <th class="px-5 py-3 w-[140px]">Thumbnail</th>
-                    <th class="px-5 py-3">Title</th>
+                    <th class="px-5 py-3">Title &amp; Cabang</th>
                     <th class="px-5 py-3 w-[180px]">Kontak CS</th>
-                    <th class="px-5 py-3 w-[120px]">Status</th>
+                    <th class="px-5 py-3 w-[180px]">Status</th>
                     <th class="px-5 py-3 text-right w-[190px]">Actions</th>
                 </tr>
                 </thead>
@@ -70,10 +68,32 @@
 
                         <td class="px-5 py-4">
                             @if($p->partner_review_status === 'pending')
-                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-amber-50 border-amber-200 text-amber-700">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                                    Menunggu Review
-                                </span>
+                                @php
+                                    $adminWaRaw = \App\Models\Setting::getValue('whatsapp_number', \App\Models\Setting::getValue('footer_whatsapp', '628111111752'));
+                                    $adminWa = preg_replace('/\D+/', '', (string)$adminWaRaw);
+                                    if (!empty($adminWa) && str_starts_with($adminWa, '0')) {
+                                        $adminWa = '62' . substr($adminWa, 1);
+                                    }
+                                    $partnerName = auth()->user()->name ?? 'Partner';
+                                    $waText = "Halo Admin Bintang Wisata, saya dari partner {$partnerName}. Saya ingin konfirmasi pendaftaran cabang restoran \"{$p->title}\" (ID: #{$p->id}) yang saat ini berstatus Menunggu Review agar dapat diperiksa dan disetujui (ACC). Terima kasih!";
+                                    $waLink = !empty($adminWa) ? "https://wa.me/{$adminWa}?text=" . urlencode($waText) : null;
+                                @endphp
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-amber-50 border-amber-200 text-amber-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Menunggu Review
+                                    </span>
+                                    @if($waLink)
+                                        <div class="mt-2">
+                                            <a href="{{ $waLink }}" target="_blank" rel="noopener noreferrer"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400 transition shadow-sm"
+                                               title="Hubungi Admin untuk konfirmasi ACC cabang restoran ini">
+                                                <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                <span>Hubungi Admin (ACC)</span>
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
                             @elseif($p->partner_review_status === 'approved' && $p->is_active)
                                 <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border bg-emerald-50 border-emerald-200 text-emerald-700">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -125,8 +145,8 @@
                                  style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
                                  <i data-lucide="utensils" class="w-6 h-6" style="color:#0194F3;"></i>
                             </div>
-                            <div class="mt-3 font-extrabold text-slate-900">Belum ada paket restoran</div>
-                            <div class="mt-1 text-sm text-slate-600">Klik “Add New” untuk mulai bikin paket.</div>
+                            <div class="mt-3 font-extrabold text-slate-900">Belum ada cabang restoran</div>
+                            <div class="mt-1 text-sm text-slate-600">Klik “+ Cabang” untuk mulai menambahkan cabang restoran baru.</div>
                         </td>
                     </tr>
                 @endforelse

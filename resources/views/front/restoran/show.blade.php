@@ -532,42 +532,118 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
         @if($package->menus && $package->menus->count() > 0)
         <!-- Table Column Headers -->
         <div class="hidden md:grid grid-cols-12 text-xs font-semibold text-slate-400 px-4 py-2 border-b border-slate-100">
-            <div class="col-span-2">Thumbnail</div>
-            <div class="col-span-4">Title</div>
-            <div class="col-span-2">Category</div>
-            <div class="col-span-2 text-center">Status</div>
-            <div class="col-span-2 text-right">Actions</div>
+            <div class="col-span-3">Foto Menu</div>
+            <div class="col-span-4">Menu &amp; Deskripsi</div>
+            <div class="col-span-2">Kategori</div>
+            <div class="col-span-1 text-center">Status</div>
+            <div class="col-span-2 text-right">Aksi</div>
         </div>
 
         <div class="space-y-3">
             @foreach($package->menus as $menu)
+            @php
+                $menuPhotos = $menu->all_photos;
+                $menuPhotosFormatted = array_map(function($path) use ($menu) {
+                    return [
+                        'src' => asset('storage/' . $path),
+                        'alt' => $menu->name
+                    ];
+                }, $menuPhotos);
+            @endphp
             <div class="border border-slate-100 rounded-xl p-3 md:p-4 hover:shadow-sm transition bg-white flex flex-col md:grid md:grid-cols-12 items-center gap-4">
-                <div class="col-span-2 w-full md:w-auto">
-                    @if(!empty($menu->thumbnail_path))
-                        <img alt="{{ $menu->name }}" class="w-full md:w-28 h-20 rounded-lg object-cover" src="{{ asset('storage/' . $menu->thumbnail_path) }}">
+                {{-- Foto / Auto Slider --}}
+                <div class="col-span-3 w-full md:w-auto">
+                    @if(count($menuPhotosFormatted) > 0)
+                        <div x-data="{
+                            active: 0,
+                            photos: {{ json_encode($menuPhotosFormatted) }},
+                            timer: null,
+                            startAuto() {
+                                if (this.photos.length > 1) {
+                                    this.timer = setInterval(() => {
+                                        this.active = (this.active + 1) % this.photos.length;
+                                    }, 3500);
+                                }
+                            },
+                            stopAuto() {
+                                if (this.timer) clearInterval(this.timer);
+                            }
+                        }"
+                        x-init="startAuto()"
+                        @mouseenter="stopAuto()"
+                        @mouseleave="startAuto()"
+                        class="relative w-full md:w-36 h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group shadow-xs">
+                            {{-- Slides --}}
+                            <template x-for="(photo, pIdx) in photos" :key="pIdx">
+                                <img :src="photo.src" 
+                                     :alt="photo.alt" 
+                                     x-show="active === pIdx"
+                                     x-transition:enter="transition ease-out duration-300"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     class="w-full h-full object-cover cursor-pointer"
+                                     @click="openLightbox(active, photos)">
+                            </template>
+
+                            {{-- Click to preview hover overlay --}}
+                            <button type="button" 
+                                    @click="openLightbox(active, photos)"
+                                    title="Klik untuk preview foto"
+                                    class="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer">
+                                <span class="bg-black/60 backdrop-blur-xs text-white text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold shadow">
+                                    <i class="fa-solid fa-magnifying-glass-plus text-[10px]"></i> Preview
+                                </span>
+                            </button>
+
+                            @if(count($menuPhotosFormatted) > 1)
+                                {{-- Arrow Controls --}}
+                                <button type="button" 
+                                        @click.stop="active = (active === 0 ? photos.length - 1 : active - 1)" 
+                                        class="absolute left-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[9px] cursor-pointer">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <button type="button" 
+                                        @click.stop="active = (active + 1) % photos.length" 
+                                        class="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[9px] cursor-pointer">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+
+                                {{-- Photo Count Pill --}}
+                                <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 pointer-events-none">
+                                    <i class="fa-solid fa-camera text-[8px]"></i>
+                                    <span x-text="(active + 1) + '/' + photos.length"></span>
+                                </div>
+                            @endif
+                        </div>
                     @else
-                        <div class="w-full md:w-28 h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                        <div class="w-full md:w-36 h-24 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
                             <i class="fa-solid fa-utensils text-slate-300 text-lg"></i>
                         </div>
                     @endif
                 </div>
 
+                {{-- Judul, Harga & Deskripsi --}}
                 <div class="col-span-4 w-full">
                     <h4 class="font-bold text-slate-800 text-sm md:text-base">{{ $menu->name }}</h4>
-                    <p class="text-xs text-slate-500 mt-0.5">Rp. {{ number_format($menu->price, 0, ',', '.') }}/porsi</p>
+                    <p class="text-xs text-sky-600 font-bold mt-0.5">Rp. {{ number_format($menu->price, 0, ',', '.') }} <span class="text-slate-400 font-normal">/ porsi</span></p>
+                    @if(!empty($menu->description))
+                        <p class="text-[11px] text-slate-600 mt-1.5 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100">{{ $menu->description }}</p>
+                    @endif
                 </div>
 
                 <div class="col-span-2 text-slate-500 text-xs hidden md:block">
-                    {{ $menu->category ?: '-' }}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-medium">
+                        <i class="fa-solid fa-tag text-[10px] text-slate-400"></i> {{ $menu->category ?: 'Umum' }}
+                    </span>
                 </div>
 
-                <div class="col-span-2 flex justify-center w-full md:w-auto">
+                <div class="col-span-1 flex justify-center w-full md:w-auto">
                     @if($menu->is_ready)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ready
                     </span>
                     @else
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
                         <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Habis
                     </span>
                     @endif
@@ -575,11 +651,11 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
 
                 <div class="col-span-2 flex justify-end w-full md:w-auto">
                     @if($menu->is_ready)
-                    <button onclick="addRestoMenu({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ (float)$menu->price }}, '{{ $menu->thumbnail_path ? asset('storage/' . $menu->thumbnail_path) : '' }}')" class="w-full md:w-auto px-5 py-1.5 border border-sky-500 bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white rounded-full text-xs font-semibold transition shadow-sm flex items-center justify-center gap-1.5" type="button">
+                    <button onclick="addRestoMenu({{ $menu->id }}, '{{ addslashes($menu->name) }}', {{ (float)$menu->price }}, '{{ count($menuPhotos) > 0 ? asset('storage/' . $menuPhotos[0]) : '' }}')" class="w-full md:w-auto px-5 py-2 border border-sky-500 bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white rounded-xl text-xs font-semibold transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer" type="button">
                         <i class="fa-solid fa-plus text-[10px]"></i> Tambahkan
                     </button>
                     @else
-                    <button disabled class="w-full md:w-auto px-5 py-1.5 border border-slate-200 text-slate-400 bg-slate-50 rounded-full text-xs font-medium cursor-not-allowed" type="button">
+                    <button disabled class="w-full md:w-auto px-5 py-2 border border-slate-200 text-slate-400 bg-slate-50 rounded-xl text-xs font-medium cursor-not-allowed" type="button">
                         Habis
                     </button>
                     @endif
@@ -703,7 +779,6 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
 @include('front.restoran.partials.booking-popup', ['package' => $package])
 
 {{-- LIGHTBOX MODAL --}}
-@if(count($realPhotos) > 0)
 <div id="restoLightbox" class="fixed inset-0 z-[9999] hidden" aria-modal="true" role="dialog">
     <div id="restoLightboxBackdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeLightbox()"></div>
 
@@ -720,7 +795,7 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
             </div>
 
             <button type="button" onclick="closeLightbox()"
-                class="w-10 h-10 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition">
+                class="w-10 h-10 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer">
                 <span class="text-2xl leading-none">&times;</span>
             </button>
         </div>
@@ -732,13 +807,13 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
                 class="w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl select-none mx-auto"
                 alt="Preview">
 
-            <button type="button" onclick="prevLightbox()"
-                class="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition">
+            <button id="restoLightboxPrev" type="button" onclick="prevLightbox()"
+                class="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer">
                 <i class="fa-solid fa-angle-left"></i>
             </button>
 
-            <button type="button" onclick="nextLightbox()"
-                class="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition">
+            <button id="restoLightboxNext" type="button" onclick="nextLightbox()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 border border-white/15 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer">
                 <i class="fa-solid fa-angle-right"></i>
             </button>
 
@@ -746,7 +821,6 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
         </div>
     </div>
 </div>
-@endif
 
 {{-- MODAL FASILITAS LENGKAP --}}
 <div id="modalFasilitas" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4" aria-modal="true" role="dialog">
@@ -836,10 +910,16 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
         if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
     }
 
-    const lightboxImages = @json($realPhotos);
+    const defaultLightboxImages = @json($realPhotos);
+    let lightboxImages = defaultLightboxImages;
     let currentLightboxIdx = 0;
 
-    function openLightbox(idx) {
+    function openLightbox(idx, customImages = null) {
+        if (customImages && customImages.length > 0) {
+            lightboxImages = customImages;
+        } else {
+            lightboxImages = defaultLightboxImages;
+        }
         if (!lightboxImages || lightboxImages.length === 0) return;
         currentLightboxIdx = Math.max(0, Math.min(idx, lightboxImages.length - 1));
         const modal = document.getElementById('restoLightbox');
@@ -855,6 +935,7 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
         if (!modal) return;
         modal.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
+        lightboxImages = defaultLightboxImages;
     }
 
     function renderLightboxImage() {
@@ -866,12 +947,29 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
         main.src = lightboxImages[currentLightboxIdx].src;
         if (counter) counter.textContent = `${currentLightboxIdx + 1} / ${lightboxImages.length}`;
         if (caption) caption.textContent = lightboxImages[currentLightboxIdx].alt || '';
+
+        const prevBtn = document.getElementById('restoLightboxPrev');
+        const nextBtn = document.getElementById('restoLightboxNext');
+        if (prevBtn && nextBtn) {
+            if (lightboxImages.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
     }
 
     function renderLightboxThumbs() {
         const container = document.getElementById('restoLightboxThumbs');
         if (!container) return;
         container.innerHTML = '';
+        if (lightboxImages.length <= 1) {
+            container.classList.add('hidden');
+            return;
+        }
+        container.classList.remove('hidden');
         lightboxImages.forEach((item, idx) => {
             const thumb = document.createElement('img');
             thumb.src = item.src;
@@ -886,6 +984,7 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
     }
 
     function nextLightbox() {
+        if (lightboxImages.length <= 1) return;
         if (currentLightboxIdx < lightboxImages.length - 1) {
             currentLightboxIdx++;
         } else {
@@ -896,6 +995,7 @@ $avg = $reviewCount > 0 ? round((float) $approvedReviews->avg('rating'), 1) : nu
     }
 
     function prevLightbox() {
+        if (lightboxImages.length <= 1) return;
         if (currentLightboxIdx > 0) {
             currentLightboxIdx--;
         } else {

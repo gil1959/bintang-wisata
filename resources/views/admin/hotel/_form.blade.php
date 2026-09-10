@@ -376,9 +376,45 @@
         @php
         $rooms = [];
         if (old('rooms')) {
-            $rooms = old('rooms');
+            foreach (old('rooms') as $r) {
+                $pList = [];
+                if (!empty($r['existing_photos']) && is_array($r['existing_photos'])) {
+                    foreach ($r['existing_photos'] as $p) {
+                        if (!empty($p) && is_string($p)) {
+                            $pList[] = ['path' => $p, 'url' => asset('storage/' . $p)];
+                        }
+                    }
+                } elseif (!empty($r['existing_photo'])) {
+                    $pList[] = ['path' => $r['existing_photo'], 'url' => asset('storage/' . $r['existing_photo'])];
+                }
+                $rooms[] = [
+                    'id' => $r['id'] ?? '',
+                    'name' => $r['name'] ?? '',
+                    'room_size' => $r['room_size'] ?? '',
+                    'bed_type' => $r['bed_type'] ?? '',
+                    'max_guests' => $r['max_guests'] ?? 2,
+                    'has_shower' => isset($r['has_shower']) && $r['has_shower'] == 1 ? 1 : 0,
+                    'has_wifi' => isset($r['has_wifi']) && $r['has_wifi'] == 1 ? 1 : 0,
+                    'has_breakfast' => isset($r['has_breakfast']) && $r['has_breakfast'] == 1 ? 1 : 0,
+                    'price' => (float)($r['price'] ?? 0),
+                    'price_with_breakfast' => !empty($r['price_with_breakfast']) ? (float)$r['price_with_breakfast'] : '',
+                    'original_price' => !empty($r['original_price']) ? (float)$r['original_price'] : '',
+                    'available_rooms' => $r['available_rooms'] ?? 1,
+                    'description' => $r['description'] ?? '',
+                    'is_ready' => isset($r['is_ready']) && $r['is_ready'] == 1 ? 1 : 0,
+                    'photos' => $pList,
+                ];
+            }
         } elseif (isset($package) && $package->rooms && $package->rooms->count() > 0) {
             foreach ($package->rooms as $r) {
+                $pList = [];
+                $all = $r->all_photos;
+                foreach ($all as $p) {
+                    $pList[] = [
+                        'path' => $p,
+                        'url' => asset('storage/' . $p),
+                    ];
+                }
                 $rooms[] = [
                     'id' => $r->id,
                     'name' => $r->name,
@@ -394,8 +430,7 @@
                     'available_rooms' => $r->available_rooms ?? 1,
                     'description' => $r->description ?? '',
                     'is_ready' => $r->is_ready ? 1 : 0,
-                    'photo_url' => $r->photo_path ? asset('storage/' . $r->photo_path) : '',
-                    'existing_photo' => $r->photo_path ?? '',
+                    'photos' => $pList,
                 ];
             }
         }
@@ -419,20 +454,28 @@
                     available_rooms: 3,
                     description: '',
                     is_ready: 1,
-                    photo_url: '',
-                    existing_photo: ''
+                    photos: []
                 });
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
             },
             removeRoom(i) {
                 this.rooms.splice(i, 1);
+            },
+            removePhoto(room, pIdx) {
+                room.photos.splice(pIdx, 1);
+                this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+            },
+            validateFiles(event, room) {
+                const count = (room.photos ? room.photos.length : 0) + event.target.files.length;
+                if (count > 6) {
+                    alert('Maksimal total 6 foto per tipe kamar. Hanya ' + (6 - (room.photos ? room.photos.length : 0)) + ' foto pertama yang akan diproses.');
+                }
             }
         }" class="space-y-4">
 
             <template x-for="(room, idx) in rooms" :key="idx">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm space-y-4 relative">
                     <input type="hidden" :name="`rooms[${idx}][id]`" :value="room.id">
-                    <input type="hidden" :name="`rooms[${idx}][existing_photo]`" :value="room.existing_photo">
 
                     <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                         <div class="flex items-center gap-2">
@@ -456,24 +499,39 @@
                         </div>
                     </div>
 
-                    {{-- Baris 1: Foto Kamar, Nama, Ukuran, Ranjang, Tamu --}}
+                    {{-- Baris 1: Foto Kamar (Up to 6), Nama, Ukuran, Ranjang, Tamu --}}
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         {{-- Foto Kamar --}}
-                        <div class="md:col-span-3">
-                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Foto Kamar</label>
-                            <div class="flex flex-col gap-2">
-                                <template x-if="room.photo_url">
-                                    <div class="w-full h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                                        <img :src="room.photo_url" class="w-full h-full object-cover">
+                        <div class="md:col-span-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-extrabold text-slate-700">Foto Kamar (Maks 6)</label>
+                                <span class="text-[10px] text-sky-600 font-bold" x-text="`${(room.photos ? room.photos.length : 0)}/6 foto`"></span>
+                            </div>
+
+                            {{-- Previews of existing photos --}}
+                            <div class="flex flex-wrap gap-2 mb-2" x-show="room.photos && room.photos.length > 0">
+                                <template x-for="(ph, pIdx) in room.photos" :key="pIdx">
+                                    <div class="relative group w-14 h-14 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 shadow-sm">
+                                        <img :src="ph.url" class="w-full h-full object-cover">
+                                        <input type="hidden" :name="`rooms[${idx}][existing_photos][]`" :value="ph.path">
+                                        <button type="button" @click="removePhoto(room, pIdx)"
+                                            class="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs"
+                                            title="Hapus foto kamar ini">
+                                            <i data-lucide="x" class="w-4 h-4"></i>
+                                        </button>
                                     </div>
                                 </template>
-                                <input type="file" :name="`rooms[${idx}][photo]`" accept="image/*"
-                                    class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
                             </div>
+
+                            <input type="file" :name="`rooms[${idx}][photos][]`" accept="image/*" multiple
+                                @change="validateFiles($event, room)"
+                                :disabled="room.photos && room.photos.length >= 6"
+                                class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 disabled:opacity-50">
+                            <p class="mt-1 text-[11px] text-slate-400">Pilih hingga 6 foto. Akan berputar otomatis (slider) di halaman detail penginapan.</p>
                         </div>
 
                         {{-- Info Kamar --}}
-                        <div class="md:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="sm:col-span-3">
                                 <label class="block text-xs font-extrabold text-slate-700 mb-1">Nama / Judul Kamar <span class="text-red-500">*</span></label>
                                 <input type="text" :name="`rooms[${idx}][name]`" x-model="room.name" required
@@ -509,52 +567,51 @@
                         <label class="inline-flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" :name="`rooms[${idx}][has_shower]`" value="1"
                                 :checked="room.has_shower == 1 || room.has_shower == '1'"
-                                @change="room.has_shower = $event.target.checked ? 1 : 0"
-                                class="rounded border-slate-300 text-sky-500 focus:ring-sky-400 w-4 h-4">
-                            <span>Kamar Mandi / Shower</span>
+                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span>Shower Panas/Dingin</span>
                         </label>
 
                         <label class="inline-flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" :name="`rooms[${idx}][has_wifi]`" value="1"
                                 :checked="room.has_wifi == 1 || room.has_wifi == '1'"
-                                @change="room.has_wifi = $event.target.checked ? 1 : 0"
-                                class="rounded border-slate-300 text-sky-500 focus:ring-sky-400 w-4 h-4">
-                            <span>WiFi Gratis</span>
+                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span>Free WiFi</span>
                         </label>
 
                         <label class="inline-flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" :name="`rooms[${idx}][has_breakfast]`" value="1"
                                 :checked="room.has_breakfast == 1 || room.has_breakfast == '1'"
-                                @change="room.has_breakfast = $event.target.checked ? 1 : 0"
-                                class="rounded border-slate-300 text-sky-500 focus:ring-sky-400 w-4 h-4">
-                            <span>Sedia Opsi Sarapan</span>
+                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                            <span>Termasuk Sarapan</span>
                         </label>
                     </div>
 
-                    {{-- Baris 3: Harga & Stok --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                    {{-- Baris 3: Harga Kamar, Harga Sarapan, Harga Coret, Ketersediaan --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-sky-50/50 p-4 rounded-xl border border-sky-100">
                         <div>
-                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Harga Tanpa Sarapan (Rp) <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-extrabold text-slate-800 mb-1">
+                                Harga Kamar / Malam <span class="text-red-500">*</span>
+                            </label>
                             <input type="number" :name="`rooms[${idx}][price]`" x-model="room.price" min="0" required
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400 font-bold text-sky-700"
+                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400 font-black text-sky-600"
                                 placeholder="450000">
-                            <p class="text-[10px] text-slate-400 mt-0.5">Harga dasar kamar per malam</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Tarif dasar kamar per malam</p>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Harga Sarapan 2 Orang (Rp)</label>
+                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Harga + Sarapan (Opsional)</label>
                             <input type="number" :name="`rooms[${idx}][price_with_breakfast]`" x-model="room.price_with_breakfast" min="0"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400 font-bold text-emerald-700"
+                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
                                 placeholder="550000">
-                            <p class="text-[10px] text-slate-400 mt-0.5">Opsi paket sarapan 2 tamu</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Kosongkan jika tidak ada opsi sarapan</p>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Harga Asli / Coret (Rp)</label>
+                            <label class="block text-xs font-extrabold text-slate-700 mb-1">Harga Coret (Diskon)</label>
                             <input type="number" :name="`rooms[${idx}][original_price]`" x-model="room.original_price" min="0"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400 text-slate-500"
+                                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
                                 placeholder="600000">
-                            <p class="text-[10px] text-slate-400 mt-0.5">Untuk efek diskon coret</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Tampil sebagai harga sebelum diskon</p>
                         </div>
 
                         <div>
@@ -568,10 +625,12 @@
 
                     {{-- Baris 4: Deskripsi Kamar --}}
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1">Catatan / Deskripsi Kamar</label>
-                        <input type="text" :name="`rooms[${idx}][description]`" x-model="room.description"
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1">
+                            Catatan / Deskripsi Kamar <span class="text-[11px] text-slate-400 font-normal">(tampil di bawah harga kamar di frontend)</span>
+                        </label>
+                        <textarea :name="`rooms[${idx}][description]`" x-model="room.description" rows="2"
                             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
-                            placeholder="Contoh: Bebas asap rokok, balkon dengan pemandangan kebun, ketel listrik">
+                            placeholder="Contoh: Bebas asap rokok, balkon dengan pemandangan kebun, ketel listrik, kamar mandi dalam..."></textarea>
                     </div>
                 </div>
             </template>

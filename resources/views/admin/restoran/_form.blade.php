@@ -341,17 +341,45 @@
         @php
         $menus = [];
         if (old('menus')) {
-            $menus = old('menus');
+            foreach (old('menus') as $m) {
+                $pList = [];
+                if (!empty($m['existing_photos']) && is_array($m['existing_photos'])) {
+                    foreach ($m['existing_photos'] as $p) {
+                        if (!empty($p) && is_string($p)) {
+                            $pList[] = ['path' => $p, 'url' => asset('storage/' . $p)];
+                        }
+                    }
+                } elseif (!empty($m['existing_thumbnail'])) {
+                    $pList[] = ['path' => $m['existing_thumbnail'], 'url' => asset('storage/' . $m['existing_thumbnail'])];
+                }
+                $menus[] = [
+                    'id' => $m['id'] ?? '',
+                    'name' => $m['name'] ?? '',
+                    'category' => $m['category'] ?? '',
+                    'price' => (float)($m['price'] ?? 0),
+                    'description' => $m['description'] ?? '',
+                    'is_ready' => isset($m['is_ready']) && $m['is_ready'] == 1 ? 1 : 0,
+                    'photos' => $pList,
+                ];
+            }
         } elseif (isset($package) && $package->menus && $package->menus->count() > 0) {
             foreach ($package->menus as $m) {
+                $pList = [];
+                $all = $m->all_photos;
+                foreach ($all as $p) {
+                    $pList[] = [
+                        'path' => $p,
+                        'url' => asset('storage/' . $p),
+                    ];
+                }
                 $menus[] = [
                     'id' => $m->id,
                     'name' => $m->name,
                     'category' => $m->category ?? '',
                     'price' => (float)$m->price,
+                    'description' => $m->description ?? '',
                     'is_ready' => $m->is_ready ? 1 : 0,
-                    'thumbnail_url' => $m->thumbnail_path ? asset('storage/' . $m->thumbnail_path) : '',
-                    'existing_thumbnail' => $m->thumbnail_path ?? '',
+                    'photos' => $pList,
                 ];
             }
         }
@@ -365,75 +393,106 @@
                     name: '',
                     category: '',
                     price: '',
+                    description: '',
                     is_ready: 1,
-                    thumbnail_url: '',
-                    existing_thumbnail: ''
+                    photos: []
                 });
                 this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
             },
             removeRow(i) {
                 this.rows.splice(i, 1);
+            },
+            removePhoto(row, pIdx) {
+                row.photos.splice(pIdx, 1);
+                this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+            },
+            validateFiles(event, row) {
+                const count = (row.photos ? row.photos.length : 0) + event.target.files.length;
+                if (count > 6) {
+                    alert('Maksimal total 6 foto untuk setiap menu. Hanya ' + (6 - (row.photos ? row.photos.length : 0)) + ' foto pertama yang akan diproses.');
+                }
             }
         }" class="space-y-3">
 
             <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-                <table class="min-w-[850px] w-full text-left">
+                <table class="min-w-[950px] w-full text-left">
                     <thead class="bg-slate-50 border-b border-slate-200">
                         <tr class="text-xs font-extrabold text-slate-600">
-                            <th class="px-4 py-3 w-[150px]">Foto Thumbnail</th>
-                            <th class="px-4 py-3">Nama Menu <span class="text-red-500">*</span></th>
-                            <th class="px-4 py-3 w-[160px]">Kategori</th>
-                            <th class="px-4 py-3 w-[150px]">Harga (Rp)</th>
-                            <th class="px-4 py-3 w-[160px] text-center">Status</th>
+                            <th class="px-4 py-3 w-[220px]">Foto Menu (Maks 6)</th>
+                            <th class="px-4 py-3">Nama Menu &amp; Deskripsi <span class="text-red-500">*</span></th>
+                            <th class="px-4 py-3 w-[150px]">Kategori</th>
+                            <th class="px-4 py-3 w-[140px]">Harga (Rp)</th>
+                            <th class="px-4 py-3 w-[150px] text-center">Status</th>
                             <th class="px-4 py-3 w-[60px] text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <template x-for="(row, idx) in rows" :key="idx">
-                            <tr class="text-xs hover:bg-slate-50/70 transition">
-                                {{-- Thumbnail --}}
+                            <tr class="text-xs hover:bg-slate-50/70 transition align-top">
+                                {{-- Photos (up to 6) --}}
                                 <td class="px-4 py-3">
                                     <input type="hidden" :name="`menus[${idx}][id]`" :value="row.id">
-                                    <input type="hidden" :name="`menus[${idx}][existing_thumbnail]`" :value="row.existing_thumbnail">
-                                    <div class="flex items-center gap-2">
-                                        <template x-if="row.thumbnail_url">
-                                            <div class="w-12 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0">
-                                                <img :src="row.thumbnail_url" class="w-full h-full object-cover">
+                                    
+                                    {{-- Previews of existing photos --}}
+                                    <div class="flex flex-wrap gap-1.5 mb-2" x-show="row.photos && row.photos.length > 0">
+                                        <template x-for="(ph, pIdx) in row.photos" :key="pIdx">
+                                            <div class="relative group w-11 h-11 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 shadow-sm">
+                                                <img :src="ph.url" class="w-full h-full object-cover">
+                                                <input type="hidden" :name="`menus[${idx}][existing_photos][]`" :value="ph.path">
+                                                <button type="button" @click="removePhoto(row, pIdx)"
+                                                    class="absolute inset-0 bg-red-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px]"
+                                                    title="Hapus foto ini">
+                                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                </button>
                                             </div>
                                         </template>
-                                        <input type="file" :name="`menus[${idx}][thumbnail]`" accept="image/*"
-                                            class="w-full text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+                                    </div>
+
+                                    <input type="file" :name="`menus[${idx}][photos][]`" accept="image/*" multiple
+                                        @change="validateFiles($event, row)"
+                                        :disabled="row.photos && row.photos.length >= 6"
+                                        class="w-full text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 disabled:opacity-50">
+
+                                    <div class="mt-1 flex items-center justify-between text-[10px] text-slate-400">
+                                        <span x-text="`${(row.photos ? row.photos.length : 0)}/6 foto`"></span>
+                                        <span class="text-sky-600 font-medium">Auto-slider di web</span>
                                     </div>
                                 </td>
 
-                                {{-- Nama Menu --}}
-                                <td class="px-4 py-3">
+                                {{-- Nama Menu & Deskripsi --}}
+                                <td class="px-4 py-3 min-w-[240px]">
+                                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase mb-0.5">Nama Menu <span class="text-red-500">*</span></label>
                                     <input type="text" :name="`menus[${idx}][name]`" x-model="row.name" required
-                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
-                                        placeholder="Contoh: Nasi Tempong">
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-sky-400"
+                                        placeholder="Contoh: Nasi Tempong Pedas">
+
+                                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase mt-2 mb-0.5">Deskripsi Menu <span class="text-slate-400 lowercase">(tampil di bawah harga)</span></label>
+                                    <textarea :name="`menus[${idx}][description]`" x-model="row.description" rows="2"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] focus:ring-2 focus:ring-sky-400"
+                                        placeholder="Deskripsi menu, porsi, lauk pendamping, rasa, sambal..."></textarea>
                                 </td>
 
                                 {{-- Kategori --}}
                                 <td class="px-4 py-3">
                                     <input type="text" :name="`menus[${idx}][category]`" x-model="row.category"
-                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-400"
                                         placeholder="Makanan / Minuman">
                                 </td>
 
                                 {{-- Harga --}}
                                 <td class="px-4 py-3">
                                     <input type="number" :name="`menus[${idx}][price]`" x-model="row.price" min="0"
-                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-sky-400"
                                         placeholder="25000">
                                 </td>
 
                                 {{-- Status Ketersediaan --}}
                                 <td class="px-4 py-3 text-center">
                                     <select :name="`menus[${idx}][is_ready]`" x-model="row.is_ready"
-                                        class="rounded-xl border px-3 py-1.5 text-xs font-bold"
+                                        class="rounded-xl border px-3 py-1.5 text-xs font-bold w-full"
                                         :class="row.is_ready == 1 || row.is_ready == '1' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : 'border-rose-300 text-rose-700 bg-rose-50'">
-                                        <option value="1">Ready (Tersedia)</option>
-                                        <option value="0">Tidak Ready (Habis)</option>
+                                        <option value="1">Ready</option>
+                                        <option value="0">Habis</option>
                                     </select>
                                 </td>
 

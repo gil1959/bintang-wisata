@@ -146,10 +146,36 @@ class HotelPackageController extends Controller
                 $roomName = trim($r['name'] ?? '');
                 if (empty($roomName)) continue;
 
-                $roomPhotoPath = null;
-                if ($request->hasFile("rooms.{$idx}.photo")) {
-                    $roomPhotoPath = $request->file("rooms.{$idx}.photo")->store('hotel/rooms', 'public');
+                $roomPhotos = [];
+                if (!empty($r['existing_photos'])) {
+                    $epList = is_array($r['existing_photos']) ? $r['existing_photos'] : json_decode($r['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $roomPhotos[] = $ep;
+                        }
+                    }
+                } elseif (!empty($r['existing_photo'])) {
+                    $roomPhotos[] = $r['existing_photo'];
                 }
+
+                if ($request->hasFile("rooms.{$idx}.photos")) {
+                    $uploaded = $request->file("rooms.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($roomPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $roomPhotos[] = $file->store('hotel/rooms', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("rooms.{$idx}.photo")) {
+                    $file = $request->file("rooms.{$idx}.photo");
+                    if ($file && $file->isValid() && count($roomPhotos) < 6) {
+                        $roomPhotos[] = $file->store('hotel/rooms', 'public');
+                    }
+                }
+
+                $roomPhotos = array_values(array_slice($roomPhotos, 0, 6));
+                $roomPhotoPath = $roomPhotos[0] ?? null;
 
                 $hasShower = isset($r['has_shower']) && ($r['has_shower'] == 1 || $r['has_shower'] === '1' || $r['has_shower'] === 'on' || $r['has_shower'] === true);
                 $hasWifi = isset($r['has_wifi']) && ($r['has_wifi'] == 1 || $r['has_wifi'] === '1' || $r['has_wifi'] === 'on' || $r['has_wifi'] === true);
@@ -180,6 +206,7 @@ class HotelPackageController extends Controller
                     'facilities' => $roomFacilities,
                     'description' => trim($r['description'] ?? '') ?: null,
                     'photo_path' => $roomPhotoPath,
+                    'photos' => $roomPhotos,
                     'is_ready' => $isReady,
                     'sort_order' => $idx,
                 ]);
@@ -369,13 +396,45 @@ class HotelPackageController extends Controller
                     'sort_order' => $idx,
                 ];
 
-                if ($request->hasFile("rooms.{$idx}.photo")) {
-                    $roomData['photo_path'] = $request->file("rooms.{$idx}.photo")->store('hotel/rooms', 'public');
+                $roomPhotos = [];
+                if (!empty($r['existing_photos'])) {
+                    $epList = is_array($r['existing_photos']) ? $r['existing_photos'] : json_decode($r['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $roomPhotos[] = $ep;
+                        }
+                    }
+                } elseif (!empty($r['existing_photo'])) {
+                    $roomPhotos[] = $r['existing_photo'];
                 }
 
+                if ($request->hasFile("rooms.{$idx}.photos")) {
+                    $uploaded = $request->file("rooms.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($roomPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $roomPhotos[] = $file->store('hotel/rooms', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("rooms.{$idx}.photo")) {
+                    $file = $request->file("rooms.{$idx}.photo");
+                    if ($file && $file->isValid() && count($roomPhotos) < 6) {
+                        $roomPhotos[] = $file->store('hotel/rooms', 'public');
+                    }
+                }
+
+                $roomPhotos = array_values(array_slice($roomPhotos, 0, 6));
+                $roomData['photos'] = $roomPhotos;
+                $roomData['photo_path'] = $roomPhotos[0] ?? null;
+
                 if ($roomId && ($existingRoom = HotelRoom::where('hotel_package_id', $hotel_package->id)->find($roomId))) {
-                    if (isset($roomData['photo_path']) && !empty($existingRoom->photo_path)) {
-                        Storage::disk('public')->delete($existingRoom->photo_path);
+                    // Delete removed photo files
+                    $oldPhotos = $existingRoom->all_photos;
+                    foreach ($oldPhotos as $op) {
+                        if (!in_array($op, $roomPhotos) && !empty($op)) {
+                            Storage::disk('public')->delete($op);
+                        }
                     }
                     $existingRoom->update($roomData);
                     $submittedRoomIds[] = $existingRoom->id;
@@ -391,8 +450,10 @@ class HotelPackageController extends Controller
             ->whereNotIn('id', $submittedRoomIds)
             ->get();
         foreach ($roomsToDelete as $delRoom) {
-            if (!empty($delRoom->photo_path)) {
-                Storage::disk('public')->delete($delRoom->photo_path);
+            foreach ($delRoom->all_photos as $p) {
+                if (!empty($p)) {
+                    Storage::disk('public')->delete($p);
+                }
             }
             $delRoom->delete();
         }
