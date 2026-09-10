@@ -520,33 +520,35 @@
                         </div>
 
                         {{-- Info Kamar --}}
-                        <div class="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div class="sm:col-span-3">
+                        <div class="md:col-span-8 space-y-3">
+                            <div>
                                 <label class="block text-xs font-extrabold text-slate-700 mb-1">Nama / Judul Kamar <span class="text-red-500">*</span></label>
                                 <input type="text" :name="`rooms[${idx}][name]`" x-model="room.name" required
                                     class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400 font-bold"
                                     placeholder="Contoh: Standard Double Room, Deluxe Cottage">
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-extrabold text-slate-700 mb-1">Ukuran Kamar (m²)</label>
-                                <input type="text" :name="`rooms[${idx}][room_size]`" x-model="room.room_size"
-                                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
-                                    placeholder="Contoh: 24.0 m²">
-                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Ukuran Kamar (m²)</label>
+                                    <input type="text" :name="`rooms[${idx}][room_size]`" x-model="room.room_size"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
+                                        placeholder="Contoh: 24.0 m²">
+                                </div>
 
-                            <div>
-                                <label class="block text-xs font-extrabold text-slate-700 mb-1">Tipe Ranjang</label>
-                                <input type="text" :name="`rooms[${idx}][bed_type]`" x-model="room.bed_type"
-                                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
-                                    placeholder="Contoh: 1 double bed / 2 single bed">
-                            </div>
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Tipe Ranjang</label>
+                                    <input type="text" :name="`rooms[${idx}][bed_type]`" x-model="room.bed_type"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
+                                        placeholder="Contoh: 1 double bed / 2 single bed">
+                                </div>
 
-                            <div>
-                                <label class="block text-xs font-extrabold text-slate-700 mb-1">Kapasitas Tamu</label>
-                                <input type="number" :name="`rooms[${idx}][max_guests]`" x-model="room.max_guests" min="1"
-                                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
-                                    placeholder="2">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Kapasitas Tamu</label>
+                                    <input type="number" :name="`rooms[${idx}][max_guests]`" x-model="room.max_guests" min="1"
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-sky-400"
+                                        placeholder="2">
+                                </div>
                             </div>
                         </div>
                     </div>
