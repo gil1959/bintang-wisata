@@ -66,6 +66,7 @@ class DokuWebhookController extends Controller
 
         // Gateway auto approve/reject
         if ($payment->order) {
+            $prevOrderStatus = $payment->order->order_status;
             if ($newPaymentStatus === 'paid') {
                 $payment->order->payment_status = 'paid';
                 $payment->order->order_status = 'approved';
@@ -76,6 +77,14 @@ class DokuWebhookController extends Controller
                 $payment->order->payment_status = 'waiting_payment';
             }
             $payment->order->save();
+            
+            if ($payment->order->order_status !== $prevOrderStatus) {
+                if ($payment->order->order_status === 'approved') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'approved');
+                } elseif ($payment->order->order_status === 'rejected') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'rejected');
+                }
+            }
         }
 
         return response()->json(['message' => 'ok'], 200);

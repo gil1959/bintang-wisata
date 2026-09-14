@@ -179,7 +179,7 @@
                     <input
                         type="text"
                         name="q"
-
+                        x-ref="q"
                         value="{{ request('q') }}"
                         placeholder="{{ $isEn ? 'Example: Bali, Lombok, Japan...' : 'Contoh: Bali, Lombok, Jepang...' }}"
                         class="w-full rounded-xl border-slate-200 pl-11">
@@ -232,7 +232,7 @@
                 </label>
                 <select
                     name="sort"
-
+                    x-ref="sort"
                     class="w-full rounded-xl border-slate-200">
                     <option value="title_asc" @selected(request('sort','title_asc')==='title_asc' )>
                         {{ $isEn ? 'Name (A–Z)' : 'Nama (A–Z)' }}

@@ -155,58 +155,36 @@
             <div class="md:col-span-6">
                 <label class="block text-sm font-bold text-slate-800 mb-1">Upload Thumbnail</label>
                 <input type="file" name="thumbnail" accept="image/*"
-                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                       id="tour_thumbnail_input"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                       onchange="previewTourThumb(this)">
                 <div class="text-xs text-slate-500 mt-1">PNG/JPG/WEBP disarankan.</div>
+                {{-- Live preview thumbnail baru --}}
+                <div id="tour_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                    <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Thumbnail Baru</div>
+                    <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
+                        <img id="tour_thumb_new" src="" class="h-full w-full object-cover" alt="">
+                    </div>
+                </div>
             </div>
 
             <div class="md:col-span-6">
                 <label class="block text-sm font-bold text-slate-800 mb-1">Tambah Gallery (multi upload)</label>
                 <input type="file" name="gallery[]" accept="image/*" multiple
-                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                       id="tour_gallery_input"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                       onchange="previewTourGallery(this)">
                 <div class="text-xs text-slate-500 mt-1">Boleh lebih dari 1 foto.</div>
+                {{-- Live preview gallery baru --}}
+                <div id="tour_gallery_new_wrap" class="hidden mt-3">
+                    <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Gallery Baru</div>
+                    <div id="tour_gallery_new_grid" class="grid grid-cols-3 gap-2"></div>
+                </div>
             </div>
         </div>
 {{-- SEO --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-    <button type="button"
-        @click="open = !open"
-        class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-        style="background:#0194F3;">
-        <span>SEO Paket Tour</span>
-        <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-    </button>
+@include('partials._seo_form', ['model' => $pkg ?? null])
 
-    <div x-show="open" x-cloak class="p-5 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-6">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
-                <input type="text"
-                       name="seo_title"
-                       value="{{ old('seo_title', $pkg->seo_title ?? '') }}"
-                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                       placeholder="Judul meta (opsional)">
-            </div>
-
-            <div class="md:col-span-6">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
-                <input type="text"
-                       name="seo_keywords"
-                       value="{{ old('seo_keywords', $pkg->seo_keywords ?? '') }}"
-                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                       placeholder="contoh: paket wisata, bali, tour murah">
-                <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma.</div>
-            </div>
-
-            <div class="md:col-span-12">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
-                <textarea name="seo_description"
-                          rows="3"
-                          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                          placeholder="Deskripsi meta (opsional)">{{ old('seo_description', $pkg->seo_description ?? '') }}</textarea>
-            </div>
-        </div>
-    </div>
-</div>
 
         {{-- Gallery existing (edit only) --}}
         @if($pkg && method_exists($pkg, 'photos') && $pkg->photos->count())
@@ -387,6 +365,47 @@
 
   loadSubs();
 })();
+
+// Live preview thumbnail
+function previewTourThumb(input) {
+    const wrap = document.getElementById('tour_thumb_new_wrap');
+    const img  = document.getElementById('tour_thumb_new');
+    const existing = document.querySelector('#tour-thumb-existing img');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            img.src = e.target.result;
+            wrap.classList.remove('hidden');
+            if (existing) existing.style.opacity = '0.4';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        wrap.classList.add('hidden');
+        if (existing) existing.style.opacity = '1';
+    }
+}
+
+// Live preview gallery multi
+function previewTourGallery(input) {
+    const wrap = document.getElementById('tour_gallery_new_wrap');
+    const grid = document.getElementById('tour_gallery_new_grid');
+    grid.innerHTML = '';
+    if (input.files && input.files.length > 0) {
+        wrap.classList.remove('hidden');
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement('div');
+                div.className = 'h-20 rounded-xl overflow-hidden border border-slate-200';
+                div.innerHTML = `<img src="${e.target.result}" class="h-full w-full object-cover">`;
+                grid.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        wrap.classList.add('hidden');
+    }
+}
 </script>
 @endpush
 

@@ -66,7 +66,9 @@ return view('partner.tour-packages.create', compact('categories'));
                 'flight_info'      => $request->flight_info,
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
-                'seo_keywords'     => $request->seo_keywords,
+                'seo_keywords' => $request->seo_keywords,
+                'social_title' => $request->social_title,
+                'social_description' => $request->social_description,
 
                 // tambahan wajib (tanpa ubah field lain)
                 'created_by_partner_id' => auth()->id(),
@@ -90,6 +92,13 @@ return view('partner.tour-packages.create', compact('categories'));
 
             $this->replaceItinerariesFromHtml($package, $request->input('itinerary_text'));
             $this->syncTiers($package, $request->tiers);
+
+            if ($request->hasFile('seo_image')) {
+                if ($package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($package->seo_image_path);
+                }
+                $package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
         });
 
         return redirect()->route('partner.tour-packages.index')
@@ -140,7 +149,9 @@ return view('partner.tour-packages.edit', compact('package', 'categories'));
                 'flight_info'      => $request->flight_info,
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
-                'seo_keywords'     => $request->seo_keywords,
+                'seo_keywords' => $request->seo_keywords,
+                'social_title' => $request->social_title,
+                'social_description' => $request->social_description,
             ]);
 
             // paksa balik pending lagi (wajib)
@@ -169,6 +180,13 @@ return view('partner.tour-packages.edit', compact('package', 'categories'));
 
             $this->replaceItinerariesFromHtml($tour_package, $request->input('itinerary_text'));
             $this->syncTiers($tour_package, $request->tiers);
+
+            if ($request->hasFile('seo_image')) {
+                if ($tour_package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($tour_package->seo_image_path);
+                }
+                $tour_package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
         });
 
         return redirect()->route('partner.tour-packages.index')

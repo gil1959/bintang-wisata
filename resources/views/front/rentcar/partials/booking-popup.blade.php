@@ -26,7 +26,7 @@ $i18n = [
 
 
 <div
-  x-data="rentcarBookingPopup({{ (int) $package->price_per_hour }}, '{{ $package->slug }}')"
+  x-data="rentcarBookingPopup('{{ $package->slug }}')"
   x-on:open-rentcar-booking.window="open($event.detail)"
   x-cloak>
   {{-- backdrop --}}
@@ -141,7 +141,7 @@ $i18n = [
 </div>
 
 <script>
-  function rentcarBookingPopup(basePrice, slug) {
+  function rentcarBookingPopup(slug) {
     const I18N = @json($i18n);
 
     return {
@@ -160,8 +160,8 @@ $i18n = [
 
       pickup: '',
       ret: '',
+      durationType: '',
 
-      base: basePrice,
       hours: 0,
       total: 0,
 
@@ -171,6 +171,19 @@ $i18n = [
       open(detail) {
         this.pickup = detail?.pickup || '';
         this.ret = detail?.ret || '';
+        this.durationType = detail?.durationType || '';
+        
+        if (this.durationType === '12_hours') {
+            this.hours = 12;
+            this.total = detail?.price12 || 0;
+        } else if (this.durationType === '24_hours') {
+            this.hours = 24;
+            this.total = detail?.price24 || 0;
+        } else if (this.durationType === 'custom') {
+            this.hours = detail?.customHours || 0;
+            this.total = detail?.customPrice || 0;
+        }
+
         this.isOpen = true;
 
         // reset promo state setiap buka popup
@@ -199,21 +212,11 @@ $i18n = [
       },
 
       calc() {
-        if (!this.pickup || !this.ret) {
-          this.hours = 0;
-          this.total = 0;
-          return;
+        // Calculation is handled in show.blade.php and passed via detail.
+        // If we re-apply promo, recalculate total
+        if (this.durationType === '12_hours') {
+             // Handled by detail, no logic needed here unless base price is passed
         }
-        const start = new Date(this.pickup);
-        const end = new Date(this.ret);
-        if (end < start) {
-          this.hours = 0;
-          this.total = 0;
-          return;
-        }
-        const diff = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
-        this.hours = diff;
-        this.total = diff * this.base;
       },
 
       format(n) {
@@ -303,6 +306,7 @@ $i18n = [
               phone: this.phone,
               pickup: this.pickup,
               return: this.ret,
+              duration_type: this.durationType,
               promo_id: this.promoId ? Number(this.promoId) : null,
               final_price: this.total
             })

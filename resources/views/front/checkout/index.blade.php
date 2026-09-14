@@ -396,7 +396,8 @@ Harap perbaiki hal berikut:' }}</div>
               : ($order->type === 'ship' ? 'Sewa Kapal'
               : ($order->type === 'umrah' ? 'Paket Umrah'
               : ($order->type === 'mice' ? 'Paket MICE'
-              : ($order->type === 'flight' ? 'Tiket Pesawat' : 'Produk')))));
+              : ($order->type === 'flight' ? 'Tiket Pesawat'
+              : ($order->type === 'restoran' ? 'Restoran' : 'Produk'))))));
               @endphp
               {{ $typeLabel }}
 
@@ -408,6 +409,36 @@ Harap perbaiki hal berikut:' }}</div>
             @endif
           </div>
         </div>
+
+        {{-- Detail Khusus Restoran --}}
+        @if($order->type === 'restoran')
+        <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+          <div class="flex items-center justify-between text-slate-600">
+            <span>Jadwal Reservasi:</span>
+            <span class="font-bold text-slate-800">{{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d M Y H:i') : '-' }}</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-600">
+            <span>Jumlah Tamu:</span>
+            <span class="font-bold text-slate-800">{{ $order->participants ?: 1 }} orang</span>
+          </div>
+        </div>
+
+        @if(!empty($order->order_items) && is_array($order->order_items))
+        <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
+          <div class="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">Menu yang Dipesan:</div>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            @foreach($order->order_items as $item)
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-600 truncate max-w-[170px]" title="{{ $item['name'] }}">
+                {{ $item['name'] }} <span class="text-slate-400 font-bold">x{{ $item['qty'] }}</span>
+              </span>
+              <span class="font-bold text-slate-800">Rp {{ number_format($item['subtotal'] ?? ($item['price'] * $item['qty']), 0, ',', '.') }}</span>
+            </div>
+            @endforeach
+          </div>
+        </div>
+        @endif
+        @endif
 
         <div class="mt-5 space-y-2 text-sm">
           <div class="flex items-center justify-between text-slate-600">

@@ -39,14 +39,25 @@
         </div>
 
         <div>
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">Price Per Hour</label>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Harga 12 Jam</label>
             <input type="number"
-                name="price_per_hour"
+                name="price_per_12_hours"
                 step="0.01"
-                value="{{ old('price_per_hour', $package->price_per_hour ?? '') }}"
+                value="{{ old('price_per_12_hours', $package->price_per_12_hours ?? '') }}"
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
                 required>
             <div class="text-xs text-slate-500 mt-1">Contoh: 350000</div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-extrabold text-slate-800 mb-1">Harga 24 Jam</label>
+            <input type="number"
+                name="price_per_24_hours"
+                step="0.01"
+                value="{{ old('price_per_24_hours', $package->price_per_24_hours ?? '') }}"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                required>
+            <div class="text-xs text-slate-500 mt-1">Contoh: 700000</div>
         </div>
     </div>
 
@@ -56,17 +67,27 @@
             <label class="block text-sm font-extrabold text-slate-800 mb-1">Thumbnail</label>
             <input type="file"
                 name="thumbnail"
+                id="rentcar_thumb_input"
                 class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                accept="image/*">
+                accept="image/*"
+                onchange="previewRentcarThumb(this)">
             <div class="text-xs text-slate-500 mt-1">JPG/PNG/WEBP disarankan.</div>
+            {{-- Live preview --}}
+            <div id="rentcar_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Foto Baru</div>
+                <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
+                    <img id="rentcar_thumb_new" src="" class="h-full w-full object-cover" alt="">
+                </div>
+            </div>
         </div>
 
         <div class="lg:col-span-5">
             @isset($package->thumbnail_path)
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div id="rentcar-thumb-existing" class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                 <div class="text-xs font-extrabold text-slate-600 mb-2">Current Thumbnail</div>
                 <div class="h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                     <img src="{{ asset('storage/' . $package->thumbnail_path) }}"
+                        id="rentcar_thumb_existing_img"
                         class="h-full w-full object-cover"
                         alt="Thumbnail">
                 </div>
@@ -74,6 +95,27 @@
             @endisset
         </div>
     </div>
+
+    <script>
+    function previewRentcarThumb(input) {
+        const wrap = document.getElementById('rentcar_thumb_new_wrap');
+        const img  = document.getElementById('rentcar_thumb_new');
+        const existing = document.getElementById('rentcar_thumb_existing_img');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                wrap.classList.remove('hidden');
+                if (existing) existing.style.opacity = '0.4';
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            wrap.classList.add('hidden');
+            if (existing) existing.style.opacity = '1';
+        }
+    }
+    </script>
+
 
     {{-- Status --}}
     <div>
@@ -161,38 +203,8 @@
         <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
         @enderror
     </div>
-    {{-- SEO --}}
-    <div class="rounded-2xl border border-slate-200 bg-white p-5">
-        <div class="text-sm font-extrabold text-slate-900 mb-3">SEO (Opsional)</div>
+    @include('partials._seo_form', ['model' => $package ?? null])
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-6">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
-                <input type="text"
-                    name="seo_title"
-                    value="{{ old('seo_title', $package->seo_title ?? '') }}"
-                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                    placeholder="Judul meta (opsional)">
-            </div>
-
-            <div class="md:col-span-6">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
-                <input type="text"
-                    name="seo_keywords"
-                    value="{{ old('seo_keywords', $package->seo_keywords ?? '') }}"
-                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                    placeholder="contoh: sewa mobil, rental avanza, jogja">
-                <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma.</div>
-            </div>
-
-            <div class="md:col-span-12">
-                <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
-                <textarea name="seo_description" rows="3"
-                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                    placeholder="Deskripsi meta (opsional)">{{ old('seo_description', $package->seo_description ?? '') }}</textarea>
-            </div>
-        </div>
-    </div>
 
 
     {{-- Actions --}}

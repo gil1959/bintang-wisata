@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class ChangePaymentsStatusToString extends Migration
 {
@@ -13,9 +14,7 @@ class ChangePaymentsStatusToString extends Migration
      */
     public function up()
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->string('status', 50)->default('pending')->change();
-        });
+        DB::statement("ALTER TABLE payments MODIFY status VARCHAR(50) NOT NULL DEFAULT 'pending'");
     }
 
 

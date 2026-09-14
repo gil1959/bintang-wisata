@@ -121,6 +121,8 @@
       request()->routeIs('about')
       || request()->routeIs('articles')
       || request()->routeIs('travel-documents')
+      || request()->routeIs('restoran.index')
+      || request()->routeIs('hotel.index')
       || request()->is('Document*')
       || request()->is('document*');
       @endphp
@@ -169,6 +171,16 @@
             class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <i data-lucide="file-text" class="w-4 h-4" style="color:#0194F3;"></i>
             {{ $isEn ? 'Documents' : 'Dokumen' }}
+          </a>
+          <a href="{{ route('restoran.index') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="utensils" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'Restoran' : 'Restoran' }}
+          </a>
+          <a href="{{ route('hotel.index') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="building" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'Hotel/Vila' : 'Hotel/Vila' }}
           </a>
 
         </div>

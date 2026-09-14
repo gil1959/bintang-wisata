@@ -32,7 +32,6 @@ class AddGatewayColumnsToPaymentsTable extends Migration
         });
     }
 
-    
 
     /**
      * Reverse the migrations.

@@ -109,6 +109,24 @@
                 ['label'=>'Kategori Rental','route'=>'admin.rent-car-categories.index','match'=>'admin.rent-car-categories.*','icon'=>'tags','perm'=>'admin.rent-car-categories.manage'],
                 ],
                 ],
+
+                // GROUP: Restoran
+                [
+                'label' => 'Restoran',
+                'icon' => 'utensils',
+                'children' => [
+                ['label'=>'Paket Restoran','route'=>'admin.restoran-packages.index','match'=>'admin.restoran-packages.*','icon'=>'utensils','perm'=>'admin.dashboard.view'],
+                ],
+                ],
+
+                // GROUP: Hotel & Vila
+                [
+                'label' => 'Hotel & Vila',
+                'icon' => 'building',
+                'children' => [
+                ['label'=>'Paket Hotel/Vila','route'=>'admin.hotel-packages.index','match'=>'admin.hotel-packages.*','icon'=>'building','perm'=>'admin.dashboard.view'],
+                ],
+                ],
                 ['label'=>'Kode Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent','perm'=>'admin.promos.manage'],
                 [
                 'label' => 'Section Promo',

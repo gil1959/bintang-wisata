@@ -116,6 +116,8 @@ class TripayWebhookController extends Controller
 
         $order = $payment->order;
         if ($order) {
+            $prevOrderStatus = $order->order_status;
+            
             if ($newPaymentStatus === 'paid') {
                 $order->payment_status = 'paid';
                 $order->order_status = 'approved';
@@ -126,6 +128,14 @@ class TripayWebhookController extends Controller
                 $order->payment_status = 'waiting_payment';
             }
             $order->save();
+            
+            if ($order->order_status !== $prevOrderStatus) {
+                if ($order->order_status === 'approved') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($order, 'approved');
+                } elseif ($order->order_status === 'rejected') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($order, 'rejected');
+                }
+            }
         }
 
         return response()->json(['message' => 'ok'], 200);

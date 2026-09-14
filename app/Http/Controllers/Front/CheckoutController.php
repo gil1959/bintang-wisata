@@ -35,6 +35,8 @@ class CheckoutController extends Controller
     $package = \App\Models\UmrahPackage::find($order->product_id);
 } elseif ($order->type === 'mice') {
     $package = \App\Models\MicePackage::find($order->product_id);
+} elseif ($order->type === 'restoran') {
+    $package = \App\Models\RestoranPackage::find($order->product_id);
 } else {
     $package = null;
 }

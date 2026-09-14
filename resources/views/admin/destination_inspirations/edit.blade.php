@@ -16,10 +16,16 @@
 
   <div>
     <label class="block text-sm font-bold mb-1">Foto (kosongkan kalau tidak ganti)</label>
-    <input type="file" name="image" class="w-full border rounded-xl px-3 py-2" accept="image/*">
+    <input type="file" name="image" id="dest_edit_img_input" class="w-full border rounded-xl px-3 py-2" accept="image/*" onchange="previewDestEditImg(this)">
     @if($item->image_path)
-      <img src="{{ asset('storage/'.$item->image_path) }}" class="mt-2 rounded-xl border max-w-sm">
+      <img id="dest_edit_existing" src="{{ asset('storage/'.$item->image_path) }}" class="mt-2 rounded-xl border max-w-sm" style="max-height:200px;object-fit:cover;">
     @endif
+    <div id="dest_edit_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+      <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Foto Baru</div>
+      <div class="rounded-xl overflow-hidden border border-slate-200 aspect-[3/2]">
+        <img id="dest_edit_new" src="" class="h-full w-full object-cover" alt="">
+      </div>
+    </div>
   </div>
 
     <div>
@@ -78,21 +84,13 @@
   const cat = document.querySelector('select[name="tour_category_id"]');
   const sub = document.getElementById('inspSubcategory');
   const oldSub = "{{ old('tour_subcategory_id', $item->tour_subcategory_id ?? '') }}";
-
   async function loadSubs() {
     const catId = cat.value;
     sub.innerHTML = '<option value="">-- Semua Sub Kategori --</option>';
     if (!catId) return;
-
-    const url = new URL(
-  "{{ route('admin.categories.subcategories', ['category' => 0]) }}".replace('/0/', '/' + catId + '/'),
-  window.location.origin
-);
-
-
+    const url = new URL("{{ route('admin.categories.subcategories', ['category' => 0]) }}".replace('/0/', '/' + catId + '/'), window.location.origin);
     const res = await fetch(url.toString(), { headers: {'X-Requested-With': 'XMLHttpRequest'}});
     if (!res.ok) return;
-
     const data = await res.json();
     (data.items || []).forEach(it => {
       const opt = document.createElement('option');
@@ -102,9 +100,19 @@
       sub.appendChild(opt);
     });
   }
-
   cat.addEventListener('change', () => { sub.value=''; loadSubs(); });
   loadSubs();
 })();
+
+function previewDestEditImg(input) {
+    const wrap = document.getElementById('dest_edit_new_wrap');
+    const img  = document.getElementById('dest_edit_new');
+    const existing = document.getElementById('dest_edit_existing');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); if(existing) existing.style.opacity='0.4'; };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); if(existing) existing.style.opacity='1'; }
+}
 </script>
 @endpush

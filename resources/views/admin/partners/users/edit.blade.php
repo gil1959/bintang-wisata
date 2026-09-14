@@ -101,8 +101,14 @@
             AGENCY PAKET TOUR
         </option>
         <option value="agency_rental_mobil" {{ $pt == 'agency_rental_mobil' ? 'selected' : '' }}>
-    AGENCY RENTAL MOBIL
-</option>
+            AGENCY RENTAL MOBIL
+        </option>
+        <option value="agency_restoran" {{ $pt == 'agency_restoran' ? 'selected' : '' }}>
+            AGENCY RESTORAN
+        </option>
+        <option value="agency_hotel_vila" {{ $pt == 'agency_hotel_vila' ? 'selected' : '' }}>
+            AGENCY HOTEL/VILA
+        </option>
 
     </select>
 

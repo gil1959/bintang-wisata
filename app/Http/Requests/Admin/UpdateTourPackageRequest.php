@@ -75,6 +75,8 @@ class UpdateTourPackageRequest extends FormRequest
             'gallery.*' => 'nullable|image|max:2048',
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
+            'social_title'     => ['nullable', 'string', 'max:255'],
+            'social_description' => ['nullable', 'string', 'max:500'],
             'seo_keywords' => ['nullable', 'string', 'max:500'],
             'rating_value' => ['nullable', 'integer', 'min:1', 'max:5'],
             'rating_count' => ['nullable', 'integer', 'min:0'],

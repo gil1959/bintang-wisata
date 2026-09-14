@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\MicePackage;
 use App\Models\Order;
 use App\Models\Promo;
+use App\Models\Setting;
+use App\Mail\OrderInvoiceMail;
+use App\Mail\PartnerOrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Services\PartnerPayoutService;
 use App\Models\User;
 use App\Models\AffiliateLink;
 
@@ -131,6 +137,32 @@ class MiceOrderController extends Controller
 
         if ($affLinkId) {
             AffiliateLink::where('id', $affLinkId)->increment('conversions');
+        }
+
+        try {
+            if (!empty($order->customer_email)) {
+                Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));
+            }
+
+            $adminEmail = Setting::invoiceAdminEmail();
+            if (!empty($adminEmail) && $adminEmail !== $order->customer_email) {
+                Mail::to($adminEmail)->send(new OrderInvoiceMail($order, true));
+            }
+
+            // Notifikasi ke Partner
+            $payoutService = app(PartnerPayoutService::class);
+            $partnerId = $payoutService->resolvePartnerIdFromOrder($order);
+            if ($partnerId) {
+                $partner = User::find($partnerId);
+                if ($partner && $partner->email !== $order->customer_email) {
+                    Mail::to($partner->email)->send(new PartnerOrderInvoiceMail($order, $partner));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Invoice email gagal dikirim', [
+                'invoice' => $order->invoice_number,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return response()->json([

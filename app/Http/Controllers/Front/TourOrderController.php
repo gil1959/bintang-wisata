@@ -9,8 +9,10 @@ use App\Models\Order;
 use App\Models\Promo;
 use App\Models\Setting;
 use App\Mail\OrderInvoiceMail;
+use App\Mail\PartnerOrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\PartnerPayoutService;
 
 use App\Models\User;
 use App\Models\AffiliateLink;
@@ -127,8 +129,6 @@ $userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
             'subtotal'       => $subtotal,
             'discount'       => $discount,
             'final_price'    => $final,
- 'discount'       => $discount,
-    'final_price'    => $final,
             'payment_status' => 'waiting_payment',
             'order_status'   => 'pending',
         ]);
@@ -144,8 +144,18 @@ $userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
             if (!empty($adminEmail) && $adminEmail !== $order->customer_email) {
                 Mail::to($adminEmail)->send(new OrderInvoiceMail($order, true));
             }
+
+            // Notifikasi ke Partner
+            $payoutService = app(PartnerPayoutService::class);
+            $partnerId = $payoutService->resolvePartnerIdFromOrder($order);
+            if ($partnerId) {
+                $partner = User::find($partnerId);
+                if ($partner && $partner->email !== $order->customer_email) {
+                    Mail::to($partner->email)->send(new PartnerOrderInvoiceMail($order, $partner));
+                }
+            }
         } catch (\Throwable $e) {
-            Log::warning('Invoice email gagal dikirim', [
+            Log::error('Invoice email gagal dikirim', [
                 'invoice' => $order->invoice_number,
                 'error' => $e->getMessage(),
             ]);

@@ -52,6 +52,8 @@ class MidtransWebhookController extends Controller
 
         // FLOW LU: gateway auto approve/reject
         if ($payment->order) {
+            $prevOrderStatus = $payment->order->order_status;
+            
             if ($newPaymentStatus === 'paid') {
                 $payment->order->payment_status = 'paid';
                 $payment->order->order_status = 'approved';
@@ -63,6 +65,14 @@ class MidtransWebhookController extends Controller
                 // order_status biarin pending
             }
             $payment->order->save();
+            
+            if ($payment->order->order_status !== $prevOrderStatus) {
+                if ($payment->order->order_status === 'approved') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'approved');
+                } elseif ($payment->order->order_status === 'rejected') {
+                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'rejected');
+                }
+            }
         }
 
         return response()->json(['message' => 'ok']);

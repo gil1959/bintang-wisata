@@ -8,16 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tour_itineraries', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tour_package_id')->constrained()->cascadeOnDelete();
+        if (!Schema::hasTable('tour_itineraries')) {
+            Schema::create('tour_itineraries', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tour_package_id')->constrained()->cascadeOnDelete();
 
-            $table->time('time');
-            $table->string('title');
-            $table->unsignedInteger('sort_order')->default(0);
+                $table->time('time');
+                $table->string('title');
+                $table->unsignedInteger('sort_order')->default(0);
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

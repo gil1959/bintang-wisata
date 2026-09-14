@@ -68,7 +68,7 @@
                     body: JSON.stringify(sub)
                 });
             } catch (e) {
-                // sengaja diem; kalau gagal push, notif in-app tetap jalan
+                
             }
         })();
         </script>

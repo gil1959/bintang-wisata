@@ -9,8 +9,10 @@ use App\Models\Order;
 use App\Models\Promo;
 use App\Models\Setting;
 use App\Mail\OrderInvoiceMail;
+use App\Mail\PartnerOrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\PartnerPayoutService;
 use App\Models\User;
 use App\Models\AffiliateLink;
 use Carbon\Carbon;
@@ -31,6 +33,8 @@ class RentCarOrderController extends Controller
             'return'       => 'nullable|date',
             'pickup_date'  => 'nullable|date',
             'return_date'  => 'nullable|date',
+            
+            'duration_type' => 'required|string|in:12_hours,24_hours,custom',
 
             'promo_id' => 'nullable|integer',
         ]);
@@ -77,15 +81,26 @@ class RentCarOrderController extends Controller
         }
 
         // ===================== HITUNG DURASI ======================
-        // ===================== HITUNG DURASI (PER JAM) ======================
         $start = Carbon::parse($pickupDate);
         $end   = Carbon::parse($returnDate);
 
         // hitung menit dulu biar bisa ceil ke jam
         $minutes = $start->diffInMinutes($end);
-        $hours = max(1, (int) ceil($minutes / 60));
-
-        $subtotal = $hours * $package->price_per_hour;
+        $diffHours = max(1, (int) ceil($minutes / 60));
+        
+        $durationType = $validated['duration_type'] ?? 'custom';
+        
+        if ($durationType === '12_hours') {
+            $hours = 12;
+            $subtotal = $package->price_per_12_hours;
+        } elseif ($durationType === '24_hours') {
+            $hours = 24;
+            $subtotal = $package->price_per_24_hours;
+        } else {
+            $hours = max(12, $diffHours);
+            $pricePerHour = round($package->price_per_12_hours / 12);
+            $subtotal = $hours * $pricePerHour;
+        }
 
         // ===================== PROMO ======================
         $discount = 0;
@@ -193,8 +208,18 @@ class RentCarOrderController extends Controller
             if (!empty($adminEmail) && $adminEmail !== $order->customer_email) {
                 Mail::to($adminEmail)->send(new OrderInvoiceMail($order, true));
             }
+
+            // Notifikasi ke Partner
+            $payoutService = app(PartnerPayoutService::class);
+            $partnerId = $payoutService->resolvePartnerIdFromOrder($order);
+            if ($partnerId) {
+                $partner = User::find($partnerId);
+                if ($partner && $partner->email !== $order->customer_email) {
+                    Mail::to($partner->email)->send(new PartnerOrderInvoiceMail($order, $partner));
+                }
+            }
         } catch (\Throwable $e) {
-            Log::warning('Invoice email gagal dikirim', [
+            Log::error('Invoice email gagal dikirim', [
                 'invoice' => $order->invoice_number,
                 'error' => $e->getMessage(),
             ]);

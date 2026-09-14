@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\TourPackage;
 use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
+use App\Models\RestoranPackage;
+use App\Models\HotelPackage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -80,7 +82,7 @@ class PartnerPayoutService
         });
     }
 
-    private function resolvePartnerIdFromOrder(Order $order): ?int
+    public function resolvePartnerIdFromOrder(Order $order): ?int
     {
         try {
             if ($order->type === 'tour') {
@@ -93,6 +95,14 @@ class PartnerPayoutService
 
             if ($order->type === 'ship') {
                 return (int) ShipPackage::query()->whereKey($order->product_id)->value('created_by_partner_id') ?: null;
+            }
+
+            if ($order->type === 'restoran') {
+                return (int) RestoranPackage::query()->whereKey($order->product_id)->value('created_by_partner_id') ?: null;
+            }
+
+            if ($order->type === 'hotel') {
+                return (int) HotelPackage::query()->whereKey($order->product_id)->value('created_by_partner_id') ?: null;
             }
 
             return null;

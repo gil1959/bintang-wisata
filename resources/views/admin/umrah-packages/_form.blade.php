@@ -127,7 +127,7 @@
     @if(!empty($pkg?->thumbnail_path))
       <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <div class="text-sm font-extrabold text-slate-900">Thumbnail Saat Ini</div>
-        <img src="{{ asset('storage/' . $pkg->thumbnail_path) }}"
+        <img id="umrah_thumb_existing" src="{{ asset('storage/' . $pkg->thumbnail_path) }}"
              class="mt-3 h-28 w-auto rounded-xl object-cover border border-slate-200">
       </div>
     @endif
@@ -135,9 +135,16 @@
     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
       <div class="md:col-span-6">
         <label class="block text-sm font-bold text-slate-800 mb-1">Upload Thumbnail</label>
-        <input type="file" name="thumbnail" accept="image/*"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+        <input type="file" name="thumbnail" accept="image/*" id="umrah_thumb_input"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+               onchange="previewUmrahThumb(this)">
         <div class="text-xs text-slate-500 mt-1">PNG/JPG/WEBP disarankan.</div>
+        <div id="umrah_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+          <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Thumbnail Baru</div>
+          <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
+            <img id="umrah_thumb_new" src="" class="h-full w-full object-cover" alt="">
+          </div>
+        </div>
       </div>
 
       <div class="md:col-span-6">
@@ -196,42 +203,8 @@
 </div>
 
 {{-- SEO --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-  <button type="button" @click="open=!open"
-    class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-    style="background:#0194F3;">
-    <span>SEO Paket Umrah</span>
-    <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-  </button>
+@include('partials._seo_form', ['model' => $pkg ?? null])
 
-  <div x-show="open" x-cloak class="p-5 space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
-        <input type="text" name="seo_title"
-               value="{{ old('seo_title', $pkg->seo_title ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="Judul meta (opsional)">
-      </div>
-
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
-        <input type="text" name="seo_keywords"
-               value="{{ old('seo_keywords', $pkg->seo_keywords ?? '') }}"
-               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-               placeholder="contoh: paket umrah, umrah ramadhan, umrah murah">
-        <div class="mt-1 text-xs text-slate-500">Pisahkan dengan koma.</div>
-      </div>
-
-      <div class="md:col-span-12">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
-        <textarea name="seo_description" rows="3"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                  placeholder="Deskripsi meta (opsional)">{{ old('seo_description', $pkg->seo_description ?? '') }}</textarea>
-      </div>
-    </div>
-  </div>
-</div>
 
 {{-- DESKRIPSI --}}
 <div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -405,6 +378,17 @@ function umrahPricing() {
       this.reindex();
     }
   }
+}
+
+function previewUmrahThumb(input) {
+    const wrap = document.getElementById('umrah_thumb_new_wrap');
+    const img  = document.getElementById('umrah_thumb_new');
+    const existing = document.getElementById('umrah_thumb_existing');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); if(existing) existing.style.opacity='0.4'; };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); if(existing) existing.style.opacity='1'; }
 }
 </script>
 @push('scripts')

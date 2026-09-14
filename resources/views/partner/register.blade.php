@@ -73,6 +73,12 @@
                <option value="agency_rental_mobil" {{ old('partner_type')==='agency_rental_mobil' ? 'selected' : '' }}>
                     Agency Rental Mobil
                 </option>
+                <option value="agency_restoran" {{ old('partner_type')==='agency_restoran' ? 'selected' : '' }}>
+                    Agency Restoran
+                </option>
+                <option value="agency_hotel_vila" {{ old('partner_type')==='agency_hotel_vila' ? 'selected' : '' }}>
+                    Agency Hotel/Vila
+                </option>
 
             </select>
         </div>

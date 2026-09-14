@@ -44,6 +44,8 @@ class UpdateShipPackageRequest extends FormRequest
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_keywords' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
+            'social_title'     => ['nullable', 'string', 'max:255'],
+            'social_description' => ['nullable', 'string'],
 
             'tiers' => ['required', 'array', 'min:1'],
             'tiers.*.type' => ['required', 'in:weekday,weekend'],

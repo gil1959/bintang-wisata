@@ -193,6 +193,70 @@
                             </div>
                             @endif
 
+                            @if($order->type === 'restoran')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Tanggal & Jam Reservasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Partisipan / Tamu</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') . ' orang' : '-' }}
+                                </div>
+                            </div>
+
+                            @if(!empty($order->order_items) && is_array($order->order_items))
+                            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-200">
+                                <div class="text-xs font-extrabold text-slate-700 mb-2">Daftar Menu yang Dipesan:</div>
+                                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-xs text-left">
+                                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-extrabold">
+                                            <tr>
+                                                <th class="p-2.5">Menu</th>
+                                                <th class="p-2.5 text-right">Harga Satuan</th>
+                                                <th class="p-2.5 text-center">Qty</th>
+                                                <th class="p-2.5 text-right">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach($order->order_items as $item)
+                                            <tr>
+                                                <td class="p-2.5 font-bold text-slate-800">{{ $item['name'] }}</td>
+                                                <td class="p-2.5 text-right text-slate-600">Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
+                                                <td class="p-2.5 text-center font-bold text-slate-800">{{ $item['qty'] }}</td>
+                                                <td class="p-2.5 text-right font-extrabold text-slate-900">Rp {{ number_format($item['subtotal'] ?? ($item['price'] * $item['qty']), 0, ',', '.') }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            @endif
+                            @endif
+
+                            @if($order->type === 'hotel')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-in</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Check-out</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->return_date ? \Carbon\Carbon::parse($order->return_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <div class="text-xs font-extrabold text-slate-500">Durasi</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->total_days ? $order->total_days . ' malam' : '-' }}
+                                </div>
+                            </div>
+                            @endif
+
                         </div>
 
                     </div>
@@ -200,7 +264,23 @@
                     {{-- WhatsApp --}}
                     @php
                     $wa = preg_replace('/\D/', '', $order->customer_phone);
-                    $waText = urlencode("Halo {$order->customer_name}, terkait pesanan {$order->invoice_number} di Bintang Wisata.");
+                    $adminMsg = "Halo {$order->customer_name}, terkait pesanan {$order->invoice_number} ({$order->product_name}) di Bintang Wisata.";
+                    if ($order->type === 'restoran' && !empty($order->order_items) && is_array($order->order_items)) {
+                        $adminMsg .= "\n\nRincian Menu yang Dipesan:\n";
+                        foreach ($order->order_items as $idx => $mItem) {
+                            $adminMsg .= ($idx + 1) . ". " . ($mItem['name'] ?? '-') . " (" . ($mItem['qty'] ?? 1) . "x) - Rp " . number_format($mItem['subtotal'] ?? 0, 0, ',', '.') . "\n";
+                        }
+                        $adminMsg .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
+                    } elseif ($order->type === 'hotel' && !empty($order->order_items) && is_array($order->order_items)) {
+                        $adminMsg .= "\n\nRincian Reservasi Kamar:\n";
+                        $adminMsg .= "• Tipe Kamar: " . ($order->order_items['room_name'] ?? 'Standar') . "\n";
+                        $adminMsg .= "• Opsi: " . (!empty($order->order_items['with_breakfast']) ? 'Termasuk Sarapan' : 'Tanpa Sarapan') . "\n";
+                        $adminMsg .= "• Jumlah: " . ($order->order_items['room_count'] ?? 1) . " kamar\n";
+                        $adminMsg .= "• Check-in: " . ($order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y') : '-') . "\n";
+                        $adminMsg .= "• Check-out: " . ($order->return_date ? \Carbon\Carbon::parse($order->return_date)->format('d M Y') : '-') . " (" . ($order->total_days ?? 1) . " malam)\n";
+                        $adminMsg .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
+                    }
+                    $waText = urlencode($adminMsg);
                     @endphp
 
                     @if($wa)

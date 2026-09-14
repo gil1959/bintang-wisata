@@ -270,9 +270,9 @@
                     <div class="mt-2 text-sm">
                         <span class="text-slate-600">{{ $isEn ? 'From ' : 'Mulai ' }}</span>
                         <span class="font-extrabold text-rose-600">
-                            Rp {{ number_format((int)$package->price_per_hour, 0, ',', '.') }}
+                            Rp {{ number_format((int)$package->price_per_12_hours, 0, ',', '.') }}
                         </span>
-                        <span class="text-slate-500">{{ $isEn ? '/Hour' : '/Jam' }}</span>
+                        <span class="text-slate-500">{{ $isEn ? '/ 12 Hours' : '/ 12 Jam' }}</span>
                     </div>
                 </div>
 

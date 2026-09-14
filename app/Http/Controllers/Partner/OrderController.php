@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\TourPackage;
 use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
+use App\Models\RestoranPackage;
+use App\Models\HotelPackage;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -16,9 +18,11 @@ class OrderController extends Controller
         $tourIds = TourPackage::where('created_by_partner_id', $partnerId)->pluck('id');
         $rentIds = RentCarPackage::where('created_by_partner_id', $partnerId)->pluck('id');
         $shipIds = ShipPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+        $restoIds = RestoranPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+        $hotelIds = HotelPackage::where('created_by_partner_id', $partnerId)->pluck('id');
 
         return Order::query()
-            ->where(function ($q) use ($tourIds, $rentIds, $shipIds) {
+            ->where(function ($q) use ($tourIds, $rentIds, $shipIds, $restoIds, $hotelIds) {
                 $q->where(function ($w) use ($tourIds) {
                     $w->where('type', 'tour')->whereIn('product_id', $tourIds);
                 })
@@ -27,6 +31,12 @@ class OrderController extends Controller
                 })
                 ->orWhere(function ($w) use ($shipIds) {
                     $w->where('type', 'ship')->whereIn('product_id', $shipIds);
+                })
+                ->orWhere(function ($w) use ($restoIds) {
+                    $w->where('type', 'restoran')->whereIn('product_id', $restoIds);
+                })
+                ->orWhere(function ($w) use ($hotelIds) {
+                    $w->where('type', 'hotel')->whereIn('product_id', $hotelIds);
                 });
             });
     }
@@ -110,6 +120,12 @@ class OrderController extends Controller
                 ->where('created_by_partner_id', $partnerId)->exists();
         } elseif ($order->type === 'ship') {
             $isMine = ShipPackage::where('id', $order->product_id)
+                ->where('created_by_partner_id', $partnerId)->exists();
+        } elseif ($order->type === 'restoran') {
+            $isMine = RestoranPackage::where('id', $order->product_id)
+                ->where('created_by_partner_id', $partnerId)->exists();
+        } elseif ($order->type === 'hotel') {
+            $isMine = HotelPackage::where('id', $order->product_id)
                 ->where('created_by_partner_id', $partnerId)->exists();
         }
 

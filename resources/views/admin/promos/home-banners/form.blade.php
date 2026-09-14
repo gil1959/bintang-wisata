@@ -33,16 +33,25 @@
       <div>
         <label class="block text-sm font-semibold text-slate-900 mb-2">Thumbnail (PNG/JPG/WebP)</label>
         <input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp"
-               class="w-full rounded-2xl border border-slate-200 px-4 py-3 bg-white">
+               id="banner_thumb_input"
+               class="w-full rounded-2xl border border-slate-200 px-4 py-3 bg-white"
+               onchange="previewBannerThumb(this)">
 
         @error('thumbnail') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror
 
         @if($banner->exists && $banner->thumbnail_path)
-          <div class="mt-3 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 aspect-[16/7]">
-            <img src="{{ asset('storage/'.$banner->thumbnail_path) }}" class="h-full w-full object-cover" alt="">
+          <div id="banner_existing_wrap" class="mt-3 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 aspect-[16/7]">
+            <img id="banner_existing_img" src="{{ asset('storage/'.$banner->thumbnail_path) }}" class="h-full w-full object-cover" alt="">
           </div>
           <div class="text-xs text-slate-500 mt-2">Upload baru untuk mengganti thumbnail.</div>
         @endif
+
+        <div id="banner_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+          <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Thumbnail Baru</div>
+          <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[16/7]">
+            <img id="banner_new_img" src="" class="h-full w-full object-cover" alt="">
+          </div>
+        </div>
       </div>
 
       <div>
@@ -77,3 +86,16 @@
   </form>
 </div>
 @endsection
+
+<script>
+function previewBannerThumb(input) {
+    const wrap = document.getElementById('banner_new_wrap');
+    const img  = document.getElementById('banner_new_img');
+    const existing = document.getElementById('banner_existing_img');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); if(existing) existing.style.opacity='0.4'; };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); if(existing) existing.style.opacity='1'; }
+}
+</script>

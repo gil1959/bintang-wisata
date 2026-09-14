@@ -69,6 +69,28 @@
         ];
     }
 
+   if (auth()->user()->partner_type === 'agency_restoran') {
+        // GROUP: Restoran
+        $nav[] = [
+            'label' => 'Restoran',
+            'icon'  => 'utensils',
+            'children' => [
+                ['label'=>'Paket Restoran','route'=>'partner.restoran-packages.index','match'=>'partner.restoran-packages.*','icon'=>'utensils'],
+            ],
+        ];
+    }
+
+   if (auth()->user()->partner_type === 'agency_hotel_vila') {
+        // GROUP: Hotel/Vila
+        $nav[] = [
+            'label' => 'Hotel/Vila',
+            'icon'  => 'building',
+            'children' => [
+                ['label'=>'Paket Hotel/Vila','route'=>'partner.hotel-packages.index','match'=>'partner.hotel-packages.*','icon'=>'building'],
+            ],
+        ];
+    }
+
     // FIX: route profile partner (punya lu tadi salah: user.profile.edit)
     
     $nav[] = ['label'=>'Profile','route'=>'partner.profile.edit','match'=>'partner.profile.*','icon'=>'user'];

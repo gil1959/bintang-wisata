@@ -1,0 +1,476 @@
+<?php
+
+namespace App\Http\Controllers\Partner;
+
+use App\Http\Controllers\Controller;
+use App\Models\RestoranPackage;
+use App\Models\RestoranPackagePhoto;
+use App\Models\RestoranMenu;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class RestoranPackageController extends Controller
+{
+    public function index()
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+
+        $packages = RestoranPackage::query()
+            ->with(['photos', 'menus'])
+            ->where('created_by_partner_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('partner.restoran.index', compact('packages'));
+    }
+
+    public function create()
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+        return view('partner.restoran.create');
+    }
+
+    public function store(Request $request)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'label' => 'nullable|string|max:50',
+            'price_per_pax' => 'required|numeric|min:0',
+            'thumbnail' => 'nullable|image|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'nullable|image|max:3072',
+            'address' => 'nullable|string',
+            'maps_url' => 'nullable|string',
+            'nearby_places' => 'nullable|array',
+            'facilities' => 'nullable|array',
+            'keunggulan' => 'nullable|array',
+            'note' => 'nullable|string',
+            'cs_contact' => 'nullable|string|max:50',
+            'features' => 'nullable|array',
+            'menus' => 'nullable|array',
+            'long_description' => 'nullable|string',
+            'seo_title' => 'nullable|string|max:255',
+            'seo_keywords' => 'nullable|string|max:255',
+            'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
+        ]);
+
+        $slug = Str::slug($data['title']);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (RestoranPackage::where('slug', $slug)->exists()) {
+            $slug = "{$originalSlug}-{$counter}";
+            $counter++;
+        }
+        $data['slug'] = $slug;
+
+        $data['is_active'] = 0;
+        $data['created_by_partner_id'] = auth()->id();
+        $data['partner_review_status'] = 'pending';
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail_path'] = $request->file('thumbnail')->store('restoran', 'public');
+        }
+
+        // Clean nearby places
+        $cleanNearby = [];
+        foreach ($request->nearby_places ?? [] as $np) {
+            $name = trim($np['name'] ?? '');
+            if (!empty($name)) {
+                $cleanNearby[] = [
+                    'name' => $name,
+                    'distance' => trim($np['distance'] ?? ''),
+                ];
+            }
+        }
+        $data['nearby_places'] = $cleanNearby;
+
+        // Clean facilities
+        $cleanFacilities = [];
+        foreach ($request->facilities ?? [] as $f) {
+            $fName = is_array($f) ? trim($f['name'] ?? '') : trim($f);
+            if (!empty($fName)) {
+                $cleanFacilities[] = $fName;
+            }
+        }
+        $data['facilities'] = $cleanFacilities;
+
+        // Clean keunggulan
+        $cleanKeunggulan = [];
+        foreach ($request->keunggulan ?? [] as $k) {
+            $kText = is_array($k) ? trim($k['text'] ?? '') : trim($k);
+            if (!empty($kText)) {
+                $cleanKeunggulan[] = $kText;
+            }
+        }
+        $data['keunggulan'] = $cleanKeunggulan;
+
+        // Clean features
+        $cleanFeatures = [];
+        foreach ($request->features ?? [] as $feat) {
+            if (!empty(trim($feat['name'] ?? ''))) {
+                $cleanFeatures[] = [
+                    'name' => trim($feat['name']),
+                    'available' => isset($feat['available']) ? true : false,
+                ];
+            }
+        }
+        $data['features'] = $cleanFeatures;
+
+        if ($request->hasFile('seo_image')) {
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+
+        $package = RestoranPackage::create($data);
+
+        // Multiple gallery photos
+        if ($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $file) {
+                if ($file->isValid()) {
+                    $path = $file->store('restoran/gallery', 'public');
+                    $package->photos()->create(['file_path' => $path]);
+                }
+            }
+        }
+
+        // Restaurant Menus
+        if ($request->has('menus') && is_array($request->menus)) {
+            foreach ($request->menus as $idx => $m) {
+                $menuName = trim($m['name'] ?? '');
+                if (empty($menuName)) continue;
+
+                $menuPhotos = [];
+                if (!empty($m['existing_photos'])) {
+                    $epList = is_array($m['existing_photos']) ? $m['existing_photos'] : json_decode($m['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $menuPhotos[] = $ep;
+                        }
+                    }
+                } elseif (!empty($m['existing_thumbnail'])) {
+                    $menuPhotos[] = $m['existing_thumbnail'];
+                }
+
+                if ($request->hasFile("menus.{$idx}.photos")) {
+                    $uploaded = $request->file("menus.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($menuPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $menuPhotos[] = $file->store('restoran/menus', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("menus.{$idx}.thumbnail")) {
+                    $file = $request->file("menus.{$idx}.thumbnail");
+                    if ($file && $file->isValid() && count($menuPhotos) < 6) {
+                        $menuPhotos[] = $file->store('restoran/menus', 'public');
+                    }
+                }
+
+                $menuPhotos = array_values(array_slice($menuPhotos, 0, 6));
+                $menuThumbPath = $menuPhotos[0] ?? null;
+
+                $isReady = isset($m['is_ready']) && ($m['is_ready'] == 1 || $m['is_ready'] === '1' || $m['is_ready'] === 'on' || $m['is_ready'] === true);
+
+                $package->menus()->create([
+                    'name' => $menuName,
+                    'category' => trim($m['category'] ?? ''),
+                    'price' => (float)($m['price'] ?? 0),
+                    'description' => trim($m['description'] ?? '') ?: null,
+                    'thumbnail_path' => $menuThumbPath,
+                    'photos' => $menuPhotos,
+                    'is_ready' => $isReady,
+                    'sort_order' => $idx,
+                ]);
+            }
+        }
+
+        return redirect()->route('partner.restoran-packages.index')
+            ->with('success', 'Paket restoran berhasil dibuat dan menunggu persetujuan admin.');
+    }
+
+    public function edit(RestoranPackage $restoran_package)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
+        $package = $restoran_package->load(['photos', 'menus']);
+        return view('partner.restoran.edit', compact('package'));
+    }
+
+    public function update(Request $request, RestoranPackage $restoran_package)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'label' => 'nullable|string|max:50',
+            'price_per_pax' => 'required|numeric|min:0',
+            'thumbnail' => 'nullable|image|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'nullable|image|max:3072',
+            'address' => 'nullable|string',
+            'maps_url' => 'nullable|string',
+            'nearby_places' => 'nullable|array',
+            'facilities' => 'nullable|array',
+            'keunggulan' => 'nullable|array',
+            'note' => 'nullable|string',
+            'cs_contact' => 'nullable|string|max:50',
+            'features' => 'nullable|array',
+            'menus' => 'nullable|array',
+            'long_description' => 'nullable|string',
+            'seo_title' => 'nullable|string|max:255',
+            'seo_keywords' => 'nullable|string|max:255',
+            'seo_description' => 'nullable|string',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
+        ]);
+
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        if (!empty($customSlug) && $customSlug !== $restoran_package->slug) {
+            $slug = $customSlug;
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RestoranPackage::where('slug', $slug)->where('id', '!=', $restoran_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } elseif ($data['title'] !== $restoran_package->title) {
+            $slug = Str::slug($data['title']);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RestoranPackage::where('slug', $slug)->where('id', '!=', $restoran_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        }
+
+        if ($request->hasFile('thumbnail')) {
+            if ($restoran_package->thumbnail_path) {
+                Storage::disk('public')->delete($restoran_package->thumbnail_path);
+            }
+            $data['thumbnail_path'] = $request->file('thumbnail')->store('restoran', 'public');
+        }
+
+        // Clean nearby places
+        $cleanNearby = [];
+        foreach ($request->nearby_places ?? [] as $np) {
+            $name = trim($np['name'] ?? '');
+            if (!empty($name)) {
+                $cleanNearby[] = [
+                    'name' => $name,
+                    'distance' => trim($np['distance'] ?? ''),
+                ];
+            }
+        }
+        $data['nearby_places'] = $cleanNearby;
+
+        // Clean facilities
+        $cleanFacilities = [];
+        foreach ($request->facilities ?? [] as $f) {
+            $fName = is_array($f) ? trim($f['name'] ?? '') : trim($f);
+            if (!empty($fName)) {
+                $cleanFacilities[] = $fName;
+            }
+        }
+        $data['facilities'] = $cleanFacilities;
+
+        // Clean keunggulan
+        $cleanKeunggulan = [];
+        foreach ($request->keunggulan ?? [] as $k) {
+            $kText = is_array($k) ? trim($k['text'] ?? '') : trim($k);
+            if (!empty($kText)) {
+                $cleanKeunggulan[] = $kText;
+            }
+        }
+        $data['keunggulan'] = $cleanKeunggulan;
+
+        // Clean features
+        $cleanFeatures = [];
+        foreach ($request->features ?? [] as $feat) {
+            if (!empty(trim($feat['name'] ?? ''))) {
+                $cleanFeatures[] = [
+                    'name' => trim($feat['name']),
+                    'available' => isset($feat['available']) ? true : false,
+                ];
+            }
+        }
+        $data['features'] = $cleanFeatures;
+
+        if ($request->hasFile('seo_image')) {
+            if ($restoran_package->seo_image_path) {
+                Storage::disk('public')->delete($restoran_package->seo_image_path);
+            }
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
+        }
+
+        // Set status inactive for admin review on edit
+        $data['is_active'] = 0;
+        $data['partner_review_status'] = 'pending';
+        $data['partner_review_note'] = null;
+        $data['partner_reviewed_by'] = null;
+        $data['partner_reviewed_at'] = null;
+
+        $restoran_package->update($data);
+
+        // Multiple gallery photos (add to existing)
+        if ($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $file) {
+                if ($file->isValid()) {
+                    $path = $file->store('restoran/gallery', 'public');
+                    $restoran_package->photos()->create(['file_path' => $path]);
+                }
+            }
+        }
+
+        // Restaurant Menus Sync
+        $existingMenuIds = [];
+        if ($request->has('menus') && is_array($request->menus)) {
+            foreach ($request->menus as $idx => $m) {
+                $menuName = trim($m['name'] ?? '');
+                if (empty($menuName)) continue;
+
+                $menuId = !empty($m['id']) ? (int)$m['id'] : null;
+
+                $menuPhotos = [];
+                if (!empty($m['existing_photos'])) {
+                    $epList = is_array($m['existing_photos']) ? $m['existing_photos'] : json_decode($m['existing_photos'], true);
+                    if (is_array($epList)) {
+                        foreach ($epList as $ep) {
+                            if (!empty($ep) && is_string($ep)) $menuPhotos[] = $ep;
+                        }
+                    }
+                } elseif (!empty($m['existing_thumbnail'])) {
+                    $menuPhotos[] = $m['existing_thumbnail'];
+                }
+
+                if ($request->hasFile("menus.{$idx}.photos")) {
+                    $uploaded = $request->file("menus.{$idx}.photos");
+                    if (!is_array($uploaded)) $uploaded = [$uploaded];
+                    foreach ($uploaded as $file) {
+                        if (count($menuPhotos) >= 6) break;
+                        if ($file && $file->isValid()) {
+                            $menuPhotos[] = $file->store('restoran/menus', 'public');
+                        }
+                    }
+                } elseif ($request->hasFile("menus.{$idx}.thumbnail")) {
+                    $file = $request->file("menus.{$idx}.thumbnail");
+                    if ($file && $file->isValid() && count($menuPhotos) < 6) {
+                        $menuPhotos[] = $file->store('restoran/menus', 'public');
+                    }
+                }
+
+                $menuPhotos = array_values(array_slice($menuPhotos, 0, 6));
+                $thumbPath = $menuPhotos[0] ?? null;
+
+                $isReady = isset($m['is_ready']) && ($m['is_ready'] == 1 || $m['is_ready'] === '1' || $m['is_ready'] === 'on' || $m['is_ready'] === true);
+
+                if ($menuId && $menu = RestoranMenu::where('restoran_package_id', $restoran_package->id)->find($menuId)) {
+                    // Delete removed photo files
+                    $oldPhotos = $menu->all_photos;
+                    foreach ($oldPhotos as $op) {
+                        if (!in_array($op, $menuPhotos) && !empty($op)) {
+                            Storage::disk('public')->delete($op);
+                        }
+                    }
+
+                    $menu->update([
+                        'name' => $menuName,
+                        'category' => trim($m['category'] ?? ''),
+                        'price' => (float)($m['price'] ?? 0),
+                        'description' => trim($m['description'] ?? '') ?: null,
+                        'thumbnail_path' => $thumbPath,
+                        'photos' => $menuPhotos,
+                        'is_ready' => $isReady,
+                        'sort_order' => $idx,
+                    ]);
+                    $existingMenuIds[] = $menu->id;
+                } else {
+                    $newMenu = $restoran_package->menus()->create([
+                        'name' => $menuName,
+                        'category' => trim($m['category'] ?? ''),
+                        'price' => (float)($m['price'] ?? 0),
+                        'description' => trim($m['description'] ?? '') ?: null,
+                        'thumbnail_path' => $thumbPath,
+                        'photos' => $menuPhotos,
+                        'is_ready' => $isReady,
+                        'sort_order' => $idx,
+                    ]);
+                    $existingMenuIds[] = $newMenu->id;
+                }
+            }
+        }
+
+        // Delete removed menus
+        $deletedMenus = $restoran_package->menus()->whereNotIn('id', $existingMenuIds)->get();
+        foreach ($deletedMenus as $dm) {
+            foreach ($dm->all_photos as $p) {
+                if (!empty($p)) {
+                    Storage::disk('public')->delete($p);
+                }
+            }
+            $dm->delete();
+        }
+
+        return redirect()->route('partner.restoran-packages.index')
+            ->with('success', 'Paket restoran berhasil diperbarui dan menunggu persetujuan admin.');
+    }
+
+    public function deletePhoto($photo)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+
+        $photoItem = RestoranPackagePhoto::findOrFail($photo);
+        abort_unless((int)$photoItem->package->created_by_partner_id === (int)auth()->id(), 403);
+
+        if ($photoItem->file_path) {
+            Storage::disk('public')->delete($photoItem->file_path);
+        }
+
+        $photoItem->delete();
+
+        return back()->with('success', 'Foto galeri berhasil dihapus.');
+    }
+
+    public function destroy(RestoranPackage $restoran_package)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_restoran', 403);
+        abort_unless((int)$restoran_package->created_by_partner_id === (int)auth()->id(), 403);
+
+        if ($restoran_package->thumbnail_path) {
+            Storage::disk('public')->delete($restoran_package->thumbnail_path);
+        }
+
+        if ($restoran_package->seo_image_path) {
+            Storage::disk('public')->delete($restoran_package->seo_image_path);
+        }
+
+        foreach ($restoran_package->photos as $p) {
+            if ($p->file_path) {
+                Storage::disk('public')->delete($p->file_path);
+            }
+            $p->delete();
+        }
+
+        foreach ($restoran_package->menus as $m) {
+            if ($m->thumbnail_path) {
+                Storage::disk('public')->delete($m->thumbnail_path);
+            }
+            $m->delete();
+        }
+
+        $restoran_package->delete();
+
+        return redirect()->route('partner.restoran-packages.index')
+            ->with('success', 'Paket restoran berhasil dihapus.');
+    }
+}

@@ -42,9 +42,14 @@ class IpaymuWebhookController extends Controller
 
             // update order
            if ($payment->order) {
+    $prevOrderStatus = $payment->order->order_status;
     $payment->order->payment_status = 'paid';
     $payment->order->order_status   = 'approved';
     $payment->order->save();
+    
+    if ($payment->order->order_status !== $prevOrderStatus && $payment->order->order_status === 'approved') {
+        app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'approved');
+    }
 }
 
         }

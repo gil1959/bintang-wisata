@@ -34,6 +34,9 @@ class ArticleController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:500',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
 
             // adsense code bisa panjang
             'ads_code' => 'nullable|string',
@@ -45,6 +48,10 @@ class ArticleController extends Controller
         if ($request->hasFile('cover_image')) {
             $data['cover_image'] = $request->file('cover_image')
                 ->store('articles/covers', 'public');
+        }
+        
+        if ($request->hasFile('seo_image')) {
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
         }
 
         $data['slug'] = Str::slug($data['title']);
@@ -79,6 +86,9 @@ class ArticleController extends Controller
             'seo_title' => 'nullable|string|max:255',
             'seo_description' => 'nullable|string|max:255',
             'seo_keywords' => 'nullable|string|max:500',
+            'social_title' => 'nullable|string|max:255',
+            'social_description' => 'nullable|string',
+            'seo_image' => 'nullable|image|max:2048',
 
             'ads_code' => 'nullable|string',
             'tags' => 'nullable|string|max:2000',
@@ -97,6 +107,13 @@ class ArticleController extends Controller
 
             $data['cover_image'] = $request->file('cover_image')
                 ->store('articles/covers', 'public');
+        }
+
+        if ($request->hasFile('seo_image')) {
+            if ($article->seo_image_path) {
+                Storage::disk('public')->delete($article->seo_image_path);
+            }
+            $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
         }
 
         $article->update($data);

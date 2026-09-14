@@ -30,6 +30,8 @@
                     <option value="tour" {{ ($filters['type'] ?? '')==='tour' ? 'selected' : '' }}>Tour</option>
                     <option value="rentcar" {{ ($filters['type'] ?? '')==='rentcar' ? 'selected' : '' }}>Rent Car</option>
                     <option value="ship" {{ ($filters['type'] ?? '')==='ship' ? 'selected' : '' }}>Ship</option>
+                    <option value="restoran" {{ ($filters['type'] ?? '')==='restoran' ? 'selected' : '' }}>Restoran</option>
+                    <option value="hotel" {{ ($filters['type'] ?? '')==='hotel' ? 'selected' : '' }}>Hotel/Vila</option>
                 </select>
             </div>
 

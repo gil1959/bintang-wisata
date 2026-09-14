@@ -143,15 +143,25 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-bold text-slate-800 mb-1">Thumbnail (opsional)</label>
-        <input type="file" name="thumbnail" class="block w-full text-sm text-slate-600">
+        <input type="file" name="thumbnail" id="mice_thumb_input" class="block w-full text-sm text-slate-600" accept="image/*" onchange="previewMiceThumb(this)">
         @if(!empty($pkg?->thumbnail_path))
-          <img src="{{ asset('storage/'.$pkg->thumbnail_path) }}" class="mt-3 w-full max-w-sm rounded-2xl border border-slate-200" alt="thumb">
+          <img id="mice_thumb_existing" src="{{ asset('storage/'.$pkg->thumbnail_path) }}" class="mt-3 w-full max-w-sm rounded-2xl border border-slate-200" alt="thumb">
         @endif
+        <div id="mice_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+          <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Thumbnail Baru</div>
+          <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
+            <img id="mice_thumb_new" src="" class="h-full w-full object-cover" alt="">
+          </div>
+        </div>
       </div>
 
       <div>
         <label class="block text-sm font-bold text-slate-800 mb-1">Gallery (opsional, multiple)</label>
-        <input type="file" name="gallery[]" multiple class="block w-full text-sm text-slate-600">
+        <input type="file" name="gallery[]" multiple id="mice_gallery_input" class="block w-full text-sm text-slate-600" accept="image/*" onchange="previewMiceGallery(this)">
+        <div id="mice_gallery_new_wrap" class="hidden mt-3">
+          <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Gallery Baru</div>
+          <div id="mice_gallery_new_grid" class="grid grid-cols-3 gap-2"></div>
+        </div>
 
         @if($pkg && $pkg->photos && $pkg->photos->count())
           <div class="mt-3 grid grid-cols-2 gap-3">
@@ -335,32 +345,36 @@
 </div>
 
 {{-- SEO (pola sama: seo_title, seo_description, seo_keywords) --}}
-<div x-data="{ open: false }" class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-  <button type="button" @click="open=!open"
-          class="w-full px-5 py-4 text-left font-extrabold text-white flex items-center justify-between"
-          style="background:#0194F3;">
-    <span>SEO</span>
-    <span class="text-white/90 text-sm" x-text="open ? 'Tutup' : 'Buka'"></span>
-  </button>
+@include('partials._seo_form', ['model' => $pkg ?? null])
 
-  <div x-show="open" x-cloak class="p-5 space-y-4">
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title (opsional)</label>
-      <input type="text" name="seo_title"
-             value="{{ old('seo_title', $pkg->seo_title ?? '') }}"
-             class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-    </div>
 
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description (opsional)</label>
-      <textarea name="seo_description" rows="4"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('seo_description', $pkg->seo_description ?? '') }}</textarea>
-    </div>
-
-    <div>
-      <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords (opsional)</label>
-      <textarea name="seo_keywords" rows="3"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('seo_keywords', $pkg->seo_keywords ?? '') }}</textarea>
-    </div>
-  </div>
-</div>
+<script>
+function previewMiceThumb(input) {
+    const wrap = document.getElementById('mice_thumb_new_wrap');
+    const img  = document.getElementById('mice_thumb_new');
+    const existing = document.getElementById('mice_thumb_existing');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); if(existing) existing.style.opacity='0.4'; };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); if(existing) existing.style.opacity='1'; }
+}
+function previewMiceGallery(input) {
+    const wrap = document.getElementById('mice_gallery_new_wrap');
+    const grid = document.getElementById('mice_gallery_new_grid');
+    grid.innerHTML = '';
+    if (input.files && input.files.length > 0) {
+        wrap.classList.remove('hidden');
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const d = document.createElement('div');
+                d.className = 'h-20 rounded-xl overflow-hidden border border-slate-200';
+                d.innerHTML = `<img src="${e.target.result}" class="h-full w-full object-cover">`;
+                grid.appendChild(d);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else { wrap.classList.add('hidden'); }
+}
+</script>

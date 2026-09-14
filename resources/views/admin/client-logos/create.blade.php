@@ -33,7 +33,13 @@
     <div>
       <label class="label">Logo (PNG/JPG/WEBP/SVG)</label>
       <input class="input file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2 file:text-sm file:font-extrabold file:text-white file:shadow-sm file:[background:#0194F3]"
-             type="file" name="logo" required>
+             type="file" name="logo" id="logo_input" accept="image/*" required onchange="previewLogo(this)">
+      <div id="logo_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+        <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Logo</div>
+        <div class="h-16 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center p-2">
+          <img id="logo_new_preview" src="" class="max-h-full max-w-full object-contain" alt="">
+        </div>
+      </div>
     </div>
 
     <div>
@@ -61,3 +67,14 @@
   </form>
 </div>
 @endsection
+<script>
+function previewLogo(input) {
+    const wrap = document.getElementById('logo_new_wrap');
+    const img  = document.getElementById('logo_new_preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); }
+}
+</script>

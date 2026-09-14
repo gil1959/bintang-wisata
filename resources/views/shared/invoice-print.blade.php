@@ -17,10 +17,10 @@ $totalDue = (int) ($order->final_price ?? max(0, $subtotal - $discount));
 
 // Qty heuristic sesuai struktur order
 $qty = 1;
-if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah') {
-$qty = (int) ($order->participants ?? 1);
-} elseif (($order->type ?? '') === 'rent_car') {
-$qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
+if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah' || ($order->type ?? '') === 'restoran') {
+    $qty = (int) ($order->participants ?? 1);
+} elseif (($order->type ?? '') === 'rent_car' || ($order->type ?? '') === 'hotel') {
+    $qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
 }
 if ($qty <= 0) $qty=1;
 
@@ -510,19 +510,35 @@ if ($qty <= 0) $qty=1;
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="num">1</td>
-                                <td style="background:#f3f8fe;">
-                                    <div style="font-weight:900;">{{ $order->product_name ?? 'ITEM/SERVICE' }}</div>
-                                </td>
-                                <td class="right">Rp {{ number_format($unitPrice, 0, ',', '.') }}</td>
-                                <td class="center">{{ $effectiveQty }}</td>
-                                <td class="right">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
-                            </tr>
+                            @if($order->type === 'restoran' && !empty($order->order_items) && is_array($order->order_items))
+                                @php $itemNo = 1; @endphp
+                                @foreach($order->order_items as $menuItem)
+                                <tr>
+                                    <td class="num">{{ $itemNo++ }}</td>
+                                    <td style="background:#f3f8fe;">
+                                        <div style="font-weight:900;">{{ $menuItem['name'] }}</div>
+                                        <div style="font-size:11px; color:#64748b;">{{ $order->product_name }}</div>
+                                    </td>
+                                    <td class="right">Rp {{ number_format($menuItem['price'], 0, ',', '.') }}</td>
+                                    <td class="center">{{ $menuItem['qty'] }}</td>
+                                    <td class="right">Rp {{ number_format($menuItem['subtotal'] ?? ($menuItem['price'] * $menuItem['qty']), 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td class="num">1</td>
+                                    <td style="background:#f3f8fe;">
+                                        <div style="font-weight:900;">{{ $order->product_name ?? 'ITEM/SERVICE' }}</div>
+                                    </td>
+                                    <td class="right">Rp {{ number_format($unitPrice, 0, ',', '.') }}</td>
+                                    <td class="center">{{ $effectiveQty }}</td>
+                                    <td class="right">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            @endif
 
                             @if($discount > 0)
                             <tr>
-                                <td class="num">2</td>
+                                <td class="num">{{ ($order->type === 'restoran' && !empty($order->order_items)) ? count($order->order_items) + 1 : 2 }}</td>
                                 <td style="background:#eef6ff; font-weight:900;">DISCOUNT</td>
                                 <td class="right">-</td>
                                 <td class="center">-</td>

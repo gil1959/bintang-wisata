@@ -132,6 +132,102 @@
                 </div>
             </div>
             @endif
+
+            @if($order->type === 'restoran')
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Reservation Date & Time' : 'Tanggal & Jam Reservasi' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y, H:i') : '-' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Participants' : 'Jumlah Peserta' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">{{ $order->participants ?? '-' }} {{ $isEn ? 'pax' : 'orang' }}</div>
+            </div>
+
+            @if(!empty($order->order_items) && is_array($order->order_items))
+            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-100">
+                <div class="text-xs font-extrabold text-slate-800 mb-2.5 flex items-center gap-1.5">
+                    <i data-lucide="utensils" class="w-3.5 h-3.5 text-sky-500"></i>
+                    <span>{{ $isEn ? 'Ordered Menu List' : 'Daftar Menu yang Dipesan' }}</span>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-extrabold">
+                            <tr>
+                                <th class="p-2.5">{{ $isEn ? 'Menu' : 'Menu' }}</th>
+                                <th class="p-2.5 text-right">{{ $isEn ? 'Price' : 'Harga' }}</th>
+                                <th class="p-2.5 text-center">{{ $isEn ? 'Qty' : 'Jumlah' }}</th>
+                                <th class="p-2.5 text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($order->order_items as $item)
+                            <tr>
+                                <td class="p-2.5 font-bold text-slate-800">{{ $item['name'] ?? '-' }}</td>
+                                <td class="p-2.5 text-right text-slate-600">Rp {{ number_format($item['price'] ?? 0, 0, ',', '.') }}</td>
+                                <td class="p-2.5 text-center font-bold text-slate-800">{{ $item['qty'] ?? 1 }}</td>
+                                <td class="p-2.5 text-right font-extrabold text-slate-900">
+                                    Rp {{ number_format($item['subtotal'] ?? (($item['price'] ?? 0) * ($item['qty'] ?? 1)), 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+            @endif
+
+            @if($order->type === 'hotel')
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Check-in Date' : 'Tanggal Check-in' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('d M Y') : '-' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Check-out Date' : 'Tanggal Check-out' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->return_date ? \Carbon\Carbon::parse($order->return_date)->format('d M Y') : '-' }}
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Duration' : 'Durasi' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->total_days ? $order->total_days . ($isEn ? ' nights' : ' malam') : '-' }}
+                </div>
+            </div>
+
+            @if(!empty($order->order_items) && is_array($order->order_items))
+            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-100">
+                <div class="text-xs font-extrabold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="bed" class="w-3.5 h-3.5 text-sky-500"></i>
+                    <span>{{ $isEn ? 'Room Reservation Details' : 'Rincian Kamar yang Dipesan' }}</span>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Tipe Kamar:</span>
+                        <span class="font-bold text-slate-900">{{ $order->order_items['room_name'] ?? 'Standar' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Opsi Sarapan:</span>
+                        <span class="font-bold {{ !empty($order->order_items['with_breakfast']) ? 'text-emerald-700' : 'text-slate-700' }}">
+                            {{ !empty($order->order_items['with_breakfast']) ? 'Termasuk Sarapan' : 'Tanpa Sarapan' }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Jumlah Kamar:</span>
+                        <span class="font-bold text-slate-900">{{ $order->order_items['room_count'] ?? 1 }} kamar</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200/80">
+                        <span class="text-slate-500">Tarif per Kamar / Malam:</span>
+                        <span class="font-extrabold text-sky-600">Rp {{ number_format($order->order_items['price_per_night'] ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+            @endif
+            @endif
         </div>
     </div>
 

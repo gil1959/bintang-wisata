@@ -18,10 +18,10 @@
                 rows: @json(old("tiers.$type", $tiers->toArray())),
                 insertCustom() {
                     if (this.rows.some(r => Number(r.is_custom) === 1 || r.is_custom === true)) return;
-                    this.rows.push({ is_custom: 1, min_people: 2, max_people: null, price: "" });
+                    this.rows.push({ label: "", is_custom: 1, min_people: 2, max_people: null, price: "" });
                 },
                 insertNormal() {
-                    this.rows.push({ is_custom: 0, min_people: "", max_people: "", price: "" });
+                   this.rows.push({ label: "", is_custom: 1, min_people: 2, max_people: null, price: "" });
                 }
             }'
             class="space-y-3"
@@ -36,52 +36,78 @@
                     </template>
 
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                        <div class="sm:col-span-4">
-                            <label class="block text-sm font-bold text-slate-800 mb-1">Min Orang</label>
-                            <input type="number"
-                                   :readonly="Number(row.is_custom) === 1"
-                                   x-model="row.min_people"
-                                   :name="`tiers[{{ $type }}][${index}][min_people]`"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-                        </div>
+    {{-- LABEL --}}
+    <div class="sm:col-span-12">
+        <label class="block text-sm font-bold text-slate-800 mb-1">
+            Label Tier <span class="text-slate-500 font-semibold">(opsional)</span>
+        </label>
+        <input type="text"
+               x-model="row.label"
+               :name="`tiers[{{ $type }}][${index}][label]`"
+               placeholder="Contoh: Regular / Promo / VIP / Early Bird"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+        <p class="mt-1 text-xs text-slate-500">
+            Ditampilkan di front sebagai judul tier (di atas rentang min-max).
+        </p>
+    </div>
 
-                        <div class="sm:col-span-4">
-                            <label class="block text-sm font-bold text-slate-800 mb-1">Max Orang</label>
-                            <input type="number"
-                                   :readonly="Number(row.is_custom) === 1"
-                                   x-model="row.max_people"
-                                   :placeholder="Number(row.is_custom) === 1 ? '∞' : ''"
-                                   :name="`tiers[{{ $type }}][${index}][max_people]`"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-                        </div>
+    {{-- MIN --}}
+    <div class="sm:col-span-3">
+        <label class="block text-sm font-bold text-slate-800 mb-1">Min Orang</label>
+        <input type="number"
+               :readonly="Number(row.is_custom) === 1"
+               x-model="row.min_people"
+               :name="`tiers[{{ $type }}][${index}][min_people]`"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+    </div>
 
-                        <div class="sm:col-span-3">
-                            <label class="block text-sm font-bold text-slate-800 mb-1">Harga / pax</label>
-                            <input type="number"
-                                   x-model="row.price"
-                                   :name="`tiers[{{ $type }}][${index}][price]`"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-                        </div>
+    {{-- MAX --}}
+    <div class="sm:col-span-3">
+        <label class="block text-sm font-bold text-slate-800 mb-1">Max Orang</label>
+        <input type="number"
+               :readonly="Number(row.is_custom) === 1"
+               x-model="row.max_people"
+               :placeholder="Number(row.is_custom) === 1 ? '∞' : ''"
+               :name="`tiers[{{ $type }}][${index}][max_people]`"
+               class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+    </div>
 
-                        <div class="sm:col-span-1 flex sm:items-end">
-                            <button type="button"
-                                    @click="rows.splice(index, 1)"
-                                    class="w-full inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
-                                    style="background:#ef4444"
-                                    onmouseover="this.style.background='#dc2626'"
-                                    onmouseout="this.style.background='#ef4444'">
-                                X
-                            </button>
-                        </div>
+    {{-- PRICE --}}
+    <div class="sm:col-span-4">
+        <label class="block text-sm font-bold text-slate-800 mb-1">Harga / pax</label>
+        <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rp</span>
+            <input type="number"
+                   x-model="row.price"
+                   :name="`tiers[{{ $type }}][${index}][price]`"
+                   class="w-full pl-10 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                   placeholder="1000000">
+        </div>
+    </div>
 
-                        <input type="hidden"
-                               :name="`tiers[{{ $type }}][${index}][is_custom]`"
-                               :value="Number(row.is_custom) === 1 ? 1 : 0">
+    {{-- DELETE --}}
+    <div class="sm:col-span-2 flex sm:items-end">
+        <button type="button"
+                @click="rows.splice(index, 1)"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-extrabold text-white transition"
+                style="background:#ef4444"
+                onmouseover="this.style.background='#dc2626'"
+                onmouseout="this.style.background='#ef4444'">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            Hapus
+        </button>
+    </div>
 
-                        <input type="hidden"
-                               :name="`tiers[{{ $type }}][${index}][type]`"
-                               value="{{ $type }}">
-                    </div>
+    {{-- required hidden fields --}}
+    <input type="hidden"
+           :name="`tiers[{{ $type }}][${index}][is_custom]`"
+           :value="Number(row.is_custom) === 1 ? 1 : 0">
+
+    <input type="hidden"
+           :name="`tiers[{{ $type }}][${index}][type]`"
+           value="{{ $type }}">
+</div>
+
                 </div>
             </template>
 

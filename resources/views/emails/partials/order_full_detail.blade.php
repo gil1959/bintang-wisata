@@ -23,12 +23,13 @@ $typeLabel = match($order->type) {
 'rent_car' => ($isEn ? 'Car Rental' : 'Rental Mobil'),
 'ship' => ($isEn ? 'Ship Rental' : 'Sewa Kapal'),
 'flight' => ($isEn ? 'Flight Ticket' : 'Tiket Pesawat'),
+'restoran' => ($isEn ? 'Restaurant' : 'Restoran'),
 default => (string)($order->type ?? '-'),
 };
 
-$departure = $order->departure_date ? $order->departure_date->translatedFormat('d F Y') : '-';
-$pickup = $order->pickup_date ? $order->pickup_date->translatedFormat('d F Y H:i') : '-';
-$return = $order->return_date ? $order->return_date->translatedFormat('d F Y H:i') : '-';
+$departure = $order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-';
+$pickup = $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d F Y H:i') : '-';
+$return = $order->return_date ? \Carbon\Carbon::parse($order->return_date)->translatedFormat('d F Y H:i') : '-';
 
 $latestPayment = $order->payments?->sortByDesc('id')->first();
 @endphp
@@ -139,7 +140,58 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
       </tr>
       @endif
 
+      @if($order->type === 'restoran')
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Reservation Date & Time' : 'Tanggal & Jam Reservasi' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $pickup }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; {{ (!empty($order->order_items) && is_array($order->order_items)) ? 'border-bottom:1px solid #e2e8f0;' : '' }} color:#475569;">{{ $isEn ? 'Participants' : 'Partisipan' }}</td>
+        <td style="padding:8px 0; {{ (!empty($order->order_items) && is_array($order->order_items)) ? 'border-bottom:1px solid #e2e8f0;' : '' }}">
+          {{ $order->participants ? number_format($order->participants,0,',','.') . ($isEn ? ' people' : ' orang') : '-' }}
+        </td>
+      </tr>
+      @if(!empty($order->order_items) && is_array($order->order_items))
+      <tr>
+        <td colspan="2" style="padding:10px 0 4px;">
+          <div style="font-weight:bold; font-size:12px; margin-bottom:6px; color:#334155;">{{ $isEn ? 'Ordered Menus:' : 'Menu yang Dipesan:' }}</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-size:12px; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+            <tr style="background:#f8fafc; font-weight:bold; border-bottom:1px solid #e2e8f0;">
+              <th style="padding:6px 8px; text-align:left;">Menu</th>
+              <th style="padding:6px 8px; text-align:right;">Harga</th>
+              <th style="padding:6px 8px; text-align:center;">Qty</th>
+              <th style="padding:6px 8px; text-align:right;">Subtotal</th>
+            </tr>
+            @foreach($order->order_items as $item)
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:6px 8px;"><b>{{ $item['name'] }}</b></td>
+              <td style="padding:6px 8px; text-align:right;">Rp {{ number_format($item['price'], 0, ',', '.') }}</td>
+              <td style="padding:6px 8px; text-align:center;">{{ $item['qty'] }}</td>
+              <td style="padding:6px 8px; text-align:right; font-weight:bold;">Rp {{ number_format($item['subtotal'] ?? ($item['price'] * $item['qty']), 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+          </table>
+        </td>
+      </tr>
+      @endif
+      @endif
 
+      @if($order->type === 'hotel')
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Check-in' : 'Check-in' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $pickup }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Check-out' : 'Check-out' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $return }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Duration' : 'Durasi' }}</td>
+        <td style="padding:8px 0;">
+          {{ $order->total_days ? $order->total_days . ($isEn ? ' nights' : ' malam') : '-' }}
+        </td>
+      </tr>
+      @endif
     </table>
   </div>
 </div>

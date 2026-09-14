@@ -74,7 +74,9 @@ class UmrahPackageController extends Controller
 
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
-                'seo_keywords'     => $request->seo_keywords,
+                'seo_keywords' => $request->seo_keywords,
+                'social_title' => $request->social_title,
+                'social_description' => $request->social_description,
             ]);
 
             // Thumbnail
@@ -93,6 +95,14 @@ class UmrahPackageController extends Controller
 
             // Harga (tiers)
             $this->syncTiers($package, $request->tiers);
+
+
+            if ($request->hasFile('seo_image')) {
+                if ($package->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($package->seo_image_path);
+                }
+                $package->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
 
             \App\Jobs\Translate\UmrahPackageToEn::dispatch($package->id)
                 ->onQueue('translations')
@@ -132,7 +142,9 @@ class UmrahPackageController extends Controller
 
                 'seo_title'        => $request->seo_title,
                 'seo_description'  => $request->seo_description,
-                'seo_keywords'     => $request->seo_keywords,
+                'seo_keywords' => $request->seo_keywords,
+                'social_title' => $request->social_title,
+                'social_description' => $request->social_description,
             ]);
 
             // Thumbnail replace
@@ -153,6 +165,14 @@ class UmrahPackageController extends Controller
             }
 
             $this->syncTiers($umrahPackage, $request->tiers);
+
+
+            if ($request->hasFile('seo_image')) {
+                if ($umrahPackage->seo_image_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($umrahPackage->seo_image_path);
+                }
+                $umrahPackage->update(['seo_image_path' => $request->file('seo_image')->store('seo_images', 'public')]);
+            }
 
             \App\Jobs\Translate\UmrahPackageToEn::dispatch($umrahPackage->id)
                 ->onQueue('translations')

@@ -7,11 +7,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
-        Schema::create('bookings', function (Blueprint $table) {
-            $table->id();
+        if (Schema::hasTable('bookings') && !Schema::hasColumn('bookings', 'invoice')) {
+            Schema::disableForeignKeyConstraints();
+            Schema::dropIfExists('booking_items');
+            Schema::dropIfExists('bookings');
+            Schema::enableForeignKeyConstraints();
+        }
 
-            // INVOICE
-            $table->string('invoice')->unique();
+        if (!Schema::hasTable('bookings')) {
+            Schema::create('bookings', function (Blueprint $table) {
+                $table->id();
+
+                // INVOICE
+                $table->string('invoice')->unique();
 
             // BOOKABLE: tour / rentcar
             $table->string('booking_type'); // 'tour' atau 'rentcar'
@@ -49,6 +57,7 @@ return new class extends Migration {
 
             $table->timestamps();
         });
+        }
     }
 
     public function down()

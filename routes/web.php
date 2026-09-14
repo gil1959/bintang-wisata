@@ -258,6 +258,12 @@ Route::prefix('bw-admin')
         Route::resource('users', AdminUserController::class);
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Admin\RestoranPackageController::class, 'deletePhoto'])
+            ->name('restoran-packages.delete-photo')->middleware('permission:admin.dashboard.view');
+        Route::resource('restoran-packages', \App\Http\Controllers\Admin\RestoranPackageController::class)->middleware('permission:admin.dashboard.view');
+        Route::delete('hotel-packages/photo/{photo}', [\App\Http\Controllers\Admin\HotelPackageController::class, 'deletePhoto'])
+            ->name('hotel-packages.delete-photo')->middleware('permission:admin.dashboard.view');
+        Route::resource('hotel-packages', \App\Http\Controllers\Admin\HotelPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
         Route::resource('ship-packages', ShipPackageController::class)->middleware('permission:admin.dashboard.view');
@@ -509,6 +515,16 @@ Route::prefix('partner')->name('partner.')->middleware(['auth', 'role:partner'])
 
     Route::resource('rent-car-packages', \App\Http\Controllers\Partner\RentCarPackageController::class);
 
+    // agency_restoran
+    Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Partner\RestoranPackageController::class, 'deletePhoto'])
+        ->name('restoran-packages.delete-photo');
+    Route::resource('restoran-packages', \App\Http\Controllers\Partner\RestoranPackageController::class)->except(['show']);
+
+    // agency_hotel_vila
+    Route::delete('hotel-packages/photo/{photo}', [\App\Http\Controllers\Partner\HotelPackageController::class, 'deletePhoto'])
+        ->name('hotel-packages.delete-photo');
+    Route::resource('hotel-packages', \App\Http\Controllers\Partner\HotelPackageController::class)->except(['show']);
+
     // agency_kapal
 
     Route::resource('tour-categories', \App\Http\Controllers\Partner\TourCategoryController::class)
@@ -554,6 +570,12 @@ Route::get('/paket-mice/{micePackage:slug}', [\App\Http\Controllers\Front\MiceCo
 Route::post('/mice/{slug}/draft-booking', [\App\Http\Controllers\Front\MiceOrderController::class, 'draft'])->name('mice.draft');
 Route::post('/rent-car/{slug}/draft-booking', [RentCarOrderController::class, 'draft'])
     ->name('rentcar.draft');
+
+Route::post('/restoran/{slug}/draft-booking', [\App\Http\Controllers\Front\RestoranOrderController::class, 'draft'])
+    ->name('restoran.draft');
+
+Route::post('/hotel/{slug}/draft-booking', [\App\Http\Controllers\Front\HotelOrderController::class, 'draft'])
+    ->name('hotel.draft');
 
 // Ship (Sewa Kapal)
 Route::prefix('sewa-kapal')->name('ship.')->group(function () {
@@ -696,6 +718,18 @@ Route::prefix('rent-car')->name('rentcar.')->group(function () {
     Route::get('/{slug}', [RentCarController::class, 'show'])->name('show');
 });
 
+// Restoran listing + detail
+Route::prefix('restoran')->name('restoran.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Front\RestoranController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\App\Http\Controllers\Front\RestoranController::class, 'show'])->name('show');
+});
+
+// Hotel/Vila listing + detail
+Route::prefix('hotel-vila')->name('hotel.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Front\HotelController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\App\Http\Controllers\Front\HotelController::class, 'show'])->name('show');
+});
+
 
 
 
@@ -711,7 +745,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/diag_mail.php';
+
 Route::fallback(function () {
+
     // Jangan redirect untuk path API (biar gak 302)
     if (request()->is('api/*')) {
         abort(404);

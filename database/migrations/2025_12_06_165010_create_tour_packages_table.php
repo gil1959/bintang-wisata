@@ -4,36 +4,44 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTourPackagesTable extends Migration
+return new class extends Migration
 {
     public function up()
     {
-        Schema::create('tour_packages', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
+        if (!Schema::hasTable('tour_packages')) {
+            Schema::create('tour_packages', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->string('slug')->unique();
 
-            $table->foreignId('category_id')->constrained('tour_categories')->cascadeOnDelete();
+                $table->foreignId('category_id')->constrained('tour_categories')->cascadeOnDelete();
 
-            $table->string('destination')->nullable();
-            $table->string('duration_text')->nullable();
+                $table->string('destination')->nullable();
+                $table->string('duration_text')->nullable();
 
-            $table->longText('long_description')->nullable();
+                $table->longText('long_description')->nullable();
 
-            $table->json('includes')->nullable();
-            $table->json('excludes')->nullable();
+                $table->json('includes')->nullable();
+                $table->json('excludes')->nullable();
 
-            $table->enum('flight_info', ['included', 'not_included'])->default('not_included');
+                $table->enum('flight_info', ['included', 'not_included'])->default('not_included');
 
-            $table->string('thumbnail_path')->nullable();
-            $table->boolean('is_active')->default(true);
+                $table->string('thumbnail_path')->nullable();
+                $table->boolean('is_active')->default(true);
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        } else {
+            Schema::table('tour_packages', function (Blueprint $table) {
+                if (!Schema::hasColumn('tour_packages', 'long_description')) {
+                    $table->longText('long_description')->nullable();
+                }
+            });
+        }
     }
 
     public function down()
     {
         Schema::dropIfExists('tour_packages');
     }
-}
+};

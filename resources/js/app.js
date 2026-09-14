@@ -1,33 +1,34 @@
-import './bootstrap';
+require('./bootstrap');
 
 import Alpine from 'alpinejs';
 
-window.Alpine = Alpine;
+if (!window.Alpine) {
+    window.Alpine = Alpine;
+    Alpine.start();
+}
 
-Alpine.start();
-
-document.addEventListener('DOMContentLoaded', () => {
-    const el = document.querySelector('.reviewSwiper');
-    if (!el || typeof Swiper === 'undefined') return;
-
-    const swiper = new Swiper(el, {
-        slidesPerView: 1,
-        spaceBetween: 16,
-        navigation: {
-            nextEl: '.review-next',
-            prevEl: '.review-prev',
-        },
-        on: {
-            init() {
-                const currentEl = document.querySelector('.review-current');
-                const totalEl = document.querySelector('.review-total');
-                if (currentEl) currentEl.textContent = String(this.realIndex + 1);
-                if (totalEl) totalEl.textContent = String(this.slides.length);
+document.addEventListener('DOMContentLoaded', function () {
+    var swiperEl = document.querySelector('.reviewSwiper');
+    if (swiperEl && typeof Swiper !== 'undefined') {
+        new Swiper(swiperEl, {
+            slidesPerView: 1,
+            spaceBetween: 16,
+            navigation: {
+                nextEl: '.review-next',
+                prevEl: '.review-prev',
             },
-            slideChange() {
-                const currentEl = document.querySelector('.review-current');
-                if (currentEl) currentEl.textContent = String(this.realIndex + 1);
+            on: {
+                init: function () {
+                    var current = document.querySelector('.review-current');
+                    var total = document.querySelector('.review-total');
+                    if (current) current.textContent = String(this.realIndex + 1);
+                    if (total) total.textContent = String(this.slides.length);
+                },
+                slideChange: function () {
+                    var current = document.querySelector('.review-current');
+                    if (current) current.textContent = String(this.realIndex + 1);
+                }
             }
-        }
-    });
+        });
+    }
 });

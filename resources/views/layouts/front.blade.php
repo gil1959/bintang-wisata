@@ -8,6 +8,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  @hasSection('meta')
+    @yield('meta')
+  @else
   <title>Bintang Wisata Holiday | Paket Tour & Paket Wisata Eksklusif Terpercaya</title>
   <meta name="description" content="Rasakan pengalaman liburan tak terlupakan dengan paket tour terbaik dari Bintang Wisata Holiday. Layanan profesional untuk paket wisata domestik dan internasional.">
   <meta name="keywords" content="paket tour, paket wisata, paket tour eksklusif, agen perjalanan wisata, paket liburan keluarga, paket tour domestik, paket tour internasional, bintang wisata holiday, paket wisata premium">
@@ -25,6 +28,7 @@
   <meta property="twitter:title" content="Bintang Wisata Holiday | Paket Wisata Terbaik & Profesional">
   <meta property="twitter:description" content="Cari paket tour berkualitas? Bintang Wisata Holiday solusinya. Cek pilihan paket wisata premium terbaru kami di sini!">
   <meta property="twitter:image" content="https://bintangwisataholiday.com/logo-atau-banner.jpg">
+  @endif
 
   <link rel="canonical" href="https://bintangwisataholiday.com/">
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://bintangwisataholiday.com/sitemap.xml">
@@ -161,11 +165,23 @@
   <link rel="preload" as="style" href="{{ mix('css/app.css') }}">
   <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
+  {{-- Font Awesome CDN --}}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  {{-- Alpine (konsisten dengan admin, partner, dan user layout) --}}
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
   <script defer src="{{ mix('js/app.js') }}"></script>
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
+  <style>
+    [x-cloak] { display: none !important; }
+  </style>
+
   <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+  @stack('styles')
 
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0194F3">
@@ -310,6 +326,7 @@
   </div>
 
   @yield('scripts')
+  @stack('scripts')
 
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script>

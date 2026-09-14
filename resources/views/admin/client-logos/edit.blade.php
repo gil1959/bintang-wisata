@@ -45,8 +45,14 @@
     <div>
       <label class="label">Ganti Logo (opsional)</label>
       <input class="input file:mr-3 file:rounded-xl file:border-0 file:px-4 file:py-2 file:text-sm file:font-extrabold file:text-white file:shadow-sm file:[background:#0194F3]"
-             type="file" name="logo">
+             type="file" name="logo" id="logo_edit_input" accept="image/*" onchange="previewLogoEdit(this)">
       <p class="text-xs text-slate-500 mt-1">Kalau gak upload, logo lama dipakai.</p>
+      <div id="logo_edit_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+        <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Logo Baru</div>
+        <div class="h-16 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center p-2">
+          <img id="logo_edit_new_preview" src="" class="max-h-full max-w-full object-contain" alt="">
+        </div>
+      </div>
     </div>
 
     <div>
@@ -75,3 +81,15 @@
   </form>
 </div>
 @endsection
+<script>
+function previewLogoEdit(input) {
+    const wrap = document.getElementById('logo_edit_new_wrap');
+    const img  = document.getElementById('logo_edit_new_preview');
+    const existing = document.querySelector('.card.p-4.bg-slate-50 img');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; wrap.classList.remove('hidden'); if(existing) existing.style.opacity='0.4'; };
+        reader.readAsDataURL(input.files[0]);
+    } else { wrap.classList.add('hidden'); if(existing) existing.style.opacity='1'; }
+}
+</script>
