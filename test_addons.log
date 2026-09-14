@@ -1,0 +1,329 @@
+{
+    "supplier_booking_detail": {
+        "flightDeparts": [
+            {
+                "flightNumber": "7693",
+                "fdDepartTime": "2026-05-25T17:55:00",
+                "fdArrivalTime": "2026-05-25T19:30:00",
+                "fdOrigin": "SUB",
+                "fdDestination": "CGK",
+                "fdFlightClass": "A01H00H         "
+            }
+        ],
+        "flightReturns": [
+            {
+                "flightNumber": "7692",
+                "fdDepartTime": "2026-05-26T20:00:00",
+                "fdArrivalTime": "2026-05-26T21:30:00",
+                "fdOrigin": "CGK",
+                "fdDestination": "SUB",
+                "fdFlightClass": "I01H00H         "
+            }
+        ],
+        "airline": "Air Asia",
+        "airlineID": "QZ",
+        "flightClass": "          ",
+        "bookingCode": "0F3J81",
+        "bookingDate": "2026-04-17T18:27:20",
+        "timeLimit": "2026-04-20 04:11:20",
+        "origin": "Surabaya1",
+        "destination": "Jakarta,Soekarno Hatta",
+        "tripType": "RoundTrip",
+        "departDate": "2026-05-25T00:00:00",
+        "returnDate": "2026-05-26T00:00:00",
+        "ticketStatus": "Ticketed",
+        "ticketDetail": "",
+        "passengers": [
+            {
+                "title": "MR",
+                "firstName": "Ragil",
+                "lastName": "Kurniawan",
+                "phone": "6285709271847",
+                "type": "Adult"
+            },
+            {
+                "title": "MR",
+                "firstName": "mescha",
+                "lastName": "aslina",
+                "phone": null,
+                "type": "Adult"
+            },
+            {
+                "title": "MSTR",
+                "firstName": "budi",
+                "lastName": "irawan",
+                "phone": null,
+                "type": "Child"
+            },
+            {
+                "title": "MSTR",
+                "firstName": "budi",
+                "lastName": "Kurniawan",
+                "phone": null,
+                "type": "Infant"
+            }
+        ],
+        "currency": "IDR",
+        "adminFee": {
+            "ticketPrice": 4713971,
+            "ticketPriceIDR": 4713971,
+            "airlineMarkup": 0,
+            "memberMarkup": 0,
+            "memberDiscount": 0,
+            "salesPrice": 4680971
+        },
+        "issuedDate": "2026-04-17T22:26:33",
+        "bookingCodeAirline": null,
+        "referenceNo": "26041704087329",
+        "respTime": "2026-04-17T22:27:01.3165837+07:00",
+        "userID": "2304APAPTU",
+        "accessToken": "8a1fbf6f35072a9a6a374ce66e31bbc0",
+        "status": "SUCCESS",
+        "respMessage": "SUCCESS"
+    },
+    "addons_response": {
+        "addOns": [
+            {
+                "origin": "SUB",
+                "destination": "CGK",
+                "baggageInfos": [
+                    {
+                        "code": "PBAF",
+                        "fare": 308000,
+                        "desc": "Check-In Baggage - 40kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAD",
+                        "fare": 176000,
+                        "desc": "Check-In Baggage - 30kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAC",
+                        "fare": 105600,
+                        "desc": "Check-In Baggage - 25kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAB",
+                        "fare": 88000,
+                        "desc": "Check-In Baggage - 20kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAA",
+                        "fare": 0,
+                        "desc": "Check-In Baggage - 15kg",
+                        "currency": "IDR"
+                    }
+                ],
+                "mealInfos": [
+                    {
+                        "code": "WCHS",
+                        "fare": 0,
+                        "desc": "Wheelchair",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "WCHR",
+                        "fare": 0,
+                        "desc": "Wheelchair",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "WCHC",
+                        "fare": 0,
+                        "desc": "for free",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PVIP",
+                        "fare": 250000,
+                        "desc": "Red Carpet",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NPCB",
+                        "fare": 33900,
+                        "desc": "Nasi Padan",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NLCB",
+                        "fare": 33900,
+                        "desc": "Pak Nasser",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NKCB",
+                        "fare": 33900,
+                        "desc": "Nasi Kunin",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "HFL",
+                        "fare": 0,
+                        "desc": "HFL",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "GCCB",
+                        "fare": 33900,
+                        "desc": "Thai  Gree",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CTRF",
+                        "fare": 0,
+                        "desc": "for free",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CRCB",
+                        "fare": 33900,
+                        "desc": "Uncle Chin",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CHGA",
+                        "fare": 0,
+                        "desc": "CHGA",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "AVIP",
+                        "fare": 300000,
+                        "desc": "Red Carpet",
+                        "currency": "IDR"
+                    }
+                ],
+                "isEnableNoBaggage": false,
+                "isBaggageBundling": false
+            },
+            {
+                "origin": "CGK",
+                "destination": "SUB",
+                "baggageInfos": [
+                    {
+                        "code": "PBAF",
+                        "fare": 308000,
+                        "desc": "Check-In Baggage - 40kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAD",
+                        "fare": 176000,
+                        "desc": "Check-In Baggage - 30kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAC",
+                        "fare": 105600,
+                        "desc": "Check-In Baggage - 25kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAB",
+                        "fare": 88000,
+                        "desc": "Check-In Baggage - 20kg",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PBAA",
+                        "fare": 0,
+                        "desc": "Check-In Baggage - 15kg",
+                        "currency": "IDR"
+                    }
+                ],
+                "mealInfos": [
+                    {
+                        "code": "WCHS",
+                        "fare": 0,
+                        "desc": "Wheelchair",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "WCHR",
+                        "fare": 0,
+                        "desc": "Wheelchair",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "WCHC",
+                        "fare": 0,
+                        "desc": "for free",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "PVIP",
+                        "fare": 250000,
+                        "desc": "Red Carpet",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NPCB",
+                        "fare": 33900,
+                        "desc": "Nasi Padan",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NLCB",
+                        "fare": 33900,
+                        "desc": "Pak Nasser",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "NKCB",
+                        "fare": 33900,
+                        "desc": "Nasi Kunin",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "HFL",
+                        "fare": 0,
+                        "desc": "HFL",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "GCCB",
+                        "fare": 33900,
+                        "desc": "Thai  Gree",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CTRF",
+                        "fare": 0,
+                        "desc": "for free",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CRCB",
+                        "fare": 33900,
+                        "desc": "Uncle Chin",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "CHGA",
+                        "fare": 0,
+                        "desc": "CHGA",
+                        "currency": "IDR"
+                    },
+                    {
+                        "code": "AVIP",
+                        "fare": 300000,
+                        "desc": "Red Carpet",
+                        "currency": "IDR"
+                    }
+                ],
+                "isEnableNoBaggage": false,
+                "isBaggageBundling": false
+            }
+        ],
+        "respTime": "2026-04-17T18:24:55.4975173+07:00",
+        "userID": "2304APAPTU",
+        "accessToken": "7f7e68ab61c87f7fcb4cc4cf06a13079",
+        "status": "SUCCESS",
+        "respMessage": "SUCCESS"
+    }
+}

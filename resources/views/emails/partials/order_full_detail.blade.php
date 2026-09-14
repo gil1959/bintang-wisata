@@ -22,6 +22,7 @@ $typeLabel = match($order->type) {
 'umrah' => ($isEn ? 'Umrah' : 'Umrah'),
 'rent_car' => ($isEn ? 'Car Rental' : 'Rental Mobil'),
 'ship' => ($isEn ? 'Ship Rental' : 'Sewa Kapal'),
+'flight' => ($isEn ? 'Flight Ticket' : 'Tiket Pesawat'),
 default => (string)($order->type ?? '-'),
 };
 
@@ -87,7 +88,7 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
 
   <div style="padding:14px;">
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
-      @if($order->type === 'tour' || $order->type === 'umrah')
+      @if($order->type === 'tour' || $order->type === 'umrah' || $order->type === 'flight')
       <tr>
         <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">
           {{ $order->type === 'umrah'

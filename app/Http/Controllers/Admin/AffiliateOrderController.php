@@ -19,12 +19,14 @@ class AffiliateOrderController extends Controller
             ->when($q !== '', function ($qq) use ($q) {
                 $qq->where(function ($w) use ($q) {
                     $w->where('invoice_number', 'like', "%{$q}%")
-                      ->orWhere('customer_name', 'like', "%{$q}%")
-                      ->orWhere('customer_email', 'like', "%{$q}%")
-                      ->orWhere('affiliate_ref', 'like', "%{$q}%");
+                        ->orWhere('customer_name', 'like', "%{$q}%")
+                        ->orWhere('customer_email', 'like', "%{$q}%")
+                        ->orWhere('affiliate_ref', 'like', "%{$q}%")
+                        ->orWhere('product_name', 'like', "%{$q}%")
+                        ->orWhere('type', 'like', "%{$q}%");
                 });
             })
-            ->when(in_array($status, ['pending','approved','paid','cancelled'], true), function ($qq) use ($status) {
+            ->when(in_array($status, ['pending', 'approved', 'paid', 'cancelled'], true), function ($qq) use ($status) {
                 $qq->where('affiliate_commission_status', $status);
             })
             ->orderByDesc('id')
@@ -47,52 +49,51 @@ class AffiliateOrderController extends Controller
     }
 
     public function setCommission(Request $request, Order $order)
-{
-    abort_if(!$order->affiliate_user_id, 404);
+    {
+        abort_if(!$order->affiliate_user_id, 404);
 
-    $data = $request->validate([
-        'affiliate_commission_type' => ['required', 'in:fixed,percent'],
-        'affiliate_commission_value' => ['required', 'numeric', 'min:0'],
-        'affiliate_commission_status' => ['required', 'in:pending,approved,paid,cancelled'],
-    ]);
+        $data = $request->validate([
+            'affiliate_commission_type' => ['required', 'in:fixed,percent'],
+            'affiliate_commission_value' => ['required', 'numeric', 'min:0'],
+            'affiliate_commission_status' => ['required', 'in:pending,approved,paid,cancelled'],
+        ]);
 
-    // validasi tambahan khusus percent biar gak ngaco
-    if ($data['affiliate_commission_type'] === 'percent' && (float)$data['affiliate_commission_value'] > 100) {
-        return back()
-            ->withInput()
-            ->with('error', 'Percent tidak boleh lebih dari 100.');
-    }
-
-    try {
-        $type  = $data['affiliate_commission_type'];
-        $value = (float) $data['affiliate_commission_value'];
-
-        // hitung amount
-        if ($type === 'percent') {
-            $base = (float) ($order->final_price ?? 0);
-            $amount = round($base * $value / 100, 2);
-        } else {
-            // fixed: value dianggap nominal komisi
-            $amount = round($value, 2);
+        // validasi tambahan khusus percent biar gak ngaco
+        if ($data['affiliate_commission_type'] === 'percent' && (float)$data['affiliate_commission_value'] > 100) {
+            return back()
+                ->withInput()
+                ->with('error', 'Percent tidak boleh lebih dari 100.');
         }
 
-        $order->affiliate_commission_type = $type;
-        $order->affiliate_commission_value = $value;
-        $order->affiliate_commission_amount = $amount;
+        try {
+            $type  = $data['affiliate_commission_type'];
+            $value = (float) $data['affiliate_commission_value'];
 
-        $order->affiliate_commission_status = $data['affiliate_commission_status'];
-        $order->affiliate_commission_set_by = auth()->id();
-        $order->affiliate_commission_set_at = now();
+            // hitung amount
+            if ($type === 'percent') {
+                $base = (float) ($order->final_price ?? 0);
+                $amount = round($base * $value / 100, 2);
+            } else {
+                // fixed: value dianggap nominal komisi
+                $amount = round($value, 2);
+            }
 
-        $order->save();
-return redirect()
-    ->route('admin.affiliate.orders.index')
-    ->with('success', 'Commission berhasil disimpan.');
-    } catch (\Throwable $e) {
-        return back()
-            ->withInput()
-            ->with('error', 'Gagal menyimpan commission: ' . $e->getMessage());
+            $order->affiliate_commission_type = $type;
+            $order->affiliate_commission_value = $value;
+            $order->affiliate_commission_amount = $amount;
+
+            $order->affiliate_commission_status = $data['affiliate_commission_status'];
+            $order->affiliate_commission_set_by = auth()->id();
+            $order->affiliate_commission_set_at = now();
+
+            $order->save();
+            return redirect()
+                ->route('admin.affiliate.orders.index')
+                ->with('success', 'Commission berhasil disimpan.');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan commission: ' . $e->getMessage());
+        }
     }
-}
-
 }

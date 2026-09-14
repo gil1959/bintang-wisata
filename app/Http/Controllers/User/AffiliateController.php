@@ -13,6 +13,10 @@ use App\Models\TourPackage;
 use App\Models\UmrahPackage;
 use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
+use App\Models\MicePackage;
+use App\Services\Darmawisata\DarmawisataClient;
+use App\Services\FlightPriceOverrideService;
+use Illuminate\Support\Facades\Cache;
 
 class AffiliateController extends Controller
 {
@@ -158,8 +162,8 @@ class AffiliateController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'product_type' => ['required', 'in:tour,umrah,rent_car,ship'],
-            'product_id' => ['required', 'integer'],
+            'product_type' => ['required', 'in:tour,umrah,rent_car,ship,mice,flight'],
+            'product_id' => ['nullable', 'string', 'max:100'],
 
             // acquisition params
             'platform' => ['nullable', 'string', 'max:50'],
@@ -175,6 +179,18 @@ class AffiliateController extends Controller
             // coupon user optional
             'user_coupon_id' => ['nullable', 'integer', 'exists:affiliate_user_coupons,id'],
         ]);
+
+        if (($data['product_type'] ?? null) === 'flight' && empty($data['product_id'])) {
+            return back()
+                ->withErrors(['product_pick' => 'Pilih tiket pesawat terlebih dahulu.'])
+                ->withInput();
+        }
+
+        if (($data['product_type'] ?? null) === 'flight' && (($data['tripType'] ?? 'OneWay') === 'RoundTrip') && empty($data['returnDate'])) {
+            return back()
+                ->withErrors(['returnDate' => 'Return date wajib diisi untuk RoundTrip.'])
+                ->withInput();
+        }
 
         // resolve product
         $product = null;
@@ -194,17 +210,49 @@ class AffiliateController extends Controller
             $productName = $p->title;
             $baseUrl = route('umrah.show', $slug);
         } elseif ($data['product_type'] === 'rent_car') {
+
             $p = \App\Models\RentCarPackage::findOrFail($data['product_id']);
             $product = $p;
             $slug = $p->slug;
             $productName = $p->name;
             $baseUrl = route('rentcar.show', $slug);
-        } else {
+        } elseif ($data['product_type'] === 'ship') {
+
             $p = \App\Models\ShipPackage::findOrFail($data['product_id']);
             $product = $p;
             $slug = $p->slug;
             $productName = $p->name;
             $baseUrl = route('ship.show', $slug);
+        } elseif ($data['product_type'] === 'mice') {
+
+            $p = \App\Models\MicePackage::findOrFail($data['product_id']);
+            $product = $p;
+            $slug = $p->slug;
+            $productName = $p->title;
+            $baseUrl = route('mice.show', $slug);
+        } elseif ($data['product_type'] === 'flight') {
+
+            $flightKey = trim((string) ($data['product_id'] ?? ''));
+
+            if ($flightKey === '' || !Cache::has("flight_quote:{$flightKey}")) {
+                return back()
+                    ->withErrors(['product_pick' => 'Tiket pesawat yang dipilih sudah kadaluarsa. Cari ulang lalu pilih tiket lagi.'])
+                    ->withInput();
+            }
+
+            $payload = (array) Cache::get("flight_quote:{$flightKey}", []);
+            $search = (array) ($payload['search'] ?? []);
+            $journey = (array) ($payload['journey'] ?? []);
+
+            $origin = strtoupper((string) data_get($journey, 'jiOrigin', $search['origin'] ?? ''));
+            $destination = strtoupper((string) data_get($journey, 'jiDestination', $search['destination'] ?? ''));
+            $departAt = (string) data_get($journey, 'deptDate', data_get($journey, 'journeyDate', $search['departDate'] ?? ''));
+            $airlineName = (string) data_get($journey, 'airlineName', data_get($journey, 'airlineID', 'Flight'));
+
+            $product = null;
+            $slug = $flightKey;
+            $productName = trim($airlineName . ' | ' . $origin . ' - ' . $destination . ($departAt !== '' ? ' | ' . $departAt : ''));
+            $baseUrl = route('flights.show', $flightKey);
         }
 
         // code unik
@@ -283,7 +331,7 @@ class AffiliateController extends Controller
             'code' => $code,
 
             'product_type' => $data['product_type'],
-            'product_id' => $data['product_id'],
+            'product_id' => $data['product_type'] === 'flight' ? 0 : $data['product_id'],
             'product_slug' => $slug,
             'product_name' => $productName,
 
@@ -375,12 +423,23 @@ class AffiliateController extends Controller
 
         return view('user.affiliate.orders', compact('orders'));
     }
-    public function createLinkForm(Request $request)
+    public function createLinkForm(Request $request, DarmawisataClient $dw)
     {
         $this->guardAffiliate();
 
         $q = trim((string) $request->get('q', ''));
         $type = trim((string) $request->get('type', ''));
+
+        $flightSearch = [
+            'tripType' => (string) $request->get('tripType', 'OneWay'),
+            'origin' => strtoupper(trim((string) $request->get('origin', ''))),
+            'destination' => strtoupper(trim((string) $request->get('destination', ''))),
+            'departDate' => (string) $request->get('departDate', ''),
+            'returnDate' => (string) $request->get('returnDate', ''),
+            'paxAdult' => (int) $request->get('paxAdult', 1),
+            'paxChild' => (int) $request->get('paxChild', 0),
+            'paxInfant' => (int) $request->get('paxInfant', 0),
+        ];
 
         // coupons milik user (dibuat dari promo admin)
         $userCoupons = AffiliateUserCoupon::with('promo')
@@ -430,7 +489,154 @@ class AffiliateController extends Controller
             $products = $products->merge($items);
         }
 
-        return view('user.affiliate.links-create', compact('products', 'userCoupons', 'q', 'type'));
+        if ($type === '' || $type === 'mice') {
+            $items = $match(MicePackage::query())
+                ->select(['id', 'title as name', 'slug'])
+                ->orderByDesc('id')->limit(50)->get()
+                ->map(fn($x) => [
+                    'type' => 'mice',
+                    'id' => $x->id,
+                    'name' => $x->name,
+                    'slug' => $x->slug
+                ]);
+
+            $products = $products->merge($items);
+        }
+
+        if ($type === '' || $type === 'flight') {
+            $items = collect();
+
+            $hasFlightSearch =
+                $type === 'flight' &&
+                filled($flightSearch['origin']) &&
+                filled($flightSearch['destination']) &&
+                filled($flightSearch['departDate']);
+
+            if ($hasFlightSearch) {
+                $request->merge([
+                    'origin' => $flightSearch['origin'],
+                    'destination' => $flightSearch['destination'],
+                ]);
+
+                $request->validate([
+                    'tripType' => 'nullable|in:OneWay,RoundTrip',
+                    'origin' => 'required|string|max:10',
+                    'destination' => 'required|string|max:10|different:origin',
+                    'departDate' => 'required|date',
+                    'returnDate' => 'nullable|date|after_or_equal:departDate',
+                    'paxAdult' => 'required|integer|min:1|max:9',
+                    'paxChild' => 'nullable|integer|min:0|max:9',
+                    'paxInfant' => 'nullable|integer|min:0|max:9',
+                ]);
+
+                if (($flightSearch['tripType'] ?? 'OneWay') === 'RoundTrip' && empty($flightSearch['returnDate'])) {
+                    return back()
+                        ->withErrors(['returnDate' => 'Tanggal pulang wajib diisi untuk RoundTrip.'])
+                        ->withInput();
+                }
+
+                try {
+                    $resp = $dw->scheduleAllAirline($flightSearch);
+
+                    if (
+                        strtoupper((string) ($resp['status'] ?? '')) !== 'SUCCESS'
+                        && count((array) ($resp['journeyDepart'] ?? [])) === 0
+                    ) {
+                        return back()
+                            ->withErrors([
+                                'flight_search' => (string) ($resp['respMessage'] ?? 'Gagal mengambil jadwal tiket pesawat.')
+                            ])
+                            ->withInput();
+                    }
+
+                    $journeysDepart = array_values((array) ($resp['journeyDepart'] ?? []));
+                    $journeysReturn = array_values((array) ($resp['journeyReturn'] ?? []));
+                    $tripType = (string) ($flightSearch['tripType'] ?? 'OneWay');
+
+                    if ($tripType === 'RoundTrip') {
+                        foreach ($journeysDepart as $journeyDepart) {
+                            $departAirlineId = (string) data_get($journeyDepart, 'airlineID', '');
+
+                            foreach ($journeysReturn as $journeyReturn) {
+                                $returnAirlineId = (string) data_get($journeyReturn, 'airlineID', '');
+
+                                if ($departAirlineId === '' || $returnAirlineId === '' || $departAirlineId !== $returnAirlineId) {
+                                    continue;
+                                }
+
+                                $key = (string) Str::uuid();
+
+                                Cache::put(
+                                    "flight_quote:{$key}",
+                                    [
+                                        'search' => $flightSearch,
+                                        'journey' => $journeyDepart,
+                                        'journey_return' => $journeyReturn,
+                                    ],
+                                    now()->addMinutes(30)
+                                );
+
+                                $airlineName = (string) data_get($journeyDepart, 'airlineName', data_get($journeyDepart, 'airlineID', 'Flight'));
+                                $origin = strtoupper((string) data_get($journeyDepart, 'jiOrigin', $flightSearch['origin']));
+                                $destination = strtoupper((string) data_get($journeyDepart, 'jiDestination', $flightSearch['destination']));
+                                $departAt = (string) data_get($journeyDepart, 'deptDate', data_get($journeyDepart, 'journeyDate', $flightSearch['departDate']));
+                                $price = (float) data_get($journeyDepart, 'sumPrice', 0);
+
+                                $items->push([
+                                    'type' => 'flight',
+                                    'id' => $key,
+                                    'name' => trim($airlineName . ' | ' . $origin . ' → ' . $destination . ' | ' . $departAt),
+                                    'slug' => 'Rp ' . number_format((int) round($price), 0, ',', '.'),
+                                ]);
+                            }
+                        }
+                    } else {
+                        foreach ($journeysDepart as $journey) {
+                            $key = (string) Str::uuid();
+
+                            Cache::put(
+                                "flight_quote:{$key}",
+                                [
+                                    'search' => $flightSearch,
+                                    'journey' => $journey,
+                                    'journey_return' => [],
+                                ],
+                                now()->addMinutes(30)
+                            );
+
+                            $airlineName = (string) data_get($journey, 'airlineName', data_get($journey, 'airlineID', 'Flight'));
+                            $origin = strtoupper((string) data_get($journey, 'jiOrigin', $flightSearch['origin']));
+                            $destination = strtoupper((string) data_get($journey, 'jiDestination', $flightSearch['destination']));
+                            $departAt = (string) data_get($journey, 'deptDate', data_get($journey, 'journeyDate', $flightSearch['departDate']));
+                            $price = (float) data_get($journey, 'sumPrice', 0);
+
+                            $items->push([
+                                'type' => 'flight',
+                                'id' => $key,
+                                'name' => trim($airlineName . ' | ' . $origin . ' → ' . $destination . ' | ' . $departAt),
+                                'slug' => 'Rp ' . number_format((int) round($price), 0, ',', '.'),
+                            ]);
+                        }
+                    }
+
+                    if ($items->isEmpty()) {
+                        return back()
+                            ->withErrors(['flight_search' => 'Tidak ada tiket pesawat yang cocok untuk filter ini.'])
+                            ->withInput();
+                    }
+                } catch (\Throwable $e) {
+                    report($e);
+
+                    return back()
+                        ->withErrors(['flight_search' => 'Gagal mengambil tiket pesawat: ' . $e->getMessage()])
+                        ->withInput();
+                }
+            }
+
+            $products = $products->merge($items);
+        }
+
+        return view('user.affiliate.links-create', compact('products', 'userCoupons', 'q', 'type', 'flightSearch'));
     }
     public function withdrawals(Request $request)
     {

@@ -33,7 +33,34 @@
                 <i data-lucide="printer" class="w-4 h-4"></i>
                 Cetak Invoice
             </a>
+
+            @if($order->type === 'flight')
+            @php
+            $flightMetaTop = (array)($order->meta ?? []);
+            $supplierBookTop = (array)($flightMetaTop['supplier_booking'] ?? []);
+            $supplierDetailTop = (array)($flightMetaTop['supplier_booking_detail'] ?? []);
+            $supplierStatusTop = (array)($flightMetaTop['supplier_status'] ?? []);
+            $ticketStatusTop = strtoupper((string)($supplierStatusTop['ticket_status'] ?? ($supplierDetailTop['ticketStatus'] ?? '')));
+            $hasFlightTicketTop =
+            !empty($supplierBookTop['bookingCode']) ||
+            !empty($supplierDetailTop['ticketDetail']) ||
+            !empty($supplierDetailTop['flightDeparts']);
+            @endphp
+
+            @if($hasFlightTicketTop && in_array($ticketStatusTop, ['ISSUED','TICKETED','HOLD'], true))
+            <a href="{{ route('admin.orders.ticket.print', $order) }}"
+                target="_blank"
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                style="background:#7c3aed;"
+                onmouseover="this.style.background='#6d28d9'"
+                onmouseout="this.style.background='#7c3aed'">
+                <i data-lucide="ticket" class="w-4 h-4"></i>
+                Cetak E-Ticket
+            </a>
+            @endif
+
         </div>
+        @endif
     </div>
 
     {{-- Alerts --}}
@@ -223,6 +250,29 @@
                         </button>
                     </form>
 
+                    @if($order->type === 'flight')
+                    @php
+                    $flightMeta = (array)($order->meta ?? []);
+                    $supplierBook = (array)($flightMeta['supplier_booking'] ?? []);
+                    $supplierIssued = (array)($flightMeta['supplier_issued'] ?? []);
+                    $supplierDetail = (array)($flightMeta['supplier_booking_detail'] ?? []);
+                    $supplierStatus = (array)($flightMeta['supplier_status'] ?? []);
+                    $ticketStatus = strtoupper((string)($supplierStatus['ticket_status'] ?? ($supplierDetail['ticketStatus'] ?? '')));
+                    @endphp
+                    <form method="POST" action="{{ route('admin.flights.orders.flight.issued', $order) }}">
+                        @csrf
+                        <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition"
+                            style="background:#7c3aed;"
+                            onmouseover="this.style.background='#6d28d9'"
+                            onmouseout="this.style.background='#7c3aed'"
+                            onclick="return confirm('Terbitkan tiket ke supplier sekarang?')">
+                            <i data-lucide="ticket" class="w-4 h-4"></i>
+                            Terbitkan Tiket
+                        </button>
+                    </form>
+                    @endif
+
                     <form method="POST"
                         action="{{ route('admin.orders.destroy', $order) }}"
                         onsubmit="return confirm('Yakin hapus order ini? Tindakan tidak dapat dibatalkan.');">
@@ -334,8 +384,131 @@
                 </div>
             </div>
 
+            @if($order->type === 'flight')
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-200 font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="plane" class="w-4 h-4" style="color:#7c3aed;"></i>
+                    Info Tiket Pesawat
+                </div>
+                <div class="p-5 space-y-3 text-sm text-slate-700">
+                    @if(!empty($supplierBook['bookingCode']))
+                    <div><span class="font-extrabold text-slate-900">Booking Code:</span> {{ $supplierBook['bookingCode'] }}</div>
+                    <div><span class="font-extrabold text-slate-900">Booking Date:</span>
+                        {{ !empty($supplierBook['bookingDate']) ? \Carbon\Carbon::parse($supplierBook['bookingDate'])->format('d/m/Y H:i') : '-' }}
+                    </div>
+                    <div><span class="font-extrabold text-slate-900">Time Limit:</span> {{ $supplierBook['timeLimit'] ?? '-' }}</div>
+                    @endif
+                    @if($ticketStatus)
+                    <div>
+                        <span class="font-extrabold text-slate-900">Ticket Status:</span>
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold ml-1
+                {{ in_array($ticketStatus, ['ISSUED','TICKETED']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                            {{ $ticketStatus }}
+                        </span>
+                    </div>
+                    @endif
+                    @php
+                    $ticketHtml = $supplierDetail['ticketDetail'] ?? '';
+                    $flightDeparts = $supplierDetail['flightDeparts'] ?? [];
+                    $flightReturns = $supplierDetail['flightReturns'] ?? [];
+                    $passengers = $supplierDetail['passengers'] ?? [];
+                    $issuedDate = $supplierDetail['issuedDate'] ?? '';
+                    $referenceNo = $supplierDetail['referenceNo'] ?? ($supplierBook['referenceNo'] ?? '');
+                    $kelasMap = [
+                    'F'=>'First Class','A'=>'First Class',
+                    'C'=>'Business','D'=>'Business','I'=>'Business','Z'=>'Business',
+                    'Y'=>'Economy','B'=>'Economy','M'=>'Economy','H'=>'Economy',
+                    'K'=>'Economy','L'=>'Economy','Q'=>'Economy','T'=>'Economy',
+                    'N'=>'Economy','R'=>'Economy','S'=>'Economy','V'=>'Economy',
+                    'W'=>'Economy','X'=>'Economy','O'=>'Economy','P'=>'Economy',
+                    'G'=>'Economy','E'=>'Economy',
+                    ];
+                    @endphp
+
+                    @if(!empty($ticketHtml))
+                    <div>
+                        <div class="font-extrabold text-slate-900 mb-1">Detail Tiket (E-Tiket):</div>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs overflow-auto max-h-60">
+                            {!! $ticketHtml !!}
+                        </div>
+                    </div>
+                    @elseif(!empty($flightDeparts) || !empty($supplierBook['bookingCode']))
+                    <div>
+                        <div class="font-extrabold text-slate-900 mb-2">E-Tiket:</div>
+
+                        @include('user.orders.partials.flight-ticket-card', [
+                        'order' => $order,
+                        'supplierBook' => $supplierBook,
+                        'supplierDetail' => $supplierDetail,
+                        'supplierStatus' => $supplierStatus,
+                        'showPrintHeader' => false,
+                        ])
+                    </div>
+                    @endif
+                    @if(empty($supplierBook['bookingCode']))
+                    <div class="text-slate-500 italic">Belum ada data booking supplier.</div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
         </div>
     </div>
 
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+    (function() {
+        function renderTicketQrs() {
+            document.querySelectorAll('[data-ticket-qr]').forEach(function(el) {
+                var value = el.getAttribute('data-ticket-qr');
+                if (!value || el.getAttribute('data-qr-rendered') === '1') return;
+
+                var size = 132;
+                el.innerHTML = '';
+
+                new QRCode(el, {
+                    text: value,
+                    width: size,
+                    height: size,
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                setTimeout(function() {
+                    var canvas = el.querySelector('canvas');
+                    var img = el.querySelector('img');
+
+                    if (img) {
+                        img.style.width = size + 'px';
+                        img.style.height = size + 'px';
+                        img.style.maxWidth = size + 'px';
+                        img.style.maxHeight = size + 'px';
+                        img.style.display = 'block';
+
+                        if (canvas) {
+                            canvas.remove();
+                        }
+                    } else if (canvas) {
+                        canvas.style.width = size + 'px';
+                        canvas.style.height = size + 'px';
+                        canvas.style.maxWidth = size + 'px';
+                        canvas.style.maxHeight = size + 'px';
+                        canvas.style.display = 'block';
+                    }
+
+                    el.setAttribute('data-qr-rendered', '1');
+                }, 0);
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderTicketQrs);
+        } else {
+            renderTicketQrs();
+        }
+    })();
+</script>
+@endpush
 @endsection

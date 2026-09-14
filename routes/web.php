@@ -38,6 +38,7 @@ use App\Http\Controllers\Admin\PartnerApplicationController;
 use App\Http\Controllers\Admin\PartnerProductReviewController;
 use App\Http\Controllers\Partner\ProfileController as PartnerProfileController;
 use App\Http\Controllers\Partner\OrderController as PartnerOrderController;
+use App\Http\Controllers\Front\FlightBookingController;
 /*
 |--------------------------------------------------------------------------
 | Front Controllers
@@ -51,6 +52,8 @@ use App\Http\Controllers\Front\ReviewController;
 use App\Http\Controllers\Front\TravelDocumentController;
 use App\Http\Controllers\Front\BookingController as FrontBookingController;
 use App\Http\Controllers\Front\CheckoutController;
+use App\Http\Controllers\Front\FlightController;
+use App\Http\Controllers\Front\FlightOrderController;
 // Promo validator (frontend)
 use App\Http\Controllers\PromoValidatorController;
 use App\Http\Controllers\Front\DocumentationController as FrontDocumentationController;
@@ -115,6 +118,30 @@ Route::prefix('bw-admin')
 
         Route::put('/tabungan-umrah/accounts/{account}', [\App\Http\Controllers\Admin\TabunganUmrahAdminController::class, 'updateAccount'])
             ->name('tabungan-umrah.accounts.update')->middleware('permission:admin.dashboard.view');
+
+        Route::prefix('flights')->name('flights.')->group(function () {
+            Route::get('/pricing', [\App\Http\Controllers\Admin\FlightPricingController::class, 'index'])
+                ->name('pricing.index')->middleware('permission:admin.dashboard.view');
+
+            Route::get('/pricing/{key}', [\App\Http\Controllers\Admin\FlightPricingController::class, 'show'])
+                ->name('pricing.show')->middleware('permission:admin.dashboard.view');
+
+            Route::post('/pricing/{key}', [\App\Http\Controllers\Admin\FlightPricingController::class, 'upsert'])
+                ->name('pricing.upsert')->middleware('permission:admin.dashboard.view');
+
+            Route::get('/affiliate-orders', [\App\Http\Controllers\Admin\FlightAffiliateOrderController::class, 'index'])
+                ->name('affiliate-orders.index')->middleware('permission:admin.dashboard.view');
+
+            Route::get('/affiliate-orders/{order}', [\App\Http\Controllers\Admin\FlightAffiliateOrderController::class, 'show'])
+                ->name('affiliate-orders.show')->middleware('permission:admin.dashboard.view');
+
+            Route::post('/affiliate-orders/{order}/commission', [\App\Http\Controllers\Admin\FlightAffiliateOrderController::class, 'setCommission'])
+                ->name('affiliate-orders.commission')->middleware('permission:admin.dashboard.view');
+
+            Route::post('/orders/{order}/issued', [\App\Http\Controllers\Admin\AdminFlightIssuedController::class, 'issue'])
+                ->name('orders.flight.issued')
+                ->middleware('permission:admin.dashboard.view');
+        });
         // Notifications
         Route::get('/notifications/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])
             ->name('notifications.create')
@@ -322,6 +349,9 @@ Route::prefix('bw-admin')
         Route::get('orders/{order}/invoice/print', [AdminOrderController::class, 'printInvoice'])
             ->name('orders.invoice.print')->middleware('permission:admin.dashboard.view');
 
+        Route::get('orders/{order}/ticket/print', [AdminOrderController::class, 'printFlightTicket'])
+            ->name('orders.ticket.print')->middleware('permission:admin.dashboard.view');
+
         // ✅ resource terakhir, hanya sekali
         Route::resource('orders', AdminOrderController::class)
             ->only(['index', 'show', 'update', 'destroy']);
@@ -431,6 +461,8 @@ Route::prefix('user')
             ->name('orders.show');
         Route::get('/orders/{order}/invoice/print', [\App\Http\Controllers\User\OrderController::class, 'printInvoice'])
             ->name('orders.invoice.print');
+        Route::get('/orders/{order}/ticket/print', [\App\Http\Controllers\User\OrderController::class, 'printFlightTicket'])
+            ->name('orders.ticket.print');
 
 
         Route::get('/profile', [\App\Http\Controllers\User\ProfileController::class, 'edit'])
@@ -533,6 +565,10 @@ Route::prefix('sewa-kapal')->name('ship.')->group(function () {
 Route::post('/sewa-kapal/{slug}/draft-booking', [ShipOrderController::class, 'draft'])
     ->name('ship.draft');
 
+// Tiket Pesawat (Darmawisata)
+Route::post('/tiket-pesawat/{key}/draft-booking', [FlightOrderController::class, 'draft'])
+    ->name('flights.draft');
+
 Route::get('/lang/{locale}', function ($locale) {
     $available = array_keys(config('app.available_locales', []));
     abort_unless(in_array($locale, $available, true), 404);
@@ -604,9 +640,28 @@ Route::get('/artikel', [FrontArticleController::class, 'index'])
 Route::get('/artikel/{slug}', [FrontArticleController::class, 'show'])
     ->name('article.show');
 Route::get('/', [TourController::class, 'home'])->name('home');
+// Tiket Pesawat (Darmawisata)
+Route::get('/tiket-pesawat', [FlightController::class, 'index'])->name('flights.index');
+Route::get('/tiket-pesawat/{key}/booking', [FlightController::class, 'booking'])
+    ->name('flights.booking');
+Route::get('/tiket-pesawat/{key}', [FlightController::class, 'show'])->name('flights.show');
 Route::get('/paket-tour/{categorySlug?}/{subcategorySlug?}', [TourController::class, 'index'])
     ->where(['categorySlug' => '[A-Za-z0-9\-]+', 'subcategorySlug' => '[A-Za-z0-9\-]+'])
     ->name('tours.index');
+Route::post('/tiket-pesawat/{key}/addons', [FlightBookingController::class, 'addons'])
+    ->name('flights.addons');
+
+Route::post('/tiket-pesawat/{key}/seat', [FlightBookingController::class, 'seat'])
+    ->name('flights.seat');
+
+Route::post('/tiket-pesawat/{key}/book', [FlightBookingController::class, 'book'])
+    ->name('flights.book');
+
+Route::post('/tiket-pesawat/order/{order}/issued', [FlightBookingController::class, 'issued'])
+    ->name('flights.issued');
+
+Route::get('/tiket-pesawat/order/{order}/booking-detail', [FlightBookingController::class, 'detail'])
+    ->name('flights.booking-detail');
 
 Route::get('/dokumentasi', [FrontDocumentationController::class, 'tour'])->name('docs');
 Route::get('/dokumentasi/sewa-kapal', [FrontDocumentationController::class, 'ship'])->name('docs.ship');

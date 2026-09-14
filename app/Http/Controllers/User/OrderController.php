@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\Setting;
+use App\Services\Darmawisata\DarmawisataClient;
 
 class OrderController extends Controller
 {
@@ -22,8 +23,6 @@ class OrderController extends Controller
                     });
             });
 
-
-        // Search: invoice / product
         if ($request->filled('search')) {
             $search = trim($request->search);
             $q->where(function ($sub) use ($search) {
@@ -32,17 +31,14 @@ class OrderController extends Controller
             });
         }
 
-        // Filter: type
         if ($request->filled('type')) {
             $q->where('type', $request->type);
         }
 
-        // Filter: order_status
         if ($request->filled('order_status')) {
             $q->where('order_status', $request->order_status);
         }
 
-        // Filter: payment_status
         if ($request->filled('payment_status')) {
             $q->where('payment_status', $request->payment_status);
         }
@@ -52,40 +48,22 @@ class OrderController extends Controller
         return view('user.orders', compact('orders'));
     }
 
-    public function show(Order $order)
+    public function show(Order $order, DarmawisataClient $dw)
     {
-        // Security: jangan sampai user bisa buka order orang lain
-        $authUser = auth()->user();
-
-        $canView =
-            ($order->user_id !== null && $order->user_id === $authUser->id)
-            || ($order->user_id === null
-                && !empty($order->customer_email)
-                && $order->customer_email === $authUser->email);
-
-        abort_unless($canView, 403);
-
+        $this->authorizeOrder($order);
 
         $order->load('payments');
+        $this->syncFlightTicketDetail($order, $dw);
 
         return view('user.orders.show', compact('order'));
     }
+
     public function confirmAdmin(Order $order)
     {
-        $authUser = auth()->user();
-
-        $canView =
-            ($order->user_id !== null && $order->user_id === $authUser->id)
-            || ($order->user_id === null
-                && !empty($order->customer_email)
-                && $order->customer_email === $authUser->email);
-
-        abort_unless($canView, 403);
-
+        $this->authorizeOrder($order);
 
         $partner = \App\Support\OrderPartnerResolver::resolvePartnerUser($order);
 
-        // target default: admin
         $targetName = 'Admin';
         $targetWa = null;
 
@@ -94,7 +72,6 @@ class OrderController extends Controller
             $targetWa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($partner->phone);
         }
 
-        // kalau tidak ada partner/phone, fallback ke admin WA setting
         if (!$targetWa) {
             $rawWa = (string) Setting::where('key', 'footer_whatsapp')->value('value');
             $targetWa = \App\Support\OrderPartnerResolver::normalizeWhatsapp($rawWa);
@@ -142,7 +119,35 @@ class OrderController extends Controller
 
     public function printInvoice(Order $order)
     {
-        // Security: jangan sampai user bisa print invoice orang lain
+        $this->authorizeOrder($order);
+
+        $order->load('payments');
+
+        return view('shared.invoice-print', compact('order'));
+    }
+
+    public function printFlightTicket(Order $order, DarmawisataClient $dw)
+    {
+        $this->authorizeOrder($order);
+        abort_unless($order->type === 'flight', 404);
+
+        $this->syncFlightTicketDetail($order, $dw);
+
+        $meta = (array) ($order->meta ?? []);
+        $supplierBook = (array) ($meta['supplier_booking'] ?? []);
+        $supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+        $supplierStatus = (array) ($meta['supplier_status'] ?? []);
+
+        return view('user.orders.print-ticket', compact(
+            'order',
+            'supplierBook',
+            'supplierDetail',
+            'supplierStatus'
+        ));
+    }
+
+    protected function authorizeOrder(Order $order): void
+    {
         $authUser = auth()->user();
 
         $canView =
@@ -152,9 +157,52 @@ class OrderController extends Controller
                 && $order->customer_email === $authUser->email);
 
         abort_unless($canView, 403);
+    }
 
-        $order->load('payments');
+    protected function syncFlightTicketDetail(Order $order, DarmawisataClient $dw): void
+    {
+        if ($order->type !== 'flight') {
+            return;
+        }
 
-        return view('shared.invoice-print', compact('order'));
+        $meta = (array) ($order->meta ?? []);
+        $supplierBook = (array) ($meta['supplier_booking'] ?? []);
+        $supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+
+        if (empty($supplierBook['bookingCode']) || empty($supplierBook['bookingDate'])) {
+            return;
+        }
+
+        $hasUsefulDetail =
+            !empty($supplierDetail['ticketDetail']) ||
+            !empty($supplierDetail['flightDeparts']) ||
+            !empty($supplierDetail['passengers']);
+
+        if ($hasUsefulDetail) {
+            return;
+        }
+
+        try {
+            $detailResp = $dw->bookingDetailAirline([
+                'bookingCode' => (string) $supplierBook['bookingCode'],
+                'referenceNo' => (string) ($supplierBook['referenceNo'] ?? ''),
+                'bookingDate' => (string) $supplierBook['bookingDate'],
+            ]);
+
+            $meta['supplier_booking_detail'] = $detailResp;
+            $meta['supplier_status'] = array_merge((array) ($meta['supplier_status'] ?? []), [
+                'ticket_status' => (string) ($detailResp['ticketStatus'] ?? ''),
+                'ticket_detail' => (string) ($detailResp['ticketDetail'] ?? ''),
+            ]);
+
+            $order->meta = $meta;
+            $order->save();
+        } catch (\Throwable $e) {
+            \Log::warning('User flight ticket detail sync failed', [
+                'order_id' => $order->id,
+                'invoice' => $order->invoice_number,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }

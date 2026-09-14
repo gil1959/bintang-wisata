@@ -378,7 +378,7 @@ Harap perbaiki hal berikut:' }}</div>
         </div>
 
         <div class="flex gap-3">
-          @if(!empty($package->thumbnail_path))
+          @if($package && !empty($package->thumbnail_path))
           <img src="{{ asset('storage/'.$package->thumbnail_path) }}"
             class="h-20 w-20 rounded-xl object-cover ring-1 ring-slate-200"
             alt="Thumbnail">
@@ -386,7 +386,7 @@ Harap perbaiki hal berikut:' }}</div>
 
           <div class="min-w-0">
             <p class="truncate font-extrabold text-slate-900">
-              {{ $package->title ?? $order->product_name }}
+              {{ ($package?->title) ?? $order->product_name }}
             </p>
             <p class="mt-1 text-sm text-slate-500">
               @php
@@ -395,7 +395,8 @@ Harap perbaiki hal berikut:' }}</div>
               : ($order->type === 'rent_car' ? 'Paket Rent Car'
               : ($order->type === 'ship' ? 'Sewa Kapal'
               : ($order->type === 'umrah' ? 'Paket Umrah'
-              : ($order->type === 'mice' ? 'Paket MICE' : 'Produk'))));
+              : ($order->type === 'mice' ? 'Paket MICE'
+              : ($order->type === 'flight' ? 'Tiket Pesawat' : 'Produk')))));
               @endphp
               {{ $typeLabel }}
 

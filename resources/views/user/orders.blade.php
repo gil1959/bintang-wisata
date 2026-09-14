@@ -123,11 +123,35 @@
                         Rp {{ number_format($o->final_price ?? 0, 0, ',', '.') }}
                     </td>
 
+                    @php
+                    $meta = (array) ($o->meta ?? []);
+                    $supplierBook = (array) ($meta['supplier_booking'] ?? []);
+                    $supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+                    $supplierStatus = (array) ($meta['supplier_status'] ?? []);
+                    $ticketStatus = strtoupper((string) ($supplierStatus['ticket_status'] ?? ($supplierDetail['ticketStatus'] ?? '')));
+                    $hasFlightTicket =
+                    $o->type === 'flight' &&
+                    (
+                    !empty($supplierDetail['ticketDetail']) ||
+                    !empty($supplierDetail['flightDeparts']) ||
+                    !empty($supplierBook['bookingCode'])
+                    );
+                    @endphp
+
                     <td class="px-5 py-3 text-right">
-                        <a href="{{ route('user.orders.show', $o) }}" class="btn btn-primary px-4 py-2.5">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                            {{ $isEn ? 'Details' : 'Detail' }}
-                        </a>
+                        <div class="flex flex-wrap justify-end gap-2">
+                            <a href="{{ route('user.orders.show', $o) }}" class="btn btn-primary px-4 py-2.5">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                {{ $isEn ? 'Details' : 'Detail' }}
+                            </a>
+
+                            @if($hasFlightTicket && in_array($ticketStatus, ['ISSUED', 'TICKETED', 'HOLD'], true))
+                            <a href="{{ route('user.orders.ticket.print', $o) }}" target="_blank" class="btn btn-ghost px-4 py-2.5">
+                                <i data-lucide="ticket" class="w-4 h-4" style="color:#0194F3;"></i>
+                                E-Ticket
+                            </a>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty

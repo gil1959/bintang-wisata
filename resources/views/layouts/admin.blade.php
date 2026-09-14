@@ -157,6 +157,15 @@
                 ],
                 ],
 
+                [
+                'label' => 'Tiket Pesawat',
+                'icon' => 'plane',
+                'children' => [
+                ['label'=>'Harga Tiket Pesawat','route'=>'admin.flights.pricing.index','match'=>'admin.flights.pricing.*','icon'=>'badge-dollar-sign','perm'=>'admin.dashboard.view'],
+                ['label'=>'Affiliate Tiket Pesawat','route'=>'admin.flights.affiliate-orders.index','match'=>'admin.flights.affiliate-orders.*','icon'=>'wallet','perm'=>'admin.dashboard.view'],
+                ],
+                ],
+
                 ['label'=>'Client Logos','route'=>'admin.client-logos.index','match'=>'admin.client-logos.*','icon'=>'image','perm'=>'admin.client-logos.manage'],
                 ['label'=>'Komentar Paket','route'=>'admin.reviews.index','match'=>'admin.reviews.*','icon'=>'message-square','perm'=>'admin.reviews.manage'],
                 ['label'=>'SEO','route'=>'admin.seo.edit','match'=>'admin.seo.*','icon'=>'search','perm'=>'admin.seo.manage'],

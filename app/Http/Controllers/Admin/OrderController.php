@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Setting;
 use App\Mail\OrderVerificationMail;
-
+use App\Services\Darmawisata\DarmawisataClient;
 use Illuminate\Http\Request;
 
 
@@ -101,17 +101,67 @@ class OrderController extends Controller
         $prevOrderStatus   = $order->order_status;
 
         if ($data['action'] === 'approve') {
-    $order->update([
-        'payment_status' => 'paid',
-        'order_status'   => 'approved',
-    ]);
+            $order->update([
+                'payment_status' => 'paid',
+                'order_status'   => 'approved',
+            ]);
 
-    // ===== affiliate commission status ikut approved =====
-    if ($order->affiliate_user_id && $order->affiliate_commission_amount !== null) {
-        $order->update([
-            'affiliate_commission_status' => 'approved',
-        ]);
-    }
+            // Auto-issued untuk flight order setelah approve
+            if ($order->type === 'flight') {
+                try {
+                    $dw   = app(\App\Services\Darmawisata\DarmawisataClient::class);
+                    $meta = (array) ($order->meta ?? []);
+                    $booking = (array) ($meta['supplier_booking'] ?? []);
+                    $search  = (array) ($meta['search'] ?? []);
+                    $journey = (array) ($meta['journey'] ?? []);
+
+                    if (!empty($booking['bookingCode']) && !empty($booking['bookingDate'])) {
+                        $issuedResp = $dw->issuedAirline([
+                            'airlineID'   => (string) data_get($booking, 'airlineID', data_get($journey, 'airlineID', '')),
+                            'origin'      => strtoupper((string) ($search['origin'] ?? data_get($journey, 'jiOrigin', ''))),
+                            'destination' => strtoupper((string) ($search['destination'] ?? data_get($journey, 'jiDestination', ''))),
+                            'tripType'    => (string) ($search['tripType'] ?? 'OneWay'),
+                            'departDate'  => (string) ($search['departDate'] ?? ''),
+                            'returnDate'  => (string) ($search['returnDate'] ?? ''),
+                            'bookingCode' => (string) $booking['bookingCode'],
+                            'bookingDate' => (string) $booking['bookingDate'],
+                            'airlineAccessCode' => (string) data_get(
+                                $meta,
+                                'price.airlineAccessCode',
+                                data_get($journey, 'airlineAccessCode', '')
+                            ),
+                        ]);
+
+                        $detailResp = $dw->bookingDetailAirline([
+                            'bookingCode' => (string) ($booking['bookingCode'] ?? ''),
+                            'referenceNo' => (string) ($booking['referenceNo'] ?? ''),
+                            'bookingDate' => (string) ($booking['bookingDate'] ?? ''),
+                        ]);
+
+                        $meta['supplier_issued']         = $issuedResp;
+                        $meta['supplier_booking_detail'] = $detailResp;
+                        $meta['supplier_status'] = [
+                            'issued_status'  => (string) ($issuedResp['status'] ?? ''),
+                            'ticket_status'  => strtoupper((string) ($detailResp['ticketStatus'] ?? '')),
+                            'ticket_detail'  => (string) ($detailResp['ticketDetail'] ?? ''),
+                        ];
+                        $order->meta = $meta;
+                        $order->save();
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Auto-issued flight on approve gagal (non-fatal)', [
+                        'order_id' => $order->id,
+                        'error'    => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // ===== affiliate commission status ikut approved =====
+            if ($order->affiliate_user_id && $order->affiliate_commission_amount !== null) {
+                $order->update([
+                    'affiliate_commission_status' => 'approved',
+                ]);
+            }
 
 
             if ($payment && $payment->status === 'waiting_verification') {
@@ -137,17 +187,17 @@ class OrderController extends Controller
                 }
             }
         } else {
-    $order->update([
-        'payment_status' => 'failed',
-        'order_status'   => 'rejected',
-    ]);
+            $order->update([
+                'payment_status' => 'failed',
+                'order_status'   => 'rejected',
+            ]);
 
-    // ===== affiliate commission status ikut cancelled =====
-    if ($order->affiliate_user_id) {
-        $order->update([
-            'affiliate_commission_status' => 'cancelled',
-        ]);
-    }
+            // ===== affiliate commission status ikut cancelled =====
+            if ($order->affiliate_user_id) {
+                $order->update([
+                    'affiliate_commission_status' => 'cancelled',
+                ]);
+            }
 
 
             if ($payment && $payment->status === 'waiting_verification') {
@@ -248,69 +298,113 @@ class OrderController extends Controller
     }
 
     public function printRekapPaid(Request $request)
-{
-    $request->validate([
-        'from' => 'required|date',
-        'to'   => 'required|date|after_or_equal:from',
-    ]);
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
+        ]);
 
-    $from = $request->from;
-    $to   = $request->to;
+        $from = $request->from;
+        $to   = $request->to;
 
-    $orders = Order::query()
-        ->whereBetween('created_at', [
-            $from . ' 00:00:00',
-            $to . ' 23:59:59',
-        ])
-        ->where('payment_status', 'paid')
-        ->orderBy('created_at', 'asc')
-        ->get();
+        $orders = Order::query()
+            ->whereBetween('created_at', [
+                $from . ' 00:00:00',
+                $to . ' 23:59:59',
+            ])
+            ->where('payment_status', 'paid')
+            ->orderBy('created_at', 'asc')
+            ->get();
 
-    $summary = [
-        'total_orders' => $orders->count(),
-        'total_amount' => $orders->sum('final_price'),
-    ];
+        $summary = [
+            'total_orders' => $orders->count(),
+            'total_amount' => $orders->sum('final_price'),
+        ];
 
-    return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
-}
+        return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
+    }
 
-public function printRekapSelected(Request $request)
-{
-    $request->validate([
-        'from' => 'required|date',
-        'to'   => 'required|date|after_or_equal:from',
-        'order_ids'   => 'required|array|min:1',
-        'order_ids.*' => 'integer|exists:orders,id',
-    ]);
+    public function printRekapSelected(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
+            'order_ids'   => 'required|array|min:1',
+            'order_ids.*' => 'integer|exists:orders,id',
+        ]);
 
-    $from = $request->from;
-    $to   = $request->to;
-    $ids  = $request->order_ids;
+        $from = $request->from;
+        $to   = $request->to;
+        $ids  = $request->order_ids;
 
-    $orders = Order::query()
-    ->whereBetween('created_at', [
-        $from . ' 00:00:00',
-        $to . ' 23:59:59',
-    ])
-    ->whereIn('id', $ids)
-    ->orderBy('created_at', 'asc')
-    ->get();
+        $orders = Order::query()
+            ->whereBetween('created_at', [
+                $from . ' 00:00:00',
+                $to . ' 23:59:59',
+            ])
+            ->whereIn('id', $ids)
+            ->orderBy('created_at', 'asc')
+            ->get();
 
 
-    $summary = [
-        'total_orders' => $orders->count(),
-        'total_amount' => $orders->sum('final_price'),
-    ];
+        $summary = [
+            'total_orders' => $orders->count(),
+            'total_amount' => $orders->sum('final_price'),
+        ];
 
-    return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
-}
+        return view('admin.orders.print-rekap', compact('orders', 'from', 'to', 'summary'));
+    }
 
 
     public function printInvoice(Order $order)
-{
-    $order->load('payments');
+    {
+        $order->load('payments');
 
-    return view('shared.invoice-print', compact('order'));
-}
+        return view('shared.invoice-print', compact('order'));
+    }
 
+    public function printFlightTicket(Order $order, DarmawisataClient $dw)
+    {
+        abort_unless($order->type === 'flight', 404);
+
+        $meta = (array) ($order->meta ?? []);
+        $supplierBook = (array) ($meta['supplier_booking'] ?? []);
+        $supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+
+        if (!empty($supplierBook['bookingCode']) && !empty($supplierBook['bookingDate']) && empty($supplierDetail['flightDeparts']) && empty($supplierDetail['ticketDetail'])) {
+            try {
+                $detailResp = $dw->bookingDetailAirline([
+                    'bookingCode' => (string) ($supplierBook['bookingCode'] ?? ''),
+                    'referenceNo' => (string) ($supplierBook['referenceNo'] ?? ''),
+                    'bookingDate' => (string) ($supplierBook['bookingDate'] ?? ''),
+                ]);
+
+                $meta['supplier_booking_detail'] = $detailResp;
+                $meta['supplier_status'] = array_merge((array) ($meta['supplier_status'] ?? []), [
+                    'ticket_status' => (string) ($detailResp['ticketStatus'] ?? ''),
+                    'ticket_detail' => (string) ($detailResp['ticketDetail'] ?? ''),
+                ]);
+
+                $order->meta = $meta;
+                $order->save();
+
+                $supplierDetail = (array) $detailResp;
+            } catch (\Throwable $e) {
+                Log::warning('Admin flight ticket detail sync failed', [
+                    'order_id' => $order->id,
+                    'invoice' => $order->invoice_number,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $supplierStatus = (array) ($meta['supplier_status'] ?? []);
+
+        return view('admin.orders.print-ticket', compact(
+            'order',
+            'supplierBook',
+            'supplierDetail',
+            'supplierStatus'
+        ));
+    }
 }

@@ -191,12 +191,123 @@
 
 </div>
 </div>
-<div class="mt-10">
+@php
+$meta = (array) ($order->meta ?? []);
+$supplierBook = (array) ($meta['supplier_booking'] ?? []);
+$supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+$supplierStatus = (array) ($meta['supplier_status'] ?? []);
+
+$hasFlightTicket =
+$order->type === 'flight' &&
+(
+!empty($supplierDetail['ticketDetail']) ||
+!empty($supplierDetail['flightDeparts']) ||
+!empty($supplierBook['bookingCode'])
+);
+
+$ticketStatus = strtoupper((string) ($supplierStatus['ticket_status'] ?? ($supplierDetail['ticketStatus'] ?? '')));
+@endphp
+
+@if($hasFlightTicket)
+<div class="mt-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">E-Ticket Pesawat</h2>
+            <p class="text-sm text-slate-500 mt-1">
+                Detail tiket yang diterbitkan supplier dan siap dicetak.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            @if(in_array($ticketStatus, ['ISSUED', 'TICKETED', 'HOLD'], true))
+            <a href="{{ route('user.orders.ticket.print', $order) }}"
+                target="_blank"
+                class="btn btn-primary px-4 py-2.5">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                {{ $isEn ? 'Print E-Ticket' : 'Cetak E-Ticket' }}
+            </a>
+            @endif
+        </div>
+    </div>
+
+    @include('user.orders.partials.flight-ticket-card', [
+    'order' => $order,
+    'supplierBook' => $supplierBook,
+    'supplierDetail' => $supplierDetail,
+    'supplierStatus' => $supplierStatus,
+    ])
+</div>
+@endif
+
+<div class="mt-10 flex flex-wrap gap-2">
     <a href="{{ route('user.orders.invoice.print', $order) }}" class="btn btn-primary px-4 py-2.5">
         <i data-lucide="printer" class="w-4 h-4"></i>
         {{ $isEn ? 'Print Invoice' : 'Cetak Invoice' }}
     </a>
+
+    @if($hasFlightTicket)
+    <a href="{{ route('user.orders.ticket.print', $order) }}"
+        target="_blank"
+        class="btn btn-ghost px-4 py-2.5">
+        <i data-lucide="ticket" class="w-4 h-4" style="color:#0194F3;"></i>
+        {{ $isEn ? 'Open E-Ticket' : 'Buka E-Ticket' }}
+    </a>
+    @endif
 </div>
 
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+    (function() {
+        function renderTicketQrs() {
+            document.querySelectorAll('[data-ticket-qr]').forEach(function(el) {
+                var value = el.getAttribute('data-ticket-qr');
+                if (!value || el.getAttribute('data-qr-rendered') === '1') return;
+
+                var size = parseInt(el.getAttribute('data-ticket-qr-size') || '148', 10);
+                el.innerHTML = '';
+
+                new QRCode(el, {
+                    text: value,
+                    width: size,
+                    height: size,
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                setTimeout(function() {
+                    var canvas = el.querySelector('canvas');
+                    var img = el.querySelector('img');
+
+                    if (img) {
+                        img.style.width = size + 'px';
+                        img.style.height = size + 'px';
+                        img.style.maxWidth = size + 'px';
+                        img.style.maxHeight = size + 'px';
+                        img.style.display = 'block';
+
+                        if (canvas) {
+                            canvas.remove();
+                        }
+                    } else if (canvas) {
+                        canvas.style.width = size + 'px';
+                        canvas.style.height = size + 'px';
+                        canvas.style.maxWidth = size + 'px';
+                        canvas.style.maxHeight = size + 'px';
+                        canvas.style.display = 'block';
+                    }
+
+                    el.setAttribute('data-qr-rendered', '1');
+                }, 0);
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderTicketQrs);
+        } else {
+            renderTicketQrs();
+        }
+    })();
+</script>
+@endpush
 
 @endsection

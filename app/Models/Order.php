@@ -64,6 +64,7 @@ class Order extends Model
         'affiliate_commission_status',
         'affiliate_commission_set_by',
         'affiliate_commission_set_at',
+        'meta',
     ];
 
     protected $casts = [
@@ -72,6 +73,7 @@ class Order extends Model
         'pickup_date' => 'datetime',
         'return_date' => 'datetime',
         'affiliate_commission_set_at' => 'datetime',
+        'meta' => 'array',
 
     ];
 

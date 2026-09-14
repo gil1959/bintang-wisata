@@ -136,6 +136,7 @@
                         <th class="text-left px-5 py-3 font-bold">Produk</th>
                         <th class="text-left px-5 py-3 font-bold">Status</th>
                         <th class="text-left px-5 py-3 font-bold">Payment</th>
+                        <th class="text-left px-5 py-3 font-bold">Tiket</th>
                         <th class="text-right px-5 py-3 font-bold">Total</th>
                     </tr>
                 </thead>
@@ -161,13 +162,42 @@
                         <td class="px-5 py-3">
                             @include('user.partials.payment-status-badge', ['status' => $o->payment_status])
                         </td>
+                        @php
+                        $meta = (array) ($o->meta ?? []);
+                        $supplierBook = (array) ($meta['supplier_booking'] ?? []);
+                        $supplierDetail = (array) ($meta['supplier_booking_detail'] ?? []);
+                        $supplierStatus = (array) ($meta['supplier_status'] ?? []);
+                        $ticketStatus = strtoupper((string) ($supplierStatus['ticket_status'] ?? ($supplierDetail['ticketStatus'] ?? '')));
+                        $hasFlightTicket =
+                        $o->type === 'flight' &&
+                        (
+                        !empty($supplierDetail['ticketDetail']) ||
+                        !empty($supplierDetail['flightDeparts']) ||
+                        !empty($supplierBook['bookingCode'])
+                        );
+                        @endphp
+
+                        <td class="px-5 py-3">
+                            @if($hasFlightTicket && in_array($ticketStatus, ['ISSUED', 'TICKETED', 'HOLD'], true))
+                            <a href="{{ route('user.orders.ticket.print', $o) }}"
+                                target="_blank"
+                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold border border-sky-200 bg-sky-50 text-sky-700">
+                                E-Ticket
+                            </a>
+                            @else
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold border border-slate-200 bg-slate-50 text-slate-500">
+                                -
+                            </span>
+                            @endif
+                        </td>
+
                         <td class="px-5 py-3 text-right font-semibold text-slate-900">
                             Rp {{ number_format($o->final_price ?? 0, 0, ',', '.') }}
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-8 text-center text-slate-500">
+                        <td colspan="6" class="px-5 py-8 text-center text-slate-500">
                             {{ $isEn ? 'No transactions yet.' : 'Belum ada transaksi.' }}
                         </td>
                     </tr>

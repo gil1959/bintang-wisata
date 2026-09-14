@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Blade;
 use App\Models\FooterLogo;
 
 
@@ -30,6 +31,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Blade directives (Laravel 8 doesn't include @selected/@checked by default)
+        Blade::directive('selected', function ($expression) {
+            return "<?php echo ($expression) ? 'selected' : ''; ?>";
+        });
+
+        Blade::directive('checked', function ($expression) {
+            return "<?php echo ($expression) ? 'checked' : ''; ?>";
+        });
+
+        Blade::directive('disabled', function ($expression) {
+            return "<?php echo ($expression) ? 'disabled' : ''; ?>";
+        });
+
+        Blade::directive('readonly', function ($expression) {
+            return "<?php echo ($expression) ? 'readonly' : ''; ?>";
+        });
         Gate::before(function ($user, $ability) {
             if (method_exists($user, 'hasRole') && $user->hasRole('admin')) {
                 return true;

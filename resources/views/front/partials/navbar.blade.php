@@ -27,6 +27,7 @@
       ['type' => 'link', 'label' => $isEn ? 'Private Charter' : 'Sewa Kapal', 'route' => 'ship.index', 'icon' => 'anchor'],
       ['type' => 'link', 'label' => $isEn ? 'Umrah' : 'Umrah', 'route' => 'umrah.index', 'icon' => 'landmark'],
       ['type' => 'link', 'label' => $isEn ? 'MICE' : 'MICE', 'route' => 'mice.index', 'icon' => 'briefcase'],
+      ['type' => 'link', 'label' => $isEn ? 'Flights' : 'Tiket Pesawat', 'route' => 'flights.index', 'icon' => 'plane'],
 
       ['type' => 'docs_dropdown'],
 
