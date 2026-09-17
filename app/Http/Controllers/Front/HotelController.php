@@ -48,7 +48,6 @@ class HotelController extends Controller
                 'reviews' => function ($q) {
                     $q->latest();
                 },
-                'reviews.user',
             ])
             ->where('slug', $slug)
             ->where('is_active', 1)
