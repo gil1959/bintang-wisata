@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\TourPackage;
 use App\Http\Controllers\Controller;
-use App\Models\Review;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
-use App\Models\RentCarPackage;
-use App\Models\ShipPackage;
-use App\Models\UmrahPackage;
+use App\Models\HotelPackage;
 use App\Models\MicePackage;
+use App\Models\RentCarPackage;
+use App\Models\RestoranPackage;
+use App\Models\Review;
+use App\Models\ShipPackage;
+use App\Models\TourPackage;
+use App\Models\UmrahPackage;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 
 class ReviewController extends Controller
@@ -45,7 +47,7 @@ class ReviewController extends Controller
 public function packages(Request $request)
 {
     $data = $request->validate([
-        'type' => ['required', 'in:tour,rent_car,ship,umrah'],
+        'type' => ['required', 'in:tour,rent_car,ship,umrah,mice,hotel,restoran'],
         'q'    => ['nullable', 'string', 'max:80'],
     ]);
 
@@ -58,6 +60,8 @@ public function packages(Request $request)
         'ship'      => ShipPackage::query(),
         'umrah'     => UmrahPackage::query(),
         'mice'      => MicePackage::query(),
+        'hotel'     => HotelPackage::query(),
+        'restoran'  => RestoranPackage::query(),
     };
 
     // optional: cuma yang aktif (kalau lo mau admin bisa review paket nonaktif, hapus filter ini)
@@ -85,7 +89,7 @@ public function packages(Request $request)
     public function store(Request $request)
     {
         $data = $request->validate([
-    'package_type' => ['required', 'in:tour,rent_car,ship,umrah'],
+    'package_type' => ['required', 'in:tour,rent_car,ship,umrah,mice,hotel,restoran'],
     'package_id'   => ['required', 'integer'],
     'name'         => ['required', 'string', 'max:120'],
     'email'        => ['required', 'email', 'max:190'],
@@ -98,6 +102,9 @@ $model = match ($data['package_type']) {
     'rent_car' => RentCarPackage::findOrFail($data['package_id']),
     'ship'     => ShipPackage::findOrFail($data['package_id']),
     'umrah'    => UmrahPackage::findOrFail($data['package_id']),
+    'mice'     => MicePackage::findOrFail($data['package_id']),
+    'hotel'    => HotelPackage::findOrFail($data['package_id']),
+    'restoran' => RestoranPackage::findOrFail($data['package_id']),
 };
 
 $model->reviews()->create([

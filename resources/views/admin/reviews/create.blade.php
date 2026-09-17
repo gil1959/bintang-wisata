@@ -24,6 +24,9 @@
                         <option value="rent_car" {{ old('package_type') === 'rent_car' ? 'selected' : '' }}>Rent Car</option>
                         <option value="ship" {{ old('package_type') === 'ship' ? 'selected' : '' }}>Sewa Kapal</option>
                         <option value="umrah" {{ old('package_type') === 'umrah' ? 'selected' : '' }}>Umrah</option>
+                        <option value="mice" {{ old('package_type') === 'mice' ? 'selected' : '' }}>MICE</option>
+                        <option value="hotel" {{ old('package_type') === 'hotel' ? 'selected' : '' }}>Hotel / Vila</option>
+                        <option value="restoran" {{ old('package_type') === 'restoran' ? 'selected' : '' }}>Restoran</option>
                     </select>
                     @error('package_type') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
                 </div>
