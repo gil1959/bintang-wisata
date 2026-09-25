@@ -22,6 +22,26 @@
 
 <div class="space-y-6">
 
+  @if($errors->any())
+    <div class="rounded-xl bg-red-50 p-4 border border-red-200">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Terdapat error pada input form:</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+              @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-extrabold text-slate-800 mb-1">Title</label>
@@ -73,18 +93,6 @@
   @error('rating_count') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
 </div>
 
-<div>
-  <label class="block text-sm font-extrabold text-slate-800 mb-1">Kategori</label>
-  <select name="category_id" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-    <option value="">-</option>
-    @foreach($categories as $c)
-      <option value="{{ $c->id }}" {{ (string)old('category_id', $package->category_id ?? '') === (string)$c->id ? 'selected' : '' }}>
-        {{ $c->name }}
-      </option>
-    @endforeach
-  </select>
-  @error('category_id') <div class="text-xs text-red-600 mt-1">{{ $message }}</div> @enderror
-</div>
 
 
     <div>
@@ -133,14 +141,88 @@
   <div>
     <label class="block text-sm font-extrabold text-slate-800 mb-1">Status</label>
     <select name="is_active" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-      <option value="1" {{ old('is_active', $package->is_active ?? 1) == 1 ? 'selected' : '' }}>Active</option>
-      <option value="0" {{ old('is_active', $package->is_active ?? 1) == 0 ? 'selected' : '' }}>Inactive</option>
+      <option value="1" {{ (int) old('is_active', isset($package) ? ($package->is_active ? 1 : 0) : 1) === 1 ? 'selected' : '' }}>Active</option>
+      <option value="0" {{ (int) old('is_active', isset($package) ? ($package->is_active ? 1 : 0) : 1) === 0 ? 'selected' : '' }}>Inactive</option>
     </select>
   </div>
 
   <div class="h-px bg-slate-200"></div>
 
   {{-- Harga Weekday/Weekend --}}
+  <div x-data="shipPricing()" x-init="init()" class="space-y-4">
+    <div class="text-sm font-extrabold text-slate-900">Harga Paket (Weekday & Weekend)</div>
+    
+    <div class="flex gap-2 border-b border-slate-200 pb-2">
+      <button type="button" @click="active = 'weekday'" 
+              :class="active === 'weekday' ? 'border-[#0194F3] text-[#0194F3] border-b-2 font-bold' : 'text-slate-500 font-medium'"
+              class="px-4 py-2 text-sm transition">Weekday</button>
+      <button type="button" @click="active = 'weekend'" 
+              :class="active === 'weekend' ? 'border-[#0194F3] text-[#0194F3] border-b-2 font-bold' : 'text-slate-500 font-medium'"
+              class="px-4 py-2 text-sm transition">Weekend</button>
+    </div>
+
+    <!-- Weekday Tab -->
+    <div x-show="active === 'weekday'" class="space-y-3">
+      <template x-for="(row, index) in rows.filter(r => r.type === 'weekday')" :key="row.__key">
+        <div class="flex flex-col md:flex-row gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="w-full md:w-1/2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Label</label>
+            <input type="text" :name="`tiers[${row.__idx}][label_text]`" x-model="row.label_text" required
+                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            <input type="hidden" :name="`tiers[${row.__idx}][type]`" x-model="row.type">
+          </div>
+          <div class="w-full md:w-1/2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Harga (Rp)</label>
+            <input type="number" :name="`tiers[${row.__idx}][price]`" x-model="row.price" required min="0"
+                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <button type="button" @click="removeRow(row.__key)"
+                    class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-bold hover:bg-red-200 transition">
+              Hapus
+            </button>
+          </div>
+        </div>
+      </template>
+      <button type="button" @click="addRow('weekday')"
+              class="text-sm font-bold text-[#0194F3] hover:underline flex items-center gap-1 mt-2">
+        + Tambah Harga Weekday
+      </button>
+    </div>
+
+    <!-- Weekend Tab -->
+    <div x-show="active === 'weekend'" class="space-y-3" x-cloak>
+      <template x-for="(row, index) in rows.filter(r => r.type === 'weekend')" :key="row.__key">
+        <div class="flex flex-col md:flex-row gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="w-full md:w-1/2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Label</label>
+            <input type="text" :name="`tiers[${row.__idx}][label_text]`" x-model="row.label_text" required
+                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            <input type="hidden" :name="`tiers[${row.__idx}][type]`" x-model="row.type">
+          </div>
+          <div class="w-full md:w-1/2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Harga (Rp)</label>
+            <input type="number" :name="`tiers[${row.__idx}][price]`" x-model="row.price" required min="0"
+                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          </div>
+          <div>
+            <button type="button" @click="removeRow(row.__key)"
+                    class="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-bold hover:bg-red-200 transition">
+              Hapus
+            </button>
+          </div>
+        </div>
+      </template>
+      <button type="button" @click="addRow('weekend')"
+              class="text-sm font-bold text-[#0194F3] hover:underline flex items-center gap-1 mt-2">
+        + Tambah Harga Weekend
+      </button>
+    </div>
+  </div>
+
+  <div class="h-px bg-slate-200"></div>
+
+  {{-- SEO Options --}}
   @include('partials._seo_form', ['model' => $package ?? null])
 
 
@@ -209,33 +291,7 @@
       rows="12">{{ old('long_description', $package->long_description ?? '') }}</textarea>
   </div>
 
-  {{-- SEO --}}
-  <div class="rounded-2xl border border-slate-200 bg-white p-5">
-    <div class="text-sm font-extrabold text-slate-900 mb-3">SEO (Opsional)</div>
 
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
-        <input type="text" name="seo_title"
-          value="{{ old('seo_title', $package->seo_title ?? '') }}"
-          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
-      </div>
-
-      <div class="md:col-span-6">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Keywords</label>
-        <input type="text" name="seo_keywords"
-          value="{{ old('seo_keywords', $package->seo_keywords ?? '') }}"
-          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-          placeholder="Pisahkan dengan koma">
-      </div>
-
-      <div class="md:col-span-12">
-        <label class="block text-sm font-bold text-slate-800 mb-1">SEO Description</label>
-        <textarea name="seo_description" rows="3"
-          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">{{ old('seo_description', $package->seo_description ?? '') }}</textarea>
-      </div>
-    </div>
-  </div>
 
   {{-- Actions --}}
   <div class="flex items-center justify-end gap-2 pt-2">

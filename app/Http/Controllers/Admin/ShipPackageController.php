@@ -108,6 +108,14 @@ class ShipPackageController extends Controller
     {
         $data = $request->validated();
 
+        \Log::info('=== SHIP PACKAGE UPDATE DEBUG ===', [
+            'id' => $ship_package->id,
+            'is_active_from_form' => $request->input('is_active'),
+            'is_active_validated' => $data['is_active'] ?? 'NOT_IN_DATA',
+            'is_active_before' => $ship_package->getAttributes()['is_active'],
+            'all_validated_keys' => array_keys($data),
+        ]);
+
         if ($request->hasFile('thumbnail')) {
             if ($ship_package->thumbnail_path) {
                 Storage::disk('public')->delete($ship_package->thumbnail_path);
@@ -115,20 +123,25 @@ class ShipPackageController extends Controller
             $ship_package->thumbnail_path = $request->file('thumbnail')->store('ship-packages', 'public');
         }
 
-        $ship_package->fill([
-            'title' => $data['title'],
-            'slug' => $data['slug'],
-            'label' => $data['label'] ?? null,
-            'category_id' => $data['category_id'] ?? null,
-            'is_active' => (int)$data['is_active'],
-            'features' => $this->normalizeFeatures($data['features'] ?? []),
-            'long_description' => $data['long_description'] ?? null,
-            'seo_title' => $data['seo_title'] ?? null,
-            'seo_keywords' => $data['seo_keywords'] ?? null,
-            'seo_description' => $data['seo_description'] ?? null,
-            'rating_value' => $data['rating_value'] ?? $ship_package->rating_value,
-            'rating_count' => $data['rating_count'] ?? $ship_package->rating_count,
-        ])->save();
+        $ship_package->title = $data['title'];
+        $ship_package->slug = $data['slug'];
+        $ship_package->label = $data['label'] ?? null;
+        $ship_package->category_id = $data['category_id'] ?? null;
+        $ship_package->is_active = (int)$data['is_active'];
+        $ship_package->features = $this->normalizeFeatures($data['features'] ?? []);
+        $ship_package->long_description = $data['long_description'] ?? null;
+        $ship_package->seo_title = $data['seo_title'] ?? null;
+        $ship_package->seo_keywords = $data['seo_keywords'] ?? null;
+        $ship_package->seo_description = $data['seo_description'] ?? null;
+        $ship_package->rating_value = $data['rating_value'] ?? $ship_package->rating_value;
+        $ship_package->rating_count = $data['rating_count'] ?? $ship_package->rating_count;
+        $ship_package->save();
+
+        \Log::info('=== AFTER SAVE ===', [
+            'id' => $ship_package->id,
+            'is_active_after' => $ship_package->getAttributes()['is_active'],
+            'wasChanged' => $ship_package->wasChanged('is_active'),
+        ]);
 
         $this->syncTiers($ship_package, $data['tiers'] ?? []);
 

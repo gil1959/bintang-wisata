@@ -58,6 +58,13 @@
             {{-- Kanan: Text Inputs --}}
             <div class="w-full md:w-2/3 flex flex-col space-y-5">
                 <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-1">SEO Title</label>
+                    <input type="text" name="seo_title" value="{{ old('seo_title', $model->seo_title ?? '') }}"
+                           class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-[#0194F3]/20 focus:border-[#0194F3]"
+                           placeholder="Enter SEO title...">
+                </div>
+
+                <div>
                     <label class="block text-sm font-bold text-slate-800 mb-1 flex items-center flex-wrap gap-1">
                         Meta Keywords 
                         <span class="text-[11px] font-normal text-slate-500">(Separate multiple keywords by , (comma) or enter key)</span>
