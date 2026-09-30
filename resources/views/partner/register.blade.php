@@ -205,33 +205,31 @@
                                 <p class="mt-2 text-[11px] text-slate-500">JPG/PNG/PDF, max 5MB.</p>
                             </div>
                         </div>
+                        <div class="mt-4">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-extrabold text-slate-900">Foto Usaha / NIB</div>
+                                <span x-show="legalOk" x-cloak class="text-xs font-extrabold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                                    ✓ OK
+                                </span>
+                            </div>
 
-                       <div class="mt-4">
-    <div class="flex items-center justify-between">
-        <div class="text-sm font-extrabold text-slate-900">Dokumen Legalitas NIB (PDF)</div>
-        <span x-show="legalOk" x-cloak class="text-xs font-extrabold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-            ✓ OK
-        </span>
-    </div>
-
-    <div class="mt-2">
-        <label class="block rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 cursor-pointer hover:bg-slate-100 transition">
-            <input type="file" name="legal_document" required class="hidden"
-                   accept=".pdf"
-                   @change="pick($event, 'legal')">
-            <div class="flex items-center gap-3">
-                <div class="h-10 w-10 rounded-2xl bg-white border border-slate-200 grid place-items-center font-extrabold"
-                     style="color:#0194F3;">↑</div>
-                <div class="min-w-0">
-                    <div class="text-sm font-extrabold text-slate-900">Pilih file</div>
-                    <div class="text-xs text-slate-600 truncate" x-text="legalName || 'Belum ada file'"></div>
-                </div>
-            </div>
-        </label>
-        <p class="mt-2 text-[11px] text-slate-500">PDF, max 10MB.</p>
-    </div>
-</div>
-
+                            <div class="mt-2">
+                                <label class="block rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 cursor-pointer hover:bg-slate-100 transition">
+                                    <input type="file" name="legal_document" required class="hidden"
+                                           accept=".jpg,.jpeg,.png,.pdf"
+                                           @change="pick($event, 'legal')">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-10 w-10 rounded-2xl bg-white border border-slate-200 grid place-items-center font-extrabold"
+                                             style="color:#0194F3;">↑</div>
+                                        <div class="min-w-0">
+                                            <div class="text-sm font-extrabold text-slate-900">Pilih file</div>
+                                            <div class="text-xs text-slate-600 truncate" x-text="legalName || 'Belum ada file'"></div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <p class="mt-2 text-[11px] text-slate-500">JPG/PNG/PDF, max 10MB.</p>
+                            </div>
+                        </div>
 
                         <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                             <div class="font-extrabold">Catatan</div>

@@ -41,7 +41,7 @@ class PartnerRegistrationController extends Controller
             'identity_type' => ['required', 'string', 'in:KTP,SIM,PASPOR,KK'],
             'identity_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             
-            'legal_document' => ['required', 'file', 'mimes:pdf', 'max:10240'], // 10MB
+            'legal_document' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'], // 10MB
 
         ]);
 
