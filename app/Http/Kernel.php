@@ -75,5 +75,6 @@ class Kernel extends HttpKernel
         'role' => RoleMiddleware::class,
         'permission' => PermissionMiddleware::class,
         'role_or_permission' => RoleOrPermissionMiddleware::class,
+        'impersonate_or_role' => \App\Http\Middleware\ImpersonateOrRole::class,
     ];
 }

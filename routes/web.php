@@ -229,6 +229,8 @@ Route::prefix('bw-admin')
             ->name('users.affiliate.update')->middleware('permission:admin.dashboard.view');
 
         Route::resource('users', AdminUserController::class);
+        Route::post('users/{user}/impersonate', [AdminUserController::class, 'impersonate'])
+            ->name('users.impersonate');
         // Rent Car Package CRUD
         Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.dashboard.view');
         Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Admin\RestoranPackageController::class, 'deletePhoto'])
@@ -357,6 +359,11 @@ Route::prefix('bw-admin')
         Route::patch('/reviews/{review}', [AdminReviewController::class, 'update'])->name('reviews.update')->middleware('permission:admin.dashboard.view');
     });
 
+// Impersonate leave: harus di luar admin group karena user login sebagai role user
+Route::get('bw-admin/impersonate/leave', [AdminUserController::class, 'leaveImpersonate'])
+    ->middleware('auth')
+    ->name('admin.impersonate.leave');
+
 /*
 |--------------------------------------------------------------------------
 | User Panel
@@ -364,7 +371,7 @@ Route::prefix('bw-admin')
 */
 Route::prefix('user')
     ->name('user.')
-    ->middleware(['auth', 'role:user', 'verified'])
+    ->middleware(['auth', 'impersonate_or_role:user', 'verified'])
     ->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])
             ->name('dashboard');
@@ -452,7 +459,7 @@ Route::post('/partner', [PartnerRegistrationController::class, 'store'])->name('
 Route::get('/partner/pending', [PartnerRegistrationController::class, 'pending'])->name('partner.pending');
 
 // Partner dashboard (after approved)
-Route::prefix('partner')->name('partner.')->middleware(['auth', 'role:partner'])->group(function () {
+Route::prefix('partner')->name('partner.')->middleware(['auth', 'impersonate_or_role:partner'])->group(function () {
     Route::get('/dashboard', [PartnerDashboardController::class, 'index'])->name('dashboard');
     // ✅ Partner Orders (mirip admin)
     Route::get('/orders', [PartnerOrderController::class, 'index'])->name('orders.index');

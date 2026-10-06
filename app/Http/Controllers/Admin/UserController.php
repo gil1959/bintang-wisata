@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -230,5 +231,46 @@ return redirect()
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'User berhasil dihapus.');
+    }
+
+    /**
+     * Impersonate: login sebagai user dari admin panel.
+     */
+    public function impersonate(User $user)
+    {
+        // Jangan bisa impersonate admin
+        if ($user->hasRole('admin')) {
+            return back()->with('error', 'Tidak bisa login sebagai admin lain.');
+        }
+
+        // Simpan admin ID asli ke session
+        session()->put('impersonating_admin_id', auth()->id());
+
+        // Login sebagai user
+        Auth::loginUsingId($user->id);
+
+        // Redirect ke dashboard sesuai role
+        if ($user->hasRole('partner')) {
+            return redirect()->route('partner.dashboard');
+        }
+
+        return redirect()->route('user.dashboard');
+    }
+
+    /**
+     * Leave impersonate: kembali ke akun admin.
+     */
+    public function leaveImpersonate()
+    {
+        $adminId = session()->pull('impersonating_admin_id');
+
+        if (!$adminId) {
+            return redirect()->route('home');
+        }
+
+        Auth::loginUsingId($adminId);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Berhasil kembali ke akun admin.');
     }
 }

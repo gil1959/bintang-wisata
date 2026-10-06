@@ -11,7 +11,7 @@
   @hasSection('meta')
     @yield('meta')
   @else
-  <title>Bintang Wisata Holiday | Paket Tour & Paket Wisata Eksklusif Terpercaya</title>
+  <title>Paket Wisata Ekslusif & Terpercaya | Bintang Wisata</title>
   <meta name="description" content="Rasakan pengalaman liburan tak terlupakan dengan paket tour terbaik dari Bintang Wisata Holiday. Layanan profesional untuk paket wisata domestik dan internasional.">
   <meta name="keywords" content="paket tour, paket wisata, paket tour eksklusif, agen perjalanan wisata, paket liburan keluarga, paket tour domestik, paket tour internasional, bintang wisata holiday, paket wisata premium">
   <meta name="author" content="Bintang Wisata Holiday">

@@ -29,6 +29,17 @@
 </head>
 
 <body class="bg-slate-50 antialiased">
+
+@if(session('impersonating_admin_id'))
+<div style="background:#f59e0b; color:#fff; text-align:center; padding:10px 16px; font-weight:800; font-size:14px; position:relative; z-index:9999;">
+    ⚠️ Anda sedang login sebagai {{ Auth::user()->name }} ({{ Auth::user()->email }})
+    <a href="{{ route('admin.impersonate.leave') }}"
+       style="margin-left:12px; background:#fff; color:#f59e0b; padding:6px 16px; border-radius:8px; font-weight:800; text-decoration:none;">
+        ← Kembali ke Admin
+    </a>
+</div>
+@endif
+
 <div x-data="{ sidebarOpen:false }" x-init="lucide.createIcons()" class="min-h-screen">
 
     {{-- MOBILE OVERLAY --}}
