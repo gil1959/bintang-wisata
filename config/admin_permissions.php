@@ -59,4 +59,11 @@ return [
     'admin.partners.users.manage'         => ['label' => 'Partner Users', 'matches' => ['admin.partners.users.*']],
     'admin.partners.products.manage'      => ['label' => 'Produk Partner', 'matches' => ['admin.partners.products.*']],
     'admin.partner_withdrawals.manage'    => ['label' => 'Partner Withdrawals', 'matches' => ['admin.partner_withdrawals.*']],
+
+    // Fitur Tambahan & Baru
+    'admin.tabungan-umrah.manage'         => ['label' => 'Tabungan Umrah', 'matches' => ['admin.tabungan-umrah.*']],
+    'admin.hotel-packages.manage'         => ['label' => 'CRUD Paket Hotel/Vila', 'matches' => ['admin.hotel-packages.*']],
+    'admin.restoran-packages.manage'      => ['label' => 'CRUD Paket Restoran', 'matches' => ['admin.restoran-packages.*']],
+    'admin.documentations.manage'         => ['label' => 'CRUD Dokumentasi', 'matches' => ['admin.documentations.*']],
+    'admin.bank-accounts.manage'          => ['label' => 'Rekening Bank', 'matches' => ['admin.bank-accounts.*']],
 ];
