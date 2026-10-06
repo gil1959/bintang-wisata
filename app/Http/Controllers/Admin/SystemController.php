@@ -18,6 +18,10 @@ class SystemController extends Controller
         Artisan::call('config:clear');
         Artisan::call('route:clear');
 
-        return back()->with('success', 'Cache berhasil dibersihkan.');
+        // Khusus untuk sinkronisasi permission tanpa terminal
+        Artisan::call('db:seed', ['--class' => 'PermissionSeeder']);
+        Artisan::call('permission:cache-reset');
+
+        return back()->with('success', 'Cache berhasil dibersihkan dan Permissions berhasil disinkronisasi.');
     }
 }
