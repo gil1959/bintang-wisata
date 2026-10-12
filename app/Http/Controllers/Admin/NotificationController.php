@@ -53,6 +53,7 @@ class NotificationController extends Controller
             ];
 
             $webPush->sendToUserId((int)$u->id, $payload);
+            \App\Services\Mobile\FirebasePush::dispatch((int)$u->id,$payload);
         }
 
         return redirect()->route('admin.notifications.create')->with('success', 'Notifikasi berhasil dikirim.');

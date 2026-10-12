@@ -1,0 +1,1814 @@
+{
+    "general": [
+        {
+            "key": "hero_title",
+            "label": "Hero Judul",
+            "type": "text",
+            "required": true
+        },
+        {
+            "key": "hero_subtitle",
+            "label": "Hero Subjudul",
+            "type": "text",
+            "required": true
+        },
+        {
+            "key": "hero_image",
+            "label": "Hero Gambar",
+            "type": "file",
+            "required": false
+        },
+        {
+            "key": "home_search_title",
+            "label": "Beranda Pencarian Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_search_desc",
+            "label": "Beranda Pencarian Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_search_hint",
+            "label": "Beranda Pencarian Petunjuk",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_address",
+            "label": "Footer Alamat",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_phone",
+            "label": "Footer Telepon",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_email",
+            "label": "Footer Email",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_whatsapp",
+            "label": "Footer WhatsApp",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_cta_secondary_button",
+            "label": "Tour Ajakan Sekunder Tombol",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_cta_secondary_link",
+            "label": "Tour Ajakan Sekunder Tautan",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tracking_head",
+            "label": "Tracking Head",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tracking_body",
+            "label": "Tracking Isi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "invoice_admin_email",
+            "label": "Invoice Admin Email",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_meta_title",
+            "label": "Tentang kami Meta Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_hero_badge",
+            "label": "Tentang kami Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_hero_title",
+            "label": "Tentang kami Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_hero_desc",
+            "label": "Tentang kami Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_values_label",
+            "label": "Tentang kami Values Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_values_title",
+            "label": "Tentang kami Values Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_values_desc",
+            "label": "Tentang kami Values Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_value1_title",
+            "label": "Tentang kami Value1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_value1_desc",
+            "label": "Tentang kami Value1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_value2_title",
+            "label": "Tentang kami Value2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_value2_desc",
+            "label": "Tentang kami Value2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_value3_title",
+            "label": "Tentang kami Value3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_value3_desc",
+            "label": "Tentang kami Value3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_value4_title",
+            "label": "Tentang kami Value4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_value4_desc",
+            "label": "Tentang kami Value4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_flow_label",
+            "label": "Tentang kami Alur Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_flow_title",
+            "label": "Tentang kami Alur Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_flow_desc",
+            "label": "Tentang kami Alur Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_step1_title",
+            "label": "Tentang kami Step1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_step1_desc",
+            "label": "Tentang kami Step1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_step2_title",
+            "label": "Tentang kami Step2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_step2_desc",
+            "label": "Tentang kami Step2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_step3_title",
+            "label": "Tentang kami Step3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_step3_desc",
+            "label": "Tentang kami Step3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "about_step4_title",
+            "label": "Tentang kami Step4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "about_step4_desc",
+            "label": "Tentang kami Step4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_label",
+            "label": "Beranda Sorotan Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_title",
+            "label": "Beranda Sorotan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_desc",
+            "label": "Beranda Sorotan Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left1_title",
+            "label": "Beranda Sorotan Left1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left1_desc",
+            "label": "Beranda Sorotan Left1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left2_title",
+            "label": "Beranda Sorotan Left2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left2_desc",
+            "label": "Beranda Sorotan Left2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left3_title",
+            "label": "Beranda Sorotan Left3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left3_desc",
+            "label": "Beranda Sorotan Left3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left4_title",
+            "label": "Beranda Sorotan Left4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_left4_desc",
+            "label": "Beranda Sorotan Left4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right1_title",
+            "label": "Beranda Sorotan Right1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right1_desc",
+            "label": "Beranda Sorotan Right1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right2_title",
+            "label": "Beranda Sorotan Right2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right2_desc",
+            "label": "Beranda Sorotan Right2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right3_title",
+            "label": "Beranda Sorotan Right3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right3_desc",
+            "label": "Beranda Sorotan Right3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right4_title",
+            "label": "Beranda Sorotan Right4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_highlight_right4_desc",
+            "label": "Beranda Sorotan Right4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_cta_primary_text",
+            "label": "Beranda Sorotan Ajakan Utama Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_highlight_cta_secondary_text",
+            "label": "Beranda Sorotan Ajakan Sekunder Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_why_label",
+            "label": "Beranda Keunggulan Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why_title",
+            "label": "Beranda Keunggulan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why_desc",
+            "label": "Beranda Keunggulan Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_why1_title",
+            "label": "Beranda Why1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why1_desc",
+            "label": "Beranda Why1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_why2_title",
+            "label": "Beranda Why2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why2_desc",
+            "label": "Beranda Why2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_why3_title",
+            "label": "Beranda Why3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why3_desc",
+            "label": "Beranda Why3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_why4_title",
+            "label": "Beranda Why4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_why4_desc",
+            "label": "Beranda Why4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_flow_label",
+            "label": "Beranda Alur Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow_title",
+            "label": "Beranda Alur Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow_desc",
+            "label": "Beranda Alur Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_flow1_title",
+            "label": "Beranda Flow1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow1_desc",
+            "label": "Beranda Flow1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_flow2_title",
+            "label": "Beranda Flow2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow2_desc",
+            "label": "Beranda Flow2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_flow3_title",
+            "label": "Beranda Flow3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow3_desc",
+            "label": "Beranda Flow3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_flow4_title",
+            "label": "Beranda Flow4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_flow4_desc",
+            "label": "Beranda Flow4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "footer_tagline",
+            "label": "Footer Tagline",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_quick_links_title",
+            "label": "Footer Quick Links Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link1_label",
+            "label": "Footer Link1 Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link1_url",
+            "label": "Footer Link1 URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link2_label",
+            "label": "Footer Link2 Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link2_url",
+            "label": "Footer Link2 URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link3_label",
+            "label": "Footer Link3 Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link3_url",
+            "label": "Footer Link3 URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link4_label",
+            "label": "Footer Link4 Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_link4_url",
+            "label": "Footer Link4 URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "footer_copyright",
+            "label": "Footer Copyright",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_hero_badge",
+            "label": "Tour Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_hero_title",
+            "label": "Tour Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_hero_desc",
+            "label": "Tour Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_filter_dest_label",
+            "label": "Tour Filter Dest Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_filter_cat_label",
+            "label": "Tour Filter Cat Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_filter_dur_label",
+            "label": "Tour Filter Dur Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_filter_trans_label",
+            "label": "Tour Filter Trans Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tips_title",
+            "label": "Tour Tips Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tips_desc",
+            "label": "Tour Tips Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_tip1_title",
+            "label": "Tour Tip1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tip1_desc",
+            "label": "Tour Tip1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_tip2_title",
+            "label": "Tour Tip2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tip2_desc",
+            "label": "Tour Tip2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_tip3_title",
+            "label": "Tour Tip3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tip3_desc",
+            "label": "Tour Tip3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_tip4_title",
+            "label": "Tour Tip4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_tip4_desc",
+            "label": "Tour Tip4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_cta_title",
+            "label": "Tour Ajakan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "tour_cta_desc",
+            "label": "Tour Ajakan Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "tour_cta_button",
+            "label": "Tour Ajakan Tombol",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_hero_badge",
+            "label": "Rentcar Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_hero_title",
+            "label": "Rentcar Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_hero_desc",
+            "label": "Rentcar Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "rentcar_chip1",
+            "label": "Rentcar Chip1",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_chip2",
+            "label": "Rentcar Chip2",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_chip3",
+            "label": "Rentcar Chip3",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_chip4",
+            "label": "Rentcar Chip4",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note_title",
+            "label": "Rentcar Note Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note_desc",
+            "label": "Rentcar Note Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "rentcar_note1_title",
+            "label": "Rentcar Note1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note1_desc",
+            "label": "Rentcar Note1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "rentcar_note2_title",
+            "label": "Rentcar Note2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note2_desc",
+            "label": "Rentcar Note2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "rentcar_note3_title",
+            "label": "Rentcar Note3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note3_desc",
+            "label": "Rentcar Note3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "rentcar_note4_title",
+            "label": "Rentcar Note4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "rentcar_note4_desc",
+            "label": "Rentcar Note4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_hero_badge",
+            "label": "Ship Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_hero_title",
+            "label": "Ship Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_hero_desc",
+            "label": "Ship Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_tips_title",
+            "label": "Ship Tips Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_tips_desc",
+            "label": "Ship Tips Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_tip1_title",
+            "label": "Ship Tip1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_tip1_desc",
+            "label": "Ship Tip1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_tip2_title",
+            "label": "Ship Tip2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_tip2_desc",
+            "label": "Ship Tip2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_tip3_title",
+            "label": "Ship Tip3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_tip3_desc",
+            "label": "Ship Tip3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "ship_tip4_title",
+            "label": "Ship Tip4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "ship_tip4_desc",
+            "label": "Ship Tip4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_hero_badge",
+            "label": "Umrah Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_hero_title",
+            "label": "Umrah Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_hero_desc",
+            "label": "Umrah Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_filter_dest_label",
+            "label": "Umrah Filter Dest Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_filter_cat_label",
+            "label": "Umrah Filter Cat Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_filter_dur_label",
+            "label": "Umrah Filter Dur Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_filter_trans_label",
+            "label": "Umrah Filter Trans Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tips_title",
+            "label": "Umrah Tips Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tips_desc",
+            "label": "Umrah Tips Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_tip1_title",
+            "label": "Umrah Tip1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tip1_desc",
+            "label": "Umrah Tip1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_tip2_title",
+            "label": "Umrah Tip2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tip2_desc",
+            "label": "Umrah Tip2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_tip3_title",
+            "label": "Umrah Tip3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tip3_desc",
+            "label": "Umrah Tip3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "umrah_tip4_title",
+            "label": "Umrah Tip4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "umrah_tip4_desc",
+            "label": "Umrah Tip4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_logos_badge",
+            "label": "Beranda Logos Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_logos_title",
+            "label": "Beranda Logos Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_logos_desc",
+            "label": "Beranda Logos Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_title",
+            "label": "Beranda Final Ajakan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_desc",
+            "label": "Beranda Final Ajakan Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_primary_text",
+            "label": "Beranda Final Ajakan Utama Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_primary_url",
+            "label": "Beranda Final Ajakan Utama URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_secondary_text",
+            "label": "Beranda Final Ajakan Sekunder Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_final_cta_secondary_url",
+            "label": "Beranda Final Ajakan Sekunder URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_badge",
+            "label": "Beranda Partner Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_title",
+            "label": "Beranda Partner Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_desc",
+            "label": "Beranda Partner Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_partner_button_text",
+            "label": "Beranda Partner Tombol Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_partner_button_url",
+            "label": "Beranda Partner Tombol URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_card1_title",
+            "label": "Beranda Partner Card1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_card1_desc",
+            "label": "Beranda Partner Card1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_partner_card2_title",
+            "label": "Beranda Partner Card2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_card2_desc",
+            "label": "Beranda Partner Card2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_partner_card3_title",
+            "label": "Beranda Partner Card3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_card3_desc",
+            "label": "Beranda Partner Card3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_partner_card4_title",
+            "label": "Beranda Partner Card4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_partner_card4_desc",
+            "label": "Beranda Partner Card4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "mice_hero_badge",
+            "label": "Mice Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_hero_title",
+            "label": "Mice Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_hero_desc",
+            "label": "Mice Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "mice_cta_button",
+            "label": "Mice Ajakan Tombol",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_tip1_title",
+            "label": "Mice Tip1 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_tip1_desc",
+            "label": "Mice Tip1 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "mice_tip2_title",
+            "label": "Mice Tip2 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_tip2_desc",
+            "label": "Mice Tip2 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "mice_tip3_title",
+            "label": "Mice Tip3 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_tip3_desc",
+            "label": "Mice Tip3 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "mice_tip4_title",
+            "label": "Mice Tip4 Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "mice_tip4_desc",
+            "label": "Mice Tip4 Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "docs_ship_hero_badge",
+            "label": "Dokumentasi Ship Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_ship_hero_title",
+            "label": "Dokumentasi Ship Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_ship_hero_desc",
+            "label": "Dokumentasi Ship Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "docs_umrah_hero_badge",
+            "label": "Dokumentasi Umrah Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_umrah_hero_title",
+            "label": "Dokumentasi Umrah Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_umrah_hero_desc",
+            "label": "Dokumentasi Umrah Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "docs_hero_badge",
+            "label": "Dokumentasi Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_hero_title",
+            "label": "Dokumentasi Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_hero_desc",
+            "label": "Dokumentasi Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "docs_tab_photos",
+            "label": "Dokumentasi Tab Photos",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_tab_videos",
+            "label": "Dokumentasi Tab Videos",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_stat_photos",
+            "label": "Dokumentasi Stat Photos",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_stat_videos",
+            "label": "Dokumentasi Stat Videos",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "docs_hint",
+            "label": "Dokumentasi Petunjuk",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "site_logo",
+            "label": "Site Logo",
+            "type": "file",
+            "required": false
+        }
+    ],
+    "legal": [
+        {
+            "key": "legal_privacy_title",
+            "label": "Legal Privasi Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "legal_privacy_html",
+            "label": "Legal Privasi HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "legal_terms_title",
+            "label": "Legal Ketentuan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "legal_terms_html",
+            "label": "Legal Ketentuan HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "legal_contact_title",
+            "label": "Legal Kontak Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "legal_contact_html",
+            "label": "Legal Kontak HTML",
+            "type": "multiline",
+            "required": false
+        }
+    ],
+    "travel": [
+        {
+            "key": "travel_docs_meta_title",
+            "label": "Perjalanan Dokumentasi Meta Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_meta_desc",
+            "label": "Perjalanan Dokumentasi Meta Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_hero_badge",
+            "label": "Perjalanan Dokumentasi Hero Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_hero_title",
+            "label": "Perjalanan Dokumentasi Hero Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_hero_desc",
+            "label": "Perjalanan Dokumentasi Hero Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_tab_passport_title",
+            "label": "Perjalanan Dokumentasi Tab Paspor Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_tab_visa_title",
+            "label": "Perjalanan Dokumentasi Tab Visa Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_passport_html",
+            "label": "Perjalanan Dokumentasi Paspor HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_visa_html",
+            "label": "Perjalanan Dokumentasi Visa HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_passport_price_title",
+            "label": "Perjalanan Dokumentasi Paspor Harga Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_passport_price_html",
+            "label": "Perjalanan Dokumentasi Paspor Harga HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_visa_price_title",
+            "label": "Perjalanan Dokumentasi Visa Harga Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_visa_price_html",
+            "label": "Perjalanan Dokumentasi Visa Harga HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_immigration_title",
+            "label": "Perjalanan Dokumentasi Imigrasi Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_immigration_html",
+            "label": "Perjalanan Dokumentasi Imigrasi HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_order_title",
+            "label": "Perjalanan Dokumentasi Pemesanan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_order_html",
+            "label": "Perjalanan Dokumentasi Pemesanan HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "travel_docs_download_title",
+            "label": "Perjalanan Dokumentasi Unduhan Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "travel_docs_order_whatsapp",
+            "label": "Perjalanan Dokumentasi Pemesanan WhatsApp",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "download_label",
+            "label": "Unduhan Label",
+            "type": "lines",
+            "required": false
+        },
+        {
+            "key": "download_url",
+            "label": "Unduhan URL",
+            "type": "lines",
+            "required": false
+        }
+    ],
+    "seo": [
+        {
+            "key": "seo_site_title",
+            "label": "Seo Site Judul",
+            "type": "text",
+            "required": true
+        },
+        {
+            "key": "seo_meta_description",
+            "label": "Seo Meta Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "seo_keywords",
+            "label": "Seo Keywords",
+            "type": "text",
+            "required": false
+        }
+    ],
+    "popup": [
+        {
+            "key": "is_enabled",
+            "label": "Status Aktif",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "name",
+            "label": "Nama",
+            "type": "text",
+            "required": true
+        },
+        {
+            "key": "title",
+            "label": "Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "body_format",
+            "label": "Isi Format",
+            "type": "select",
+            "required": true,
+            "options": [
+                {
+                    "id": "html",
+                    "label": "Html"
+                },
+                {
+                    "id": "text",
+                    "label": "Text"
+                }
+            ]
+        },
+        {
+            "key": "body_html",
+            "label": "Isi HTML",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "body_text",
+            "label": "Isi Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "image",
+            "label": "Gambar",
+            "type": "file",
+            "required": false
+        },
+        {
+            "key": "primary_button_text",
+            "label": "Utama Tombol Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "primary_button_link",
+            "label": "Utama Tombol Tautan",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "secondary_button_text",
+            "label": "Sekunder Tombol Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "secondary_button_link",
+            "label": "Sekunder Tombol Tautan",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "include_paths_text",
+            "label": "Sertakan Alamat halaman Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "exclude_paths_text",
+            "label": "Kecualikan Alamat halaman Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "show_on_mobile",
+            "label": "Tampilkan On Ponsel",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "show_on_desktop",
+            "label": "Tampilkan On Desktop",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "delay_seconds",
+            "label": "Jeda Detik",
+            "type": "number",
+            "required": false
+        },
+        {
+            "key": "frequency",
+            "label": "Frekuensi",
+            "type": "select",
+            "required": true,
+            "options": [
+                {
+                    "id": "always",
+                    "label": "Always"
+                },
+                {
+                    "id": "once_per_session",
+                    "label": "Once Per Session"
+                },
+                {
+                    "id": "once_per_day",
+                    "label": "Once Per Day"
+                }
+            ]
+        },
+        {
+            "key": "start_at",
+            "label": "Mulai Tanggal",
+            "type": "date",
+            "required": false
+        },
+        {
+            "key": "end_at",
+            "label": "Selesai Tanggal",
+            "type": "date",
+            "required": false
+        }
+    ],
+    "home": [
+        {
+            "key": "tabs",
+            "label": "Tabs",
+            "type": "lines",
+            "required": false
+        },
+        {
+            "key": "home_articles_enabled",
+            "label": "Beranda Articles Aktif",
+            "type": "boolean",
+            "required": false
+        },
+        {
+            "key": "home_articles_title",
+            "label": "Beranda Articles Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_articles_desc",
+            "label": "Beranda Articles Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_articles_button_text",
+            "label": "Beranda Articles Tombol Teks",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_articles_button_url",
+            "label": "Beranda Articles Tombol URL",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_articles_mode",
+            "label": "Beranda Articles Mode",
+            "type": "select",
+            "required": false,
+            "options": [
+                {
+                    "id": "auto",
+                    "label": "Auto"
+                },
+                {
+                    "id": "custom",
+                    "label": "Custom"
+                }
+            ]
+        },
+        {
+            "key": "home_articles_custom_ids",
+            "label": "Beranda Articles Custom Ids",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_discount_banner_title",
+            "label": "Beranda Discount Banner Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_mission_banner_title",
+            "label": "Beranda Mission Banner Judul",
+            "type": "text",
+            "required": false
+        }
+    ],
+    "home_promos": [
+        {
+            "key": "home_promo_enabled",
+            "label": "Beranda Promo Aktif",
+            "type": "boolean",
+            "required": false
+        },
+        {
+            "key": "home_promo_badge",
+            "label": "Beranda Promo Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_promo_title",
+            "label": "Beranda Promo Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_promo_desc",
+            "label": "Beranda Promo Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_promo_mode",
+            "label": "Beranda Promo Mode",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_promo_custom_ids",
+            "label": "Beranda Promo Custom Ids",
+            "type": "lines",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_enabled",
+            "label": "Beranda Ship Promo Aktif",
+            "type": "boolean",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_badge",
+            "label": "Beranda Ship Promo Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_title",
+            "label": "Beranda Ship Promo Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_desc",
+            "label": "Beranda Ship Promo Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_mode",
+            "label": "Beranda Ship Promo Mode",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_ship_promo_custom_ids",
+            "label": "Beranda Ship Promo Custom Ids",
+            "type": "lines",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_enabled",
+            "label": "Beranda Umrah Promo Aktif",
+            "type": "boolean",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_badge",
+            "label": "Beranda Umrah Promo Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_title",
+            "label": "Beranda Umrah Promo Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_desc",
+            "label": "Beranda Umrah Promo Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_mode",
+            "label": "Beranda Umrah Promo Mode",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_umrah_promo_custom_ids",
+            "label": "Beranda Umrah Promo Custom Ids",
+            "type": "lines",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_enabled",
+            "label": "Beranda Mice Promo Aktif",
+            "type": "boolean",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_badge",
+            "label": "Beranda Mice Promo Label",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_title",
+            "label": "Beranda Mice Promo Judul",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_desc",
+            "label": "Beranda Mice Promo Deskripsi",
+            "type": "multiline",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_mode",
+            "label": "Beranda Mice Promo Mode",
+            "type": "text",
+            "required": false
+        },
+        {
+            "key": "home_mice_promo_custom_ids",
+            "label": "Beranda Mice Promo Custom Ids",
+            "type": "lines",
+            "required": false
+        }
+    ]
+}

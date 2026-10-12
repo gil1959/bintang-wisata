@@ -722,3 +722,8 @@ Route::post('/logout-to-login', function (Request $request) {
 })->name('logout.to.login');
 
 Route::get('/__tools/translate/tour/backfill', [\App\Http\Controllers\Tools\TourTranslateBackfillController::class, 'run']);
+
+Route::get('/.well-known/assetlinks.json', function () {
+    $fingerprints = array_values(array_filter(config('mobile.android_fingerprints', []), fn($value) => preg_match('/^([A-Fa-f0-9]{2}:){31}[A-Fa-f0-9]{2}$/', $value)));
+    return response()->json($fingerprints ? [['relation'=>['delegate_permission/common.handle_all_urls'],'target'=>['namespace'=>'android_app','package_name'=>'com.bintangwisata.app','sha256_cert_fingerprints'=>$fingerprints]]] : []);
+});

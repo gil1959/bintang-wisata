@@ -1,92 +1,49 @@
 <?php
-
 namespace App\Http\Controllers\Webhook;
 
 use App\Http\Controllers\Controller;
-use App\Models\Payment;
-use App\Models\PaymentGateway;
+use App\Models\{Order,Payment,PaymentGateway};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DokuWebhookController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $gateway = PaymentGateway::where('name', 'doku')->first();
-        if (!$gateway || !$gateway->is_active) {
-            return response()->json(['message' => 'gateway inactive'], 403);
-        }
-
-        $payload = $request->all();
-
-        $invoice = data_get($payload, 'order.invoice_number')
-            ?? data_get($payload, 'invoice_number')
-            ?? data_get($payload, 'order_id');
-
-        $amount = data_get($payload, 'order.amount')
-            ?? data_get($payload, 'amount');
-
-        $status = strtoupper((string)(
-            data_get($payload, 'transaction.status')
-            ?? data_get($payload, 'status')
-            ?? ''
-        ));
-
-        if (!$invoice) {
-            return response()->json(['message' => 'missing invoice'], 400);
-        }
-
-        // gateway_reference DOKU lu set = invoice_number
-        $payment = Payment::where('gateway_name', 'doku')
-            ->where('gateway_reference', $invoice)
-            ->latest()
-            ->first();
-
-        if (!$payment) {
-            return response()->json(['message' => 'payment not found'], 404);
-        }
-
-        // Guard amount (optional)
-        if ($amount !== null) {
-            $amountFloat = (float) $amount;
-            if ((float) $payment->amount > 0 && abs(((float)$payment->amount) - $amountFloat) > 0.5) {
-                return response()->json(['message' => 'amount mismatch'], 400);
-            }
-        }
-
-        // Map ke enum DB lu
-        $newPaymentStatus = match ($status) {
-            'SUCCESS', 'PAID', 'COMPLETED' => 'paid',
-            'FAILED', 'EXPIRED' => 'failed',
-            default => 'waiting_payment',
-        };
-
-        $payment->status = $newPaymentStatus;
-        $payment->gateway_payload = $payload;
-        $payment->save();
-
-        // Gateway auto approve/reject
-        if ($payment->order) {
-            $prevOrderStatus = $payment->order->order_status;
-            if ($newPaymentStatus === 'paid') {
-                $payment->order->payment_status = 'paid';
-                $payment->order->order_status = 'approved';
-            } elseif ($newPaymentStatus === 'failed') {
-                $payment->order->payment_status = 'failed';
-                $payment->order->order_status = 'rejected';
-            } else {
-                $payment->order->payment_status = 'waiting_payment';
-            }
-            $payment->order->save();
-            
-            if ($payment->order->order_status !== $prevOrderStatus) {
-                if ($payment->order->order_status === 'approved') {
-                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'approved');
-                } elseif ($payment->order->order_status === 'rejected') {
-                    app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'rejected');
-                }
-            }
-        }
-
-        return response()->json(['message' => 'ok'], 200);
+        $gateway=PaymentGateway::where('name','doku')->first();
+        abort_unless($gateway&&$gateway->is_active,403,'Gateway inactive.');
+        $credentials=$gateway->credentials??[];
+        $client=(string)$request->header('Client-Id','');
+        $requestId=(string)$request->header('Request-Id','');
+        $timestamp=(string)$request->header('Request-Timestamp','');
+        $secret=trim((string)($credentials['secret_key']??''));
+        abort_unless($secret!==''&&$client!==''&&hash_equals(trim((string)($credentials['client_id']??'')),$client)&&$requestId!==''&&$timestamp!=='',401,'Invalid notification signature.');
+        // DOKU signs the actual raw body and merchant notification path, not parsed JSON.
+        $digest=base64_encode(hash('sha256',$request->getContent(),true));
+        $canonical="Client-Id:{$client}\nRequest-Id:{$requestId}\nRequest-Timestamp:{$timestamp}\nRequest-Target:".$request->getPathInfo()."\nDigest:{$digest}";
+        $expected='HMACSHA256='.base64_encode(hash_hmac('sha256',$canonical,$secret,true));
+        abort_unless(hash_equals($expected,(string)$request->header('Signature','')),401,'Invalid notification signature.');
+        $payload=$request->json()->all();
+        $invoice=data_get($payload,'order.invoice_number');
+        $amount=data_get($payload,'order.amount');
+        abort_unless(is_string($invoice)&&$invoice!==''&&is_numeric($amount),422,'Invalid payment notification.');
+        $payment=Payment::where('gateway_name','doku')->where('gateway_reference',$invoice)->latest('id')->firstOrFail();
+        abort_unless(abs((float)$payment->amount-(float)$amount)<0.01,422,'Amount mismatch.');
+        // Checkout allows another payment method after a failed attempt. Do not reject the order.
+        if(strtoupper((string)data_get($payload,'transaction.status'))!=='SUCCESS')return response()->json(['message'=>'ignored']);
+        $changed=DB::transaction(function()use($payment,$payload,$amount){
+            $order=Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
+            $locked=Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            abort_unless(abs((float)$locked->amount-(float)$amount)<0.01,422,'Amount mismatch.');
+            if($locked->status==='paid')return null;
+            $locked->update(['status'=>'paid','gateway_payload'=>$payload]);
+            if($order->payment_status==='paid')return null;
+            $order->payment_status='paid';$order->order_status='approved';
+            if($order->affiliate_user_id&&$order->affiliate_commission_amount!==null)$order->affiliate_commission_status='approved';
+            $order->save();
+            return $order;
+        },3);
+        if($changed)app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($changed,'approved');
+        return response()->json(['message'=>'ok']);
     }
 }

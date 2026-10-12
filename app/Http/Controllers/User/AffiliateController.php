@@ -462,6 +462,7 @@ class AffiliateController extends Controller
 
     public function submitWithdrawal(Request $request)
     {
+        $isEn = app()->getLocale() === 'en';
         $this->guardAffiliate();
 
         $data = $request->validate([

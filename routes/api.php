@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__ . '/mobile.php';
+
 use App\Http\Controllers\Webhook\TripayWebhookController;
 use App\Http\Controllers\Webhook\DokuWebhookController;
 use App\Http\Controllers\Webhook\MidtransWebhookController;

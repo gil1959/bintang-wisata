@@ -143,6 +143,7 @@ class CheckoutController extends Controller
 // ===============================
 // AUTO-CREATE USER UNTUK GUEST
 // ===============================
+if ((int)$request->attributes->get('mobile_guest_order_id') !== (int)$order->id) {
 if (!Auth::check()) {
     // Email sumbernya dari draft booking (customer_email)
     $email = trim((string) $order->customer_email);
@@ -209,6 +210,7 @@ if (!Auth::check()) {
 
 }
 
+}
         // --- Manual: manual:{id} ---
         if (str_starts_with($raw, 'manual:')) {
             $value = substr($raw, strlen('manual:'));

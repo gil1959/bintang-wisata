@@ -1,71 +1,32 @@
 <?php
-
 namespace App\Http\Controllers\Webhook;
 
 use App\Http\Controllers\Controller;
+use App\Models\{Payment,PaymentGateway};
+use App\Services\Payments\VerifiedPaymentStatus;
 use Illuminate\Http\Request;
-use App\Models\Payment;
-use App\Models\PaymentGateway;
-use Illuminate\Support\Facades\Log;
 
 class XenditWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        // ambil gateway xendit
-        $gateway = PaymentGateway::where('name', 'xendit')->first();
-
-        if (!$gateway) {
-            Log::error('Xendit webhook: gateway not found');
-            return response()->json(['error' => 'Gateway not found'], 404);
-        }
-
-        // validasi callback token
-        $callbackToken = $request->header('x-callback-token');
-        if (!$callbackToken || $callbackToken !== ($gateway->credentials['callback_token'] ?? null)) {
-            Log::warning('Xendit webhook: invalid callback token');
-            return response()->json(['error' => 'Invalid token'], 403);
-        }
-
-        // payload utama
-        $data = $request->all();
-
-        Log::info('Xendit webhook payload', $data);
-
-        // status sukses
-        if (
-            isset($data['status']) &&
-            in_array($data['status'], ['PAID', 'SETTLED'])
-        ) {
-           $payment = Payment::where('gateway_name', 'xendit')
-    ->where('gateway_reference', $data['id'])
-    ->latest()
-    ->first();
-
-
-            if (!$payment) {
-                Log::error('Xendit webhook: payment not found', ['reference' => $data['id']]);
-                return response()->json(['error' => 'Payment not found'], 404);
-            }
-
-            // update payment
-            $payment->status = 'paid';
-            $payment->save();
-
-            // update order
-           if ($payment->order) {
-    $prevOrderStatus = $payment->order->order_status;
-    $payment->order->payment_status = 'paid';
-    $payment->order->order_status   = 'approved';
-    $payment->order->save();
-    
-    if ($payment->order->order_status !== $prevOrderStatus && $payment->order->order_status === 'approved') {
-        app(\App\Services\OrderNotificationService::class)->sendVerificationEmail($payment->order, 'approved');
-    }
-}
-
-        }
-
-        return response()->json(['success' => true]);
+        $gateway=PaymentGateway::where('name','xendit')->firstOrFail();
+        $token=(string)($gateway->credentials['callback_token']??'');
+        abort_unless($token!=='' && hash_equals($token,(string)$request->header('x-callback-token')),403);
+        $data=$request->validate([
+            'id'=>'required|string','external_id'=>'required|string','status'=>'required|string',
+            'amount'=>'required|numeric|min:0','currency'=>'required|in:IDR','paid_amount'=>'nullable|numeric|min:0',
+        ]);
+        $payment=Payment::where('gateway_name','xendit')->where('gateway_reference',$data['id'])->firstOrFail();
+        abort_unless($payment->order && hash_equals((string)$payment->order->invoice_number,$data['external_id']),422,'Invoice mismatch.');
+        abort_unless(abs((float)$payment->amount-(float)$data['amount'])<0.01,422,'Amount mismatch.');
+        $status=strtoupper($data['status']);
+        if(in_array($status,['PAID','SETTLED'],true)) {
+            abort_unless(isset($data['paid_amount']) && (float)$data['paid_amount'] >= (float)$payment->amount,422,'Payment is not fully paid.');
+            $next='paid';
+        } elseif($status==='EXPIRED') $next='failed';
+        else return response()->json(['success'=>true]);
+        app(VerifiedPaymentStatus::class)->apply($payment,$next,$data,(float)$data['amount']);
+        return response()->json(['success'=>true]);
     }
 }

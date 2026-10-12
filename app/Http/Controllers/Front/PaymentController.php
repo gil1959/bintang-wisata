@@ -269,6 +269,12 @@ if (
     // SUBMIT MANUAL
     public function submitManual(Request $request, Order $order)
     {
+        $user = $request->user();
+        abort_unless((int)$request->attributes->get('mobile_guest_order_id') === (int)$order->id || ($user && ((int) $order->user_id === (int) $user->id ||
+            ($order->user_id === null && $user->hasVerifiedEmail() && $order->customer_email === $user->email))), 403);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $order) {
+        $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+        abort_if($order->payment_status === 'paid' || in_array($order->order_status, ['approved', 'rejected'], true), 409, 'Pesanan tidak dapat dibayar ulang.');
         if (strpos($order->payment_method, 'manual:') !== 0) {
             abort(403);
         }
@@ -287,16 +293,14 @@ if (
 
         $order->payments()->create([
             'method'            => 'manual',
-            'amount'            => $order->final_price,
+            'amount'            => $order->payable_amount ?? $order->final_price,
             'proof_image'       => $path,
             'gateway_reference' => null,
             'status'            => 'waiting_verification',
         ]);
 
         $order->update([
-    'payment_status'   => 'paid',
-    'approved_at'      => now(),
-    'approved_by'      => 'gateway',
+    'payment_status'   => 'waiting_verification',
 ]);
 
 
@@ -319,6 +323,9 @@ if (
             ]);
         }
 
+        if ((int)$request->attributes->get('mobile_guest_order_id') === (int)$order->id) {
+            return response()->json(['message'=>'Bukti transfer diterima.']);
+        }
         // Pastikan user login untuk akses halaman order
 if (!auth()->check()) {
     // harusnya sudah login dari checkout auto-create
@@ -329,6 +336,7 @@ return redirect()
     ->route('user.orders.show', $order)
     ->with('success', 'Bukti transfer berhasil diupload. Silakan konfirmasi ke admin.');
 
+        });
     }
 
     public function waiting(Order $order)
@@ -810,17 +818,12 @@ $payment = $paymentQuery->latest()->first();
         $payment->gateway_payload = array_merge((array)$payment->gateway_payload, ['capture' => $cap]);
 
         if ($status === 'COMPLETED') {
-            $payment->status = 'paid';
-            $payment->save();
-
-            $order->payment_status = 'paid';
-$order->order_status   = 'approved';
-$order->save();
-
-
-            return redirect()->route('payment.page', $order->id)->with('success', 'Pembayaran PayPal berhasil.');
+            abort_unless(($cap['id']??'')===$payment->gateway_reference,422,'Referensi PayPal tidak cocok.');
+            $captures=collect($cap['purchase_units']??[])->flatMap(fn($unit)=>$unit['payments']['captures']??[]);
+            abort_unless($captures->count()===1,422,'Jumlah capture PayPal tidak sesuai.');
+            app(\App\Services\Payments\PayPalSettlement::class)->capture($payment,$captures->first(),['capture'=>$cap]);
+            return redirect()->route('payment.page',$order->id)->with('success','Pembayaran PayPal berhasil.');
         }
-
         $payment->save();
         return redirect()->route('payment.page', $order->id)->with('error', 'PayPal status: ' . ($cap['status'] ?? 'UNKNOWN'));
     }

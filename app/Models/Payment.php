@@ -16,6 +16,7 @@ class Payment extends Model
         'gateway_name',
         'channel_code',
         'payment_url',
+        'return_token',
         'gateway_payload',
     ];
 
@@ -23,6 +24,8 @@ class Payment extends Model
         'gateway_payload' => 'array',
         'amount' => 'float',
     ];
+
+    protected $hidden = ['return_token', 'gateway_payload'];
 
     public function order()
     {
