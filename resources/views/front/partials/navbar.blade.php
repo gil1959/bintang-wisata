@@ -11,7 +11,7 @@
       <img
         src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
         alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
-        class="h-7 lg:h-7 w-12 object-contain shrink-0" />
+        class="h-7 lg:h-8 w-auto max-w-[160px] object-contain shrink-0" />
     </a>
 
 
@@ -122,6 +122,7 @@
       || request()->routeIs('travel-documents')
       || request()->routeIs('restoran.index')
       || request()->routeIs('hotel.index')
+      || request()->routeIs('travel-bus.index')
       || request()->is('Document*')
       || request()->is('document*');
       @endphp
@@ -180,6 +181,11 @@
             class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <i data-lucide="building" class="w-4 h-4" style="color:#0194F3;"></i>
             {{ $isEn ? 'Hotel/Vila' : 'Hotel/Vila' }}
+          </a>
+          <a href="{{ route('travel-bus.index') }}"
+            class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i data-lucide="bus" class="w-4 h-4" style="color:#0194F3;"></i>
+            {{ $isEn ? 'Bus & Travel' : 'Bus & Travel' }}
           </a>
 
         </div>

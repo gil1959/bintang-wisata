@@ -17,7 +17,7 @@ $totalDue = (int) ($order->final_price ?? max(0, $subtotal - $discount));
 
 // Qty heuristic sesuai struktur order
 $qty = 1;
-if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah' || ($order->type ?? '') === 'restoran') {
+if (($order->type ?? '') === 'tour' || ($order->type ?? '') === 'umrah' || ($order->type ?? '') === 'restoran' || ($order->type ?? '') === 'travel_bus') {
     $qty = (int) ($order->participants ?? 1);
 } elseif (($order->type ?? '') === 'rent_car' || ($order->type ?? '') === 'hotel') {
     $qty = (int) ($order->total_hours ?? $order->total_days ?? 1);
@@ -524,6 +524,30 @@ if ($qty <= 0) $qty=1;
                                     <td class="right">Rp {{ number_format($menuItem['subtotal'] ?? ($menuItem['price'] * $menuItem['qty']), 0, ',', '.') }}</td>
                                 </tr>
                                 @endforeach
+                            @elseif($order->type === 'travel_bus')
+                                <tr>
+                                    <td class="num">1</td>
+                                    <td style="background:#f3f8fe;">
+                                        <div style="font-weight:900;">{{ $order->product_name ?? 'TIKET TRAVEL / BUS' }}</div>
+                                        <div style="font-size:11px; color:#64748b; margin-top:2px;">
+                                            @if(!empty($order->order_items['departure_location']) && !empty($order->order_items['arrival_location']))
+                                                {{ $order->order_items['departure_location'] }} &rarr; {{ $order->order_items['arrival_location'] }}
+                                            @endif
+                                            @if($order->departure_date)
+                                                • {{ \Carbon\Carbon::parse($order->departure_date)->format('d M Y') }}
+                                            @endif
+                                            @if(!empty($order->order_items['departure_time']))
+                                                ({{ $order->order_items['departure_time'] }} WIB)
+                                            @endif
+                                            @if(!empty($order->order_items['travel_type']))
+                                                • {{ $order->order_items['travel_type'] }}
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="right">Rp {{ number_format($unitPrice, 0, ',', '.') }}</td>
+                                    <td class="center">{{ $order->participants ?? 1 }} Kursi</td>
+                                    <td class="right">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                </tr>
                             @else
                                 <tr>
                                     <td class="num">1</td>

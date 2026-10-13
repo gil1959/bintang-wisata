@@ -175,6 +175,31 @@ $latestPayment = $order->payments?->sortByDesc('id')->first();
       @endif
       @endif
 
+      @if($order->type === 'travel_bus')
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Departure Date' : 'Tanggal Keberangkatan' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-' }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Seats' : 'Jumlah Kursi' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;"><b>{{ $order->participants ?? 1 }} {{ $isEn ? 'seats' : 'kursi' }}</b></td>
+      </tr>
+      @if(!empty($order->order_items) && is_array($order->order_items))
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; color:#475569;">{{ $isEn ? 'Fleet / Service' : 'Armada & Layanan' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $order->order_items['armada_name'] ?? '-' }} ({{ $order->order_items['travel_type'] ?? 'Regular' }})</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; color:#475569;">{{ $isEn ? 'Route' : 'Rute' }}</td>
+        <td style="padding:8px 0; border-bottom:1px solid #e2e8f0;">{{ $order->order_items['departure_location'] ?? '-' }} &rarr; {{ $order->order_items['arrival_location'] ?? '-' }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0; color:#475569;">{{ $isEn ? 'Schedule' : 'Jadwal Keberangkatan' }}</td>
+        <td style="padding:8px 0;">{{ $order->order_items['departure_time'] ?? '-' }} - {{ $order->order_items['arrival_time'] ?? '-' }} WIB</td>
+      </tr>
+      @endif
+      @endif
+
       @if($order->type === 'hotel')
       <tr>
         <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; width:38%; color:#475569;">{{ $isEn ? 'Check-in' : 'Check-in' }}</td>

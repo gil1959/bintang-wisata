@@ -213,6 +213,68 @@
                                 </div>
                             </div>
                             @endif
+
+                            @if($order->type === 'travel_bus')
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Tanggal Keberangkatan</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-500">Jumlah Kursi (Seat)</div>
+                                <div class="mt-1 font-bold text-slate-900">
+                                    {{ $order->participants ? number_format($order->participants,0,',','.') . ' kursi' : '1 kursi' }}
+                                </div>
+                            </div>
+                            @if(!empty($order->order_items) && is_array($order->order_items))
+                            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-200">
+                                <div class="text-xs font-extrabold text-slate-700 mb-2 flex items-center gap-1.5">
+                                    <i data-lucide="bus" class="w-3.5 h-3.5 text-sky-500"></i>
+                                    <span>Rincian Tiket Travel / Bus:</span>
+                                </div>
+                                <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs space-y-2 font-semibold">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Armada & Layanan:</span>
+                                        <span class="font-bold text-slate-900">
+                                            {{ $order->order_items['armada_name'] ?? '-' }} 
+                                            ({{ $order->order_items['travel_type'] ?? 'Regular' }})
+                                        </span>
+                                    </div>
+                                    @if(!empty($order->order_items['armada_type']))
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Tipe Kendaraan:</span>
+                                        <span class="font-bold text-slate-800">{{ $order->order_items['armada_type'] }}</span>
+                                    </div>
+                                    @endif
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Rute Perjalanan:</span>
+                                        <span class="font-bold text-slate-900">
+                                            {{ $order->order_items['departure_location'] ?? '-' }} &rarr; {{ $order->order_items['arrival_location'] ?? '-' }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Jadwal Keberangkatan:</span>
+                                        <span class="font-bold text-slate-900">
+                                            {{ $order->order_items['departure_time'] ?? '-' }} - {{ $order->order_items['arrival_time'] ?? '-' }} WIB
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Jumlah Kursi:</span>
+                                        <span class="font-extrabold text-blue-600">
+                                            {{ $order->participants ?? ($order->order_items['pax'] ?? 1) }} kursi
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-200/80">
+                                        <span class="text-slate-500">Tarif per Kursi:</span>
+                                        <span class="font-extrabold text-sky-600">
+                                            Rp {{ number_format($order->order_items['price_per_pax'] ?? ($order->subtotal / max(1, (int)$order->participants)), 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            @endif
                         </div>
                     </div>
 
@@ -224,6 +286,14 @@
                             foreach ($order->order_items as $idx => $mItem) {
                                 $waText .= ($idx + 1) . ". " . ($mItem['name'] ?? '-') . " (" . ($mItem['qty'] ?? 1) . "x) - Rp " . number_format($mItem['subtotal'] ?? 0, 0, ',', '.') . "\n";
                             }
+                            $waText .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
+                        } elseif ($order->type === 'travel_bus' && !empty($order->order_items) && is_array($order->order_items)) {
+                            $waText .= "\n\nRincian Tiket Travel/Bus:\n";
+                            $waText .= "• Tanggal: " . ($order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-') . "\n";
+                            $waText .= "• Armada: " . ($order->order_items['armada_name'] ?? '-') . " (" . ($order->order_items['travel_type'] ?? '-') . ")\n";
+                            $waText .= "• Rute: " . ($order->order_items['departure_location'] ?? '-') . " -> " . ($order->order_items['arrival_location'] ?? '-') . "\n";
+                            $waText .= "• Jam: " . ($order->order_items['departure_time'] ?? '-') . " WIB\n";
+                            $waText .= "• Jumlah Kursi: " . ($order->participants ?? 1) . " kursi\n";
                             $waText .= "Total: Rp " . number_format((int)($order->payable_amount ?? $order->final_price), 0, ',', '.');
                         } elseif ($order->type === 'hotel' && !empty($order->order_items) && is_array($order->order_items)) {
                             $waText .= "\n\nRincian Reservasi Kamar:\n";

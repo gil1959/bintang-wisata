@@ -682,8 +682,21 @@
                         @forelse($footerLogos ?? [] as $lg)
                         <tr>
                             <td class="px-4 py-3">
+                                @php
+                                    $lgSrc = $lg->image_path
+                                        ? (str_starts_with($lg->image_path, 'http')
+                                            ? $lg->image_path
+                                            : (str_starts_with($lg->image_path, 'storage/') || str_starts_with($lg->image_path, '/storage/')
+                                                ? asset(ltrim($lg->image_path, '/'))
+                                                : asset('storage/' . ltrim($lg->image_path, '/'))))
+                                        : null;
+                                @endphp
                                 <div class="h-12 w-28 rounded-xl border border-slate-200 bg-white flex items-center justify-center p-2">
-                                    <img src="{{ asset('storage/' . $lg->image_path) }}" alt="{{ $lg->name }}" class="h-8 w-auto object-contain">
+                                    @if($lgSrc)
+                                    <img src="{{ $lgSrc }}" alt="{{ $lg->name }}" class="h-8 w-auto object-contain" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\'text-[10px] text-slate-400\'>No preview</span>'">
+                                    @else
+                                    <span class="text-xs text-slate-400">—</span>
+                                    @endif
                                 </div>
                             </td>
 

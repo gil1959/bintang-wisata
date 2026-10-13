@@ -79,6 +79,9 @@
                 <option value="agency_hotel_vila" {{ old('partner_type')==='agency_hotel_vila' ? 'selected' : '' }}>
                     Agency Hotel/Vila
                 </option>
+                <option value="agency_travel_bus" {{ old('partner_type')==='agency_travel_bus' ? 'selected' : '' }}>
+                    Agency Travel & Bus
+                </option>
 
             </select>
         </div>

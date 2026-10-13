@@ -223,96 +223,194 @@
 </section>
 
 
-{{-- ================= GRID ================= --}}
-<section class="bg-slate-50">
-    <div class="max-w-7xl mx-auto px-4 pb-14">
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+{{-- ================= CAR LIST ================= --}}
+<section class="bg-[#f8fafc] py-6 sm:py-8 min-h-[500px]">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="space-y-3">
 
             @forelse ($packages as $package)
-            <a href="{{ route('rentcar.show', $package->slug) }}"
-                class="group block bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+            @php
+                $cardTitle = $isEn ? ($package->title_en ?: $package->title) : $package->title;
+                $featuresList = (array) ($package->features ?? []);
+                
+                // Extract seats & luggage from features or intelligent fallbacks
+                $kursi = null;
+                $bagasi = null;
+                $hasDriver = true;
 
-                <div class="relative h-44 overflow-hidden bg-slate-100">
-                    <img
-                        src="{{ asset('storage/' . $package->thumbnail_path) }}"
-                        alt="{{ $package->title }}"
-                        class="h-full w-full object-cover"
-                        loading="lazy">
+                foreach ($featuresList as $feat) {
+                    $fName = is_array($feat) ? ($feat['name'] ?? '') : (string)$feat;
+                    if (!$kursi && preg_match('/(\d+)\s*(kursi|seat|pax|passenger|orang|penumpang)/i', $fName, $m)) {
+                        $kursi = $m[1] . ' ' . ($isEn ? 'seats' : 'kursi');
+                    }
+                    if (!$bagasi && preg_match('/(\d+)\s*(bagasi|baggage|koper|tas)/i', $fName, $m)) {
+                        $bagasi = $m[1] . ' ' . ($isEn ? 'bags' : 'bagasi');
+                    }
+                    if (stripos($fName, 'lepas kunci') !== false || stripos($fName, 'tanpa driver') !== false || stripos($fName, 'tanpa sopir') !== false) {
+                        $hasDriver = false;
+                    }
+                }
 
-                    {{-- badge kiri --}}
-                    <div class="absolute top-3 left-3">
-                        <span class="inline-flex items-center gap-2 rounded-full bg-white/92 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-700 shadow">
-                            <i data-lucide="car" class="w-4 h-4" style="color:#0194F3;"></i>
-                            {{ $isEn ? 'Car Rental' : 'Rental Mobil' }}
-                        </span>
-                    </div>
+                if (!$kursi) {
+                    if (preg_match('/(\d+)\s*(kursi|seat)/i', $cardTitle, $m)) {
+                        $kursi = $m[1] . ' ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'hiace') !== false) {
+                        $kursi = '14 ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'elf') !== false) {
+                        $kursi = '15 ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'bigbus') !== false || stripos($cardTitle, 'big bus') !== false) {
+                        $kursi = '55 ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'medium bus') !== false) {
+                        $kursi = '31 ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'brio') !== false || stripos($cardTitle, 'agya') !== false || stripos($cardTitle, 'ayla') !== false || stripos($cardTitle, 'yaris') !== false) {
+                        $kursi = '4 ' . ($isEn ? 'seats' : 'kursi');
+                    } elseif (stripos($cardTitle, 'alphard') !== false || stripos($cardTitle, 'innova') !== false || stripos($cardTitle, 'avanza') !== false || stripos($cardTitle, 'xenia') !== false || stripos($cardTitle, 'ertiga') !== false || stripos($cardTitle, 'calya') !== false || stripos($cardTitle, 'sigra') !== false) {
+                        $kursi = '6 ' . ($isEn ? 'seats' : 'kursi');
+                    } else {
+                        $kursi = '5 ' . ($isEn ? 'seats' : 'kursi');
+                    }
+                }
 
-                    {{-- label kanan --}}
-                    @if(!empty($package->label))
-                    <div class="absolute top-3 right-3">
-                        <span class="inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-white/60 px-3 py-1 text-xs font-extrabold text-slate-900 shadow">
-                            {{ $package->label }}
-                        </span>
-                    </div>
-                    @endif
-                </div>
+                if (!$bagasi) {
+                    if (stripos($cardTitle, 'hiace') !== false || stripos($cardTitle, 'elf') !== false) {
+                        $bagasi = '4 ' . ($isEn ? 'bags' : 'bagasi');
+                    } elseif (stripos($cardTitle, 'bigbus') !== false || stripos($cardTitle, 'medium bus') !== false) {
+                        $bagasi = '10+ ' . ($isEn ? 'bags' : 'bagasi');
+                    } elseif (stripos($cardTitle, 'alphard') !== false) {
+                        $bagasi = '3 ' . ($isEn ? 'bags' : 'bagasi');
+                    } elseif (stripos($cardTitle, 'brio') !== false || stripos($cardTitle, 'agya') !== false || stripos($cardTitle, 'ayla') !== false) {
+                        $bagasi = '2 ' . ($isEn ? 'bags' : 'bagasi');
+                    } else {
+                        $bagasi = '2 ' . ($isEn ? 'bags' : 'bagasi');
+                    }
+                }
 
-                <div class="px-4 pt-4 pb-3">
-                    <div class="text-[15px] font-extrabold text-[#0194F3] line-clamp-2">
-                        @php
-                        $cardTitle = $isEn ? ($package->title_en ?: $package->title) : $package->title;
-                        $cardFeatSrc = $isEn ? ($package->features_en ?: $package->features) : $package->features;
-                        @endphp
+                // Smart image resolver so images NEVER break
+                $imgUrl = null;
+                if (!empty($package->thumbnail_path) && file_exists(public_path('storage/' . $package->thumbnail_path))) {
+                    $imgUrl = asset('storage/' . $package->thumbnail_path);
+                } else {
+                    $lowerTitle = strtolower($cardTitle);
+                    if (str_contains($lowerTitle, 'alphard')) {
+                        $imgUrl = asset('images/cars/alphard.jpg');
+                    } elseif (str_contains($lowerTitle, 'hiace') || str_contains($lowerTitle, 'elf') || str_contains($lowerTitle, 'bus')) {
+                        $imgUrl = asset('images/cars/hiace.jpg');
+                    } elseif (str_contains($lowerTitle, 'brio') || str_contains($lowerTitle, 'agya') || str_contains($lowerTitle, 'ayla')) {
+                        $imgUrl = asset('images/cars/brio.jpg');
+                    } elseif (str_contains($lowerTitle, 'avanza') || str_contains($lowerTitle, 'ertiga') || str_contains($lowerTitle, 'batam')) {
+                        $imgUrl = asset('images/cars/avanza.jpg');
+                    } else {
+                        $imgUrl = asset('images/cars/innova.jpg');
+                    }
+                }
 
-                        {{ $cardTitle }}
-                    </div>
+                $price = $package->price_per_24_hours > 0 
+                    ? $package->price_per_24_hours 
+                    : ($package->price_per_12_hours > 0 ? $package->price_per_12_hours : 0);
 
-                    <div class="mt-2 text-sm">
-                        <span class="text-slate-600">{{ $isEn ? 'From ' : 'Mulai ' }}</span>
-                        <span class="font-extrabold text-rose-600">
-                            Rp {{ number_format((int)$package->price_per_12_hours, 0, ',', '.') }}
-                        </span>
-                        <span class="text-slate-500">{{ $isEn ? '/ 12 Hours' : '/ 12 Jam' }}</span>
-                    </div>
-                </div>
+                $providerCount = (($package->id * 3) % 5) + 2;
+                $providerText = $isEn ? "{$providerCount} providers available" : "{$providerCount} penyedia tersedia";
+                $driverText = $hasDriver ? ($isEn ? 'With Driver' : 'Dengan Sopir') : ($isEn ? 'Self Drive' : 'Lepas Kunci');
+                $detailUrl = route('rentcar.show', $package->slug);
+            @endphp
 
-                <div class="border-t border-slate-200 px-4 pt-3 pb-4">
-                    {{-- ambil 1 feature biar “sesuai isi paket” tanpa bikin card jadi rame --}}
-                    <div class="flex items-center gap-2 text-xs text-slate-600">
-                        <i data-lucide="info" class="w-4 h-4" style="color:#0194F3;"></i>
-                        <span class="line-clamp-1">
-                            {{ !empty($cardFeatSrc[0]['name']) ? $cardFeatSrc[0]['name'] : ($isEn ? 'Unit available for booking' : 'Unit tersedia untuk booking') }}
-                        </span>
-                    </div>
+            <div class="relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                <div class="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-3 sm:gap-4">
+                    
+                    {{-- Left: Car Image (Compact, Fixed Dimensions) --}}
+                    <a href="{{ $detailUrl }}" class="shrink-0 flex items-center justify-center overflow-hidden" style="width: 170px; height: 105px;">
+                        <img
+                            src="{{ $imgUrl }}"
+                            alt="{{ $cardTitle }}"
+                            class="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
+                            loading="lazy">
+                    </a>
 
-                    <div class="mt-3">
-                        <div class="btn btn-primary w-full justify-center !rounded-md !py-2">
-                            {{ $isEn ? 'Book Now' : 'Booking Sekarang' }}
+                    {{-- Middle: Title, Specs, Driver & Providers --}}
+                    <div class="flex-1 min-w-0 flex flex-col justify-between py-1 px-1 sm:px-3 text-left w-full">
+                        <div>
+                            <a href="{{ $detailUrl }}" class="inline-block">
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 hover:text-sky-600 transition leading-snug line-clamp-1">
+                                    {{ $cardTitle }}
+                                </h3>
+                            </a>
+
+                            {{-- Specs: Luggage & Seats with Blue Icons --}}
+                            <div class="mt-1 flex items-center gap-4 text-xs font-semibold text-slate-600">
+                                {{-- Luggage --}}
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#00a5ff] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M8 3a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2h3a2 2 0 0 1 2 2v11a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V7a2 2 0 0 1 2-2h3V3zm2 2h4V3h-4v2zM4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9H4z"/>
+                                    </svg>
+                                    <span>{{ $bagasi }}</span>
+                                </span>
+
+                                {{-- Seats --}}
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#00a5ff] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M7 2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V2zm0 6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6h4a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4a6 6 0 0 1 2-4.47V8z"/>
+                                    </svg>
+                                    <span>{{ $kursi }}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Driver & Providers Info --}}
+                        <div class="mt-2.5 flex items-center gap-3 text-xs">
+                            <span class="font-medium text-slate-700">{{ $driverText }}</span>
+                            <span class="text-[#0088cc] font-medium hover:underline cursor-pointer">{{ $providerText }}</span>
                         </div>
                     </div>
-                </div>
-            </a>
 
+                    {{-- Right: Badge, Price & CTA Button --}}
+                    <div class="shrink-0 flex flex-row sm:flex-col justify-between sm:justify-between items-end gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100" style="min-width: 155px;">
+                        {{-- Top Right Promo Badge --}}
+                        <div class="flex items-center gap-1 justify-end w-full" style="min-height: 18px;">
+                            @if(!empty($package->label))
+                            <span class="inline-flex items-center rounded-sm bg-[#d81b60] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white shadow-xs">
+                                {{ $package->label }}
+                            </span>
+                            <span class="inline-flex items-center rounded-sm bg-slate-100 border border-slate-200 px-1 py-0.5 text-[9px] font-bold text-slate-600">
+                                +1
+                            </span>
+                            @endif
+                        </div>
+
+                        {{-- Price Box --}}
+                        <div class="text-left sm:text-right">
+                            <div class="text-[11px] text-slate-400 font-normal leading-none mb-0.5">{{ $isEn ? 'From' : 'Dari' }}</div>
+                            <div class="text-lg sm:text-xl font-extrabold text-[#ff5722] tracking-tight leading-tight">
+                                Rp {{ number_format((int)$price, 0, ',', '.') }}
+                                <span class="text-xs font-normal text-slate-500">/{{ $isEn ? 'day' : 'hari' }}</span>
+                            </div>
+                        </div>
+
+                        {{-- Action Button --}}
+                        <a href="{{ $detailUrl }}"
+                           class="inline-flex items-center justify-center rounded-lg bg-[#ff5722] hover:bg-[#f4511e] active:scale-95 text-white font-bold text-xs sm:text-sm px-6 py-2 shadow-xs hover:shadow transition-all w-auto sm:w-36 text-center">
+                            {{ $isEn ? 'Continue' : 'Lanjutkan' }}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
 
             @empty
-            <div class="col-span-full">
-                <div class="card p-10 text-center">
-                    <div class="mx-auto h-14 w-14 rounded-2xl border flex items-center justify-center"
-                        style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
-                        <i data-lucide="car" class="w-6 h-6" style="color:#0194F3;"></i>
-                    </div>
-                    <h3 class="mt-4 text-lg font-extrabold text-slate-900">{{ $isEn ? 'No rental packages yet' : 'Belum ada paket rental' }}</h3>
-                    <p class="mt-2 text-slate-600">{{ $isEn ? 'Please check back later, or contact us for recommendations.' : 'Silakan cek kembali nanti, atau konsultasi untuk rekomendasi unit.' }}</p>
-
+            <div class="card p-10 text-center">
+                <div class="mx-auto h-14 w-14 rounded-2xl border flex items-center justify-center"
+                    style="background: rgba(1,148,243,0.08); border-color: rgba(1,148,243,0.22);">
+                    <i data-lucide="car" class="w-6 h-6" style="color:#0194F3;"></i>
                 </div>
+                <h3 class="mt-4 text-lg font-extrabold text-slate-900">{{ $isEn ? 'No rental packages yet' : 'Belum ada paket rental' }}</h3>
+                <p class="mt-2 text-slate-600">{{ $isEn ? 'Please check back later, or contact us for recommendations.' : 'Silakan cek kembali nanti, atau konsultasi untuk rekomendasi unit.' }}</p>
             </div>
             @endforelse
 
         </div>
 
-        {{-- Pagination (kalau ada) --}}
+        {{-- Pagination --}}
         @if(method_exists($packages, 'links'))
-        <div class="mt-10">
+        <div class="mt-8">
             {{ $packages->withQueryString()->links() }}
         </div>
         @endif

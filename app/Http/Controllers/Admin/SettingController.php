@@ -45,6 +45,32 @@ class SettingController extends Controller
             'about_hero_badge' => ['nullable', 'string', 'max:60'],
             'about_hero_title' => ['nullable', 'string', 'max:200'],
             'about_hero_desc'  => ['nullable', 'string', 'max:1000'],
+            'about_hero_image' => ['nullable', 'image', 'max:2048'],
+            'delete_about_hero_image' => ['nullable', 'boolean'],
+
+            // About hero CTA buttons
+            'about_hero_btn1_text' => ['nullable', 'string', 'max:60'],
+            'about_hero_btn1_url'  => ['nullable', 'string', 'max:255'],
+            'about_hero_btn2_text' => ['nullable', 'string', 'max:60'],
+            'about_hero_btn2_url'  => ['nullable', 'string', 'max:255'],
+
+            // About trust stats (1-3)
+            'about_stat1_label' => ['nullable', 'string', 'max:60'],
+            'about_stat1_title' => ['nullable', 'string', 'max:80'],
+            'about_stat1_desc'  => ['nullable', 'string', 'max:200'],
+            'about_stat2_label' => ['nullable', 'string', 'max:60'],
+            'about_stat2_title' => ['nullable', 'string', 'max:80'],
+            'about_stat2_desc'  => ['nullable', 'string', 'max:200'],
+            'about_stat3_label' => ['nullable', 'string', 'max:60'],
+            'about_stat3_title' => ['nullable', 'string', 'max:80'],
+            'about_stat3_desc'  => ['nullable', 'string', 'max:200'],
+
+            // About visual side cards
+            'about_visual_title' => ['nullable', 'string', 'max:120'],
+            'about_visual_desc'  => ['nullable', 'string', 'max:300'],
+            'about_note_label'   => ['nullable', 'string', 'max:60'],
+            'about_note_title'   => ['nullable', 'string', 'max:120'],
+            'about_note_desc'    => ['nullable', 'string', 'max:300'],
 
             // Values section
             'about_values_label' => ['nullable', 'string', 'max:60'],
@@ -280,6 +306,7 @@ class SettingController extends Controller
             'docs_stat_videos' => ['nullable', 'string', 'max:40'],
             'docs_hint' => ['nullable', 'string', 'max:200'],
             'site_logo'        => ['nullable', 'image', 'max:2048'],
+            'delete_site_logo' => ['nullable', 'boolean'],
         ]);
 
         // HERO
@@ -312,7 +339,14 @@ class SettingController extends Controller
             Setting::updateOrCreate(['key' => 'hero_image'], ['value' => $url]);
         }
         // BRAND LOGO (Navbar & Footer)
-        if ($request->hasFile('site_logo')) {
+        if ($request->boolean('delete_site_logo')) {
+            $old = Setting::where('key', 'site_logo')->value('value');
+            if ($old && str_starts_with($old, '/storage/')) {
+                $oldPath = str_replace('/storage/', 'public/', $old);
+                Storage::delete($oldPath);
+            }
+            Setting::where('key', 'site_logo')->delete();
+        } elseif ($request->hasFile('site_logo')) {
             $old = Setting::where('key', 'site_logo')->value('value');
             if ($old && str_starts_with($old, '/storage/')) {
                 $oldPath = str_replace('/storage/', 'public/', $old);
@@ -347,6 +381,43 @@ class SettingController extends Controller
         Setting::updateOrCreate(['key' => 'about_hero_title'], ['value' => $data['about_hero_title'] ?? '']);
         Setting::updateOrCreate(['key' => 'about_hero_desc'],  ['value' => $data['about_hero_desc'] ?? '']);
 
+        if ($request->boolean('delete_about_hero_image')) {
+            $old = Setting::where('key', 'about_hero_image')->value('value');
+            if ($old && str_starts_with($old, '/storage/')) {
+                $oldPath = str_replace('/storage/', 'public/', $old);
+                Storage::delete($oldPath);
+            }
+            Setting::where('key', 'about_hero_image')->delete();
+        } elseif ($request->hasFile('about_hero_image')) {
+            $old = Setting::where('key', 'about_hero_image')->value('value');
+            if ($old && str_starts_with($old, '/storage/')) {
+                $oldPath = str_replace('/storage/', 'public/', $old);
+                Storage::delete($oldPath);
+            }
+
+            $path = $request->file('about_hero_image')->store('public/settings');
+            $url = Storage::url($path);
+            Setting::updateOrCreate(['key' => 'about_hero_image'], ['value' => $url]);
+        }
+
+        // ABOUT HERO CTA & STATS & VISUAL
+        Setting::updateOrCreate(['key' => 'about_hero_btn1_text'], ['value' => $data['about_hero_btn1_text'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_hero_btn1_url'],  ['value' => $data['about_hero_btn1_url'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_hero_btn2_text'], ['value' => $data['about_hero_btn2_text'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_hero_btn2_url'],  ['value' => $data['about_hero_btn2_url'] ?? '']);
+
+        for ($i = 1; $i <= 3; $i++) {
+            Setting::updateOrCreate(['key' => "about_stat{$i}_label"], ['value' => $data["about_stat{$i}_label"] ?? '']);
+            Setting::updateOrCreate(['key' => "about_stat{$i}_title"], ['value' => $data["about_stat{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "about_stat{$i}_desc"],  ['value' => $data["about_stat{$i}_desc"] ?? '']);
+        }
+
+        Setting::updateOrCreate(['key' => 'about_visual_title'], ['value' => $data['about_visual_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_visual_desc'],  ['value' => $data['about_visual_desc'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_note_label'],   ['value' => $data['about_note_label'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_note_title'],   ['value' => $data['about_note_title'] ?? '']);
+        Setting::updateOrCreate(['key' => 'about_note_desc'],    ['value' => $data['about_note_desc'] ?? '']);
+
         // VALUES
         Setting::updateOrCreate(['key' => 'about_values_label'], ['value' => $data['about_values_label'] ?? '']);
         Setting::updateOrCreate(['key' => 'about_values_title'], ['value' => $data['about_values_title'] ?? '']);
@@ -361,6 +432,11 @@ class SettingController extends Controller
         Setting::updateOrCreate(['key' => 'about_flow_label'], ['value' => $data['about_flow_label'] ?? '']);
         Setting::updateOrCreate(['key' => 'about_flow_title'], ['value' => $data['about_flow_title'] ?? '']);
         Setting::updateOrCreate(['key' => 'about_flow_desc'],  ['value' => $data['about_flow_desc'] ?? '']);
+
+        for ($i = 1; $i <= 4; $i++) {
+            Setting::updateOrCreate(['key' => "about_step{$i}_title"], ['value' => $data["about_step{$i}_title"] ?? '']);
+            Setting::updateOrCreate(['key' => "about_step{$i}_desc"],  ['value' => $data["about_step{$i}_desc"] ?? '']);
+        }
         // FOOTER - Konten
         Setting::updateOrCreate(['key' => 'footer_tagline'], ['value' => $data['footer_tagline'] ?? '']);
         Setting::updateOrCreate(['key' => 'footer_quick_links_title'], ['value' => $data['footer_quick_links_title'] ?? '']);
@@ -434,6 +510,24 @@ class SettingController extends Controller
                 'about_hero_badge' => $data['about_hero_badge'] ?? '',
                 'about_hero_title' => $data['about_hero_title'] ?? '',
                 'about_hero_desc'  => $data['about_hero_desc'] ?? '',
+                'about_hero_btn1_text' => $data['about_hero_btn1_text'] ?? '',
+                'about_hero_btn2_text' => $data['about_hero_btn2_text'] ?? '',
+
+                'about_stat1_label' => $data['about_stat1_label'] ?? '',
+                'about_stat1_title' => $data['about_stat1_title'] ?? '',
+                'about_stat1_desc'  => $data['about_stat1_desc'] ?? '',
+                'about_stat2_label' => $data['about_stat2_label'] ?? '',
+                'about_stat2_title' => $data['about_stat2_title'] ?? '',
+                'about_stat2_desc'  => $data['about_stat2_desc'] ?? '',
+                'about_stat3_label' => $data['about_stat3_label'] ?? '',
+                'about_stat3_title' => $data['about_stat3_title'] ?? '',
+                'about_stat3_desc'  => $data['about_stat3_desc'] ?? '',
+
+                'about_visual_title' => $data['about_visual_title'] ?? '',
+                'about_visual_desc'  => $data['about_visual_desc'] ?? '',
+                'about_note_label'   => $data['about_note_label'] ?? '',
+                'about_note_title'   => $data['about_note_title'] ?? '',
+                'about_note_desc'    => $data['about_note_desc'] ?? '',
 
                 // ABOUT (values header)
                 'about_values_label' => $data['about_values_label'] ?? '',
@@ -467,12 +561,16 @@ class SettingController extends Controller
                 $en = $enVals[$i] ?? null;
                 $en = is_string($en) ? trim($en) : '';
 
-                if ($en !== '') {
-                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
-                }
+                Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $en]);
             }
         } catch (\Throwable $e) {
-            // jangan bikin save admin gagal kalau deepl down / key belum di-set
+            // Fallback jika auto-translate offline/belum diset: sinkronkan agar _en tidak stuck di teks lama
+            if (isset($keys) && isset($src)) {
+                foreach ($keys as $k) {
+                    $val = isset($src[$k]) ? trim((string)$src[$k]) : '';
+                    Setting::updateOrCreate(['key' => $k . '_en'], ['value' => $val]);
+                }
+            }
         }
 
 

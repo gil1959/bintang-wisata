@@ -239,6 +239,11 @@ Route::prefix('bw-admin')
         Route::delete('hotel-packages/photo/{photo}', [\App\Http\Controllers\Admin\HotelPackageController::class, 'deletePhoto'])
             ->name('hotel-packages.delete-photo')->middleware('permission:admin.dashboard.view');
         Route::resource('hotel-packages', \App\Http\Controllers\Admin\HotelPackageController::class)->middleware('permission:admin.hotel-packages.manage');
+
+        // Travel / Bus Package CRUD
+        Route::delete('travel-bus/photo/{photo}', [\App\Http\Controllers\Admin\TravelBusPackageController::class, 'deletePhoto'])
+            ->name('travel-bus.delete-photo')->middleware('permission:admin.dashboard.view');
+        Route::resource('travel-bus', \App\Http\Controllers\Admin\TravelBusPackageController::class);
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
         Route::resource('ship-packages', ShipPackageController::class)->middleware('permission:admin.ship-packages.manage');
@@ -500,6 +505,11 @@ Route::prefix('partner')->name('partner.')->middleware(['auth', 'impersonate_or_
         ->name('hotel-packages.delete-photo');
     Route::resource('hotel-packages', \App\Http\Controllers\Partner\HotelPackageController::class)->except(['show']);
 
+    // agency_travel_bus
+    Route::delete('travel-bus/photo/{photo}', [\App\Http\Controllers\Partner\TravelBusPackageController::class, 'deletePhoto'])
+        ->name('travel-bus.delete-photo');
+    Route::resource('travel-bus', \App\Http\Controllers\Partner\TravelBusPackageController::class)->except(['show']);
+
     // agency_kapal
 
     Route::resource('tour-categories', \App\Http\Controllers\Partner\TourCategoryController::class)
@@ -551,6 +561,9 @@ Route::post('/restoran/{slug}/draft-booking', [\App\Http\Controllers\Front\Resto
 
 Route::post('/hotel/{slug}/draft-booking', [\App\Http\Controllers\Front\HotelOrderController::class, 'draft'])
     ->name('hotel.draft');
+
+Route::post('/travel-bus/{slug}/order/draft', [\App\Http\Controllers\Front\TravelBusOrderController::class, 'draft'])
+    ->name('travel-bus.order.draft');
 
 // Ship (Sewa Kapal)
 Route::prefix('sewa-kapal')->name('ship.')->group(function () {
@@ -680,6 +693,12 @@ Route::prefix('restoran')->name('restoran.')->group(function () {
 Route::prefix('hotel-vila')->name('hotel.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Front\HotelController::class, 'index'])->name('index');
     Route::get('/{slug}', [\App\Http\Controllers\Front\HotelController::class, 'show'])->name('show');
+});
+
+// Travel & Bus listing + detail
+Route::prefix('travel-bus')->name('travel-bus.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Front\TravelBusController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\App\Http\Controllers\Front\TravelBusController::class, 'show'])->name('show');
 });
 
 

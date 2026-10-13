@@ -44,15 +44,14 @@
           ))) !!}
         </p>
 
-
         <div class="mt-8 flex flex-col sm:flex-row gap-3">
-          <a href="{{ route('tours.index') }}" class="btn btn-primary">
+          <a href="{{ !empty($siteSettings['about_hero_btn1_url']) ? $siteSettings['about_hero_btn1_url'] : route('tours.index') }}" class="btn btn-primary">
             <i data-lucide="map" class="w-4 h-4"></i>
-            {{ $isEn ? 'View Tour Packages' : 'Lihat Paket Tour' }}
+            {{ !empty($siteSettings['about_hero_btn1_text']) ? $siteSettings['about_hero_btn1_text'] : ($isEn ? 'View Tour Packages' : 'Lihat Paket Tour') }}
           </a>
-          <a href="{{ route('docs') }}" class="btn btn-ghost">
+          <a href="{{ !empty($siteSettings['about_hero_btn2_url']) ? $siteSettings['about_hero_btn2_url'] : route('docs') }}" class="btn btn-ghost">
             <i data-lucide="book-open" class="w-4 h-4"></i>
-            {{ $isEn ? 'Trip Documentation' : 'Dokumentasi Perjalanan' }}
+            {{ !empty($siteSettings['about_hero_btn2_text']) ? $siteSettings['about_hero_btn2_text'] : ($isEn ? 'Trip Documentation' : 'Dokumentasi Perjalanan') }}
           </a>
 
         </div>
@@ -63,9 +62,9 @@
             <div class="flex items-center gap-3">
               <div class="icon-badge"><i data-lucide="badge-check" class="w-5 h-5"></i></div>
               <div>
-                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Service Focus' : 'Fokus Layanan' }}</div>
-                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ $isEn ? 'Tours & Rentals' : 'Tour & Rental' }}</div>
-                <div class="mt-1 text-sm text-slate-600">{{ $isEn ? 'One standard, consistent quality.' : 'Satu standar, satu kualitas.' }}</div>
+                <div class="text-xs font-semibold text-slate-500">{{ !empty($siteSettings['about_stat1_label']) ? $siteSettings['about_stat1_label'] : ($isEn ? 'Service Focus' : 'Fokus Layanan') }}</div>
+                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ !empty($siteSettings['about_stat1_title']) ? $siteSettings['about_stat1_title'] : ($isEn ? 'Tours & Rentals' : 'Tour & Rental') }}</div>
+                <div class="mt-1 text-sm text-slate-600">{{ !empty($siteSettings['about_stat1_desc']) ? $siteSettings['about_stat1_desc'] : ($isEn ? 'One standard, consistent quality.' : 'Satu standar, satu kualitas.') }}</div>
               </div>
             </div>
           </div>
@@ -73,9 +72,9 @@
             <div class="flex items-center gap-3">
               <div class="icon-badge"><i data-lucide="zap" class="w-5 h-5"></i></div>
               <div>
-                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Process' : 'Proses' }}</div>
-                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ $isEn ? 'Fast & Clear' : 'Cepat & Jelas' }}</div>
-                <div class="mt-1 text-sm text-slate-600">{{ $isEn ? 'No confusing steps.' : 'Tanpa langkah membingungkan.' }}</div>
+                <div class="text-xs font-semibold text-slate-500">{{ !empty($siteSettings['about_stat2_label']) ? $siteSettings['about_stat2_label'] : ($isEn ? 'Process' : 'Proses') }}</div>
+                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ !empty($siteSettings['about_stat2_title']) ? $siteSettings['about_stat2_title'] : ($isEn ? 'Fast & Clear' : 'Cepat & Jelas') }}</div>
+                <div class="mt-1 text-sm text-slate-600">{{ !empty($siteSettings['about_stat2_desc']) ? $siteSettings['about_stat2_desc'] : ($isEn ? 'No confusing steps.' : 'Tanpa langkah membingungkan.') }}</div>
               </div>
             </div>
           </div>
@@ -83,9 +82,9 @@
             <div class="flex items-center gap-3">
               <div class="icon-badge"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
               <div>
-                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Commitment' : 'Komitmen' }}</div>
-                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ $isEn ? 'Transparent' : 'Transparan' }}</div>
-                <div class="mt-1 text-sm text-slate-600">{{ $isEn ? 'Clear pricing & inclusions.' : 'Harga & fasilitas jelas.' }}</div>
+                <div class="text-xs font-semibold text-slate-500">{{ !empty($siteSettings['about_stat3_label']) ? $siteSettings['about_stat3_label'] : ($isEn ? 'Commitment' : 'Komitmen') }}</div>
+                <div class="mt-1 text-lg font-extrabold text-slate-900">{{ !empty($siteSettings['about_stat3_title']) ? $siteSettings['about_stat3_title'] : ($isEn ? 'Transparent' : 'Transparan') }}</div>
+                <div class="mt-1 text-sm text-slate-600">{{ !empty($siteSettings['about_stat3_desc']) ? $siteSettings['about_stat3_desc'] : ($isEn ? 'Clear pricing & inclusions.' : 'Harga & fasilitas jelas.') }}</div>
               </div>
             </div>
           </div>
@@ -96,26 +95,29 @@
       <div data-aos="fade-left" class="relative">
         <div class="rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-soft">
           <div class="relative aspect-[4/3]">
-            <div class="absolute inset-0 travel-dots opacity-70"></div>
+            @if(!empty($siteSettings['about_hero_image']))
+              <img src="{{ $siteSettings['about_hero_image'] }}" alt="About Hero" class="w-full h-full object-cover">
+            @else
+              <div class="absolute inset-0 travel-dots opacity-70"></div>
 
-            {{-- Decorative route line --}}
-            <svg class="absolute inset-0" viewBox="0 0 800 600" fill="none" aria-hidden="true">
-              <path d="M130 420c85-130 210-210 360-210 90 0 175 25 260 70" stroke="#0194F3" stroke-opacity="0.25" stroke-width="4" stroke-linecap="round" />
-              <path d="M580 165l18 18-18 18" stroke="#0194F3" stroke-opacity="0.25" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-              <circle cx="150" cy="410" r="10" fill="#0194F3" fill-opacity="0.35" />
-              <circle cx="610" cy="190" r="10" fill="#0194F3" fill-opacity="0.35" />
-            </svg>
+              {{-- Decorative route line --}}
+              <svg class="absolute inset-0" viewBox="0 0 800 600" fill="none" aria-hidden="true">
+                <path d="M130 420c85-130 210-210 360-210 90 0 175 25 260 70" stroke="#0194F3" stroke-opacity="0.25" stroke-width="4" stroke-linecap="round" />
+                <path d="M580 165l18 18-18 18" stroke="#0194F3" stroke-opacity="0.25" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="150" cy="410" r="10" fill="#0194F3" fill-opacity="0.35" />
+                <circle cx="610" cy="190" r="10" fill="#0194F3" fill-opacity="0.35" />
+              </svg>
+            @endif
 
             {{-- Overlay card --}}
             <div class="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/85 backdrop-blur border border-white/70 p-5 shadow-sm">
               <div class="text-sm font-extrabold text-slate-900">
-                {{ $isEn ? 'Services designed for a comfortable experience' : 'Layanan yang dirancang untuk pengalaman yang nyaman' }}
+                {{ !empty($siteSettings['about_visual_title']) ? $siteSettings['about_visual_title'] : ($isEn ? 'Services designed for a comfortable experience' : 'Layanan yang dirancang untuk pengalaman yang nyaman') }}
               </div>
               <p class="mt-2 text-sm text-slate-600">
-                {{ $isEn
+                {{ !empty($siteSettings['about_visual_desc']) ? $siteSettings['about_visual_desc'] : ($isEn
       ? 'We prioritize a structured service flow: clear information, responsive communication, and execution as planned.'
-      : 'Kami mengutamakan alur layanan yang tertata: informasi jelas, komunikasi responsif, dan eksekusi sesuai rencana.'
-  }}
+      : 'Kami mengutamakan alur layanan yang tertata: informasi jelas, komunikasi responsif, dan eksekusi sesuai rencana.') }}
               </p>
 
             </div>
@@ -125,17 +127,15 @@
         {{-- Floating note --}}
         <div class="absolute -bottom-6 -left-2 sm:-left-6 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm w-[92%] sm:w-[70%]"
           data-aos="fade-up" data-aos-delay="200">
-          <div class="text-xs font-semibold" style="color:#055a93;">{{ $isEn ? 'Service Standard' : 'Standar Layanan' }}</div>
+          <div class="text-xs font-semibold" style="color:#055a93;">{{ !empty($siteSettings['about_note_label']) ? $siteSettings['about_note_label'] : ($isEn ? 'Service Standard' : 'Standar Layanan') }}</div>
           <div class="mt-1 text-sm font-extrabold text-slate-900">
-            {{ $isEn ? 'Clear communication, measurable process' : 'Komunikasi jelas, proses terukur' }}
+            {{ !empty($siteSettings['about_note_title']) ? $siteSettings['about_note_title'] : ($isEn ? 'Clear communication, measurable process' : 'Komunikasi jelas, proses terukur') }}
           </div>
           <p class="mt-2 text-sm text-slate-600">
-            {{ $isEn
+            {{ !empty($siteSettings['about_note_desc']) ? $siteSettings['about_note_desc'] : ($isEn
       ? 'Each request is handled with a clear flow so you can plan your trip with peace of mind.'
-      : 'Setiap permintaan ditangani dengan alur yang jelas agar Anda dapat merencanakan perjalanan dengan tenang.'
-  }}
+      : 'Setiap permintaan ditangani dengan alur yang jelas agar Anda dapat merencanakan perjalanan dengan tenang.') }}
           </p>
-
         </div>
       </div>
 
