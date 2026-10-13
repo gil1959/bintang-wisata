@@ -243,7 +243,8 @@ Route::prefix('bw-admin')
         // Travel / Bus Package CRUD
         Route::delete('travel-bus/photo/{photo}', [\App\Http\Controllers\Admin\TravelBusPackageController::class, 'deletePhoto'])
             ->name('travel-bus.delete-photo')->middleware('permission:admin.dashboard.view');
-        Route::resource('travel-bus', \App\Http\Controllers\Admin\TravelBusPackageController::class);
+        Route::resource('travel-bus', \App\Http\Controllers\Admin\TravelBusPackageController::class)
+            ->parameters(['travel-bus' => 'travelBus']);
         Route::post('system/clear-cache', [SystemController::class, 'clearCache'])
             ->name('system.clear-cache')->middleware('permission:admin.dashboard.view');
         Route::resource('ship-packages', ShipPackageController::class)->middleware('permission:admin.ship-packages.manage');
@@ -508,7 +509,9 @@ Route::prefix('partner')->name('partner.')->middleware(['auth', 'impersonate_or_
     // agency_travel_bus
     Route::delete('travel-bus/photo/{photo}', [\App\Http\Controllers\Partner\TravelBusPackageController::class, 'deletePhoto'])
         ->name('travel-bus.delete-photo');
-    Route::resource('travel-bus', \App\Http\Controllers\Partner\TravelBusPackageController::class)->except(['show']);
+    Route::resource('travel-bus', \App\Http\Controllers\Partner\TravelBusPackageController::class)
+        ->parameters(['travel-bus' => 'travelBus'])
+        ->except(['show']);
 
     // agency_kapal
 

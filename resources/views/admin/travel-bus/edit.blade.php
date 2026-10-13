@@ -28,5 +28,20 @@
         @method('PUT')
         @include('admin.travel-bus._form')
     </form>
+
+    {{-- Hidden form khusus delete photo (di luar form utama agar tidak terjadi nested form) --}}
+    <form id="deletePhotoForm" method="POST" class="hidden">
+        @csrf
+        @method('DELETE')
+    </form>
+
+    <script>
+        window.__bwDeletePhoto = function(actionUrl) {
+            if (!confirm('Hapus foto galeri ini?')) return;
+            const f = document.getElementById('deletePhotoForm');
+            f.action = actionUrl;
+            f.submit();
+        }
+    </script>
 </div>
 @endsection
