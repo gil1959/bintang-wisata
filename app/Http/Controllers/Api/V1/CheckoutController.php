@@ -30,9 +30,9 @@ class CheckoutController extends Controller
         $order=$this->order($request,$id);
         $view=app()->call([app(\App\Http\Controllers\Front\CheckoutController::class),'show'],['orderId'=>$order->id]);
         $data=$view->getData();
-        $manual=collect($data['manualMethods'])->map(fn($m)=>['value'=>'manual:'.$m->id,'label'=>$m->method_name?:$m->bank_name,'bank_name'=>$m->bank_name,'account_number'=>$m->account_number,'account_holder'=>$m->account_holder]);
+        $manual=collect($data['manualMethods'])->map(fn($m)=>['value'=>'manual:'.$m->id,'label'=>$m->bank_name?:$m->method_name,'bank_name'=>$m->bank_name,'account_number'=>$m->account_number,'account_holder'=>$m->account_holder]);
         return response()->json(['data'=>[
-            'order'=>$order->only(['id','invoice_number','product_name','subtotal','discount','final_price','unique_code','payable_amount','payment_method','payment_status','order_status','billing_first_name','billing_last_name','billing_address','billing_country','billing_city','billing_state','billing_postal','billing_phone']),
+            'order'=>$order->only(['id','invoice_number','product_name','customer_name','customer_phone','type','departure_date','pickup_date','return_date','participants','total_days','subtotal','discount','final_price','unique_code','payable_amount','payment_method','payment_status','order_status','billing_first_name','billing_last_name','billing_address','billing_country','billing_city','billing_state','billing_postal','billing_phone']),
             'methods'=>$manual->concat($data['gatewayOptions'])->values(),
             'payments'=>$order->payments()->latest()->get()->map(fn($p)=>$p->only(['id','method','status','amount','payment_url','created_at'])),
         ]]);
@@ -48,7 +48,7 @@ class CheckoutController extends Controller
                 $gateway=PaymentGateway::where('name',$parts[1])->where('is_active',true)->firstOrFail();
                 abort_unless(collect($gateway->channels??[])->contains(fn($c)=>($c['channel_code']??null)===$parts[2]&&($c['active']??true)),422,'Metode pembayaran tidak aktif.');
             }
-            $response=app(\App\Http\Controllers\Front\CheckoutController::class)->process($request,$order->id);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,\App\Http\Controllers\Front\CheckoutController::class,'process',null,['orderId'=>$order->id]);
             $this->checkRedirect($response);
             $order->refresh();
             return response()->json(['data'=>['id'=>$order->id,'payment_method'=>$order->payment_method,'payable_amount'=>$order->payable_amount,'payment_status'=>$order->payment_status]]);
@@ -64,7 +64,7 @@ class CheckoutController extends Controller
             abort_unless(collect($gateway->channels??[])->contains(fn($c)=>($c['channel_code']??null)===$parts[2]&&($c['active']??true)),422,'Metode pembayaran tidak aktif.');
             $existing=$order->payments()->where('method','gateway')->where('gateway_name',$parts[1])->where('channel_code',$parts[2])->where('status','waiting_payment')->latest()->first();
             if($existing?->payment_url && parse_url($existing->payment_url,PHP_URL_SCHEME)==='https') return response()->json(['data'=>['payment_url'=>$existing->payment_url,'id'=>$order->id]]);
-            $response=app()->call([app(\App\Http\Controllers\Front\PaymentController::class),'startGateway'],['request'=>$request,'order'=>$order]);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,\App\Http\Controllers\Front\PaymentController::class,'startGateway',$order);
             $this->checkRedirect($response);
             $url=$response instanceof \Illuminate\Http\RedirectResponse?$response->getTargetUrl():null;
             abort_unless($url && parse_url($url,PHP_URL_SCHEME)==='https' && parse_url($url,PHP_URL_HOST)!==parse_url(config('app.url'),PHP_URL_HOST),502,'Gateway belum memberikan tautan pembayaran.');
@@ -76,7 +76,7 @@ class CheckoutController extends Controller
         return Cache::lock('mobile-checkout:'.$id,60)->block(5,function()use($request,$id){
             $order=$this->order($request,$id);$this->editable($order);
             abort_unless(str_starts_with((string)$order->payment_method,'manual:'),422,'Pilih transfer manual terlebih dahulu.');
-            $response=app(\App\Http\Controllers\Front\PaymentController::class)->submitManual($request,$order);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,\App\Http\Controllers\Front\PaymentController::class,'submitManual',$order);
             $this->checkRedirect($response);
             return response()->json(['message'=>'Bukti transfer diterima dan menunggu verifikasi admin.','data'=>['payment_status'=>$order->fresh()->payment_status]]);
         });

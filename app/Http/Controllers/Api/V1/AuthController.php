@@ -72,9 +72,13 @@ class AuthController extends Controller
     }
     public function verify(Request $request, $id, $hash)
     {
-        $user=User::findOrFail($id);
-        abort_unless(hash_equals(sha1($user->getEmailForVerification()),$hash),403);
+        $user=User::find($id);
+        if(!$user || !hash_equals(sha1($user->getEmailForVerification()),$hash)) {
+            if($request->expectsJson())abort(403);
+            return response()->view('auth.mobile-verified',['verified'=>false],403);
+        }
         if (!$user->hasVerifiedEmail() && $user->markEmailAsVerified()) event(new Verified($user));
+        if(!$request->expectsJson())return response()->view('auth.mobile-verified',['verified'=>true]);
         return response()->json(['message'=>'Email sudah diverifikasi. Silakan kembali ke aplikasi.']);
     }
     public function forgot(Request $request)

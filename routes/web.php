@@ -727,3 +727,5 @@ Route::get('/.well-known/assetlinks.json', function () {
     $fingerprints = array_values(array_filter(config('mobile.android_fingerprints', []), fn($value) => preg_match('/^([A-Fa-f0-9]{2}:){31}[A-Fa-f0-9]{2}$/', $value)));
     return response()->json($fingerprints ? [['relation'=>['delegate_permission/common.handle_all_urls'],'target'=>['namespace'=>'android_app','package_name'=>'com.bintangwisata.app','sha256_cert_fingerprints'=>$fingerprints]]] : []);
 });
+Route::get('/auth/google', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'web'])->middleware('guest')->name('google.login');
+Route::get('/auth/google/callback', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'callback'])->middleware('throttle:20,1')->name('google.callback');

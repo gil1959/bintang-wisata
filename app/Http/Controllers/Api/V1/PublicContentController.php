@@ -47,12 +47,12 @@ class PublicContentController extends Controller
         if($page==='about')return $this->about();
         if ($page!=='travel') {
             $data=app(LegalController::class)->$page()->getData();
-            return response()->json(['data'=>['title'=>$data['title'],'sections'=>[['title'=>'','html'=>$data['html']]],'links'=>[]]]);
+            return response()->json(['data'=>['title'=>$data['title'],'sections'=>[['title'=>'','html'=>$data['html']]],'contact'=>$this->contactDetails(),'links'=>[]]]);
         }
         $data=app(TravelDocumentController::class)->index()->getData();
-        $sections=[['title'=>$data['heroTitle'],'html'=>$data['heroDesc']]];
+        $sections=[['key'=>'hero','title'=>$data['heroTitle'],'html'=>$data['heroDesc']]];
         foreach(['tabPassportTitle'=>'passportHtml','tabVisaTitle'=>'visaHtml','passportPriceTitle'=>'passportPriceHtml','visaPriceTitle'=>'visaPriceHtml','immigrationTitle'=>'immigrationHtml','orderTitle'=>'orderHtml'] as $title=>$html) {
-            if (!empty($data[$html])) $sections[]=['title'=>$data[$title],'html'=>$data[$html]];
+            if (!empty($data[$html])) $sections[]=['key'=>$html,'title'=>$data[$title],'html'=>$data[$html]];
         }
         $links=collect($data['downloads'])->filter(fn($link)=>is_array($link)&&preg_match('~^https?://~i',$link['url']??''))->map(fn($link)=>['label'=>$link['label']??'Unduh dokumen','url'=>$link['url']])->values()->all();
         $phone=preg_replace('/\D/','',$data['orderWa']);
@@ -84,8 +84,13 @@ class PublicContentController extends Controller
             'about_step3'=>['Pemesanan','Lengkapi data dan lakukan proses sesuai instruksi.'],
             'about_step4'=>['Perjalanan dimulai','Nikmati perjalanan, tim kami siap membantu bila diperlukan.'],
         ];
-        foreach($defaults as $key=>[$title,$description])$sections[]=['title'=>Setting::getValue($key.'_title',$title),'html'=>nl2br(e(Setting::getValue($key.'_desc',$description)))];
-        return response()->json(['data'=>['title'=>Setting::getValue('about_hero_badge','Tentang Bintang Wisata'),'sections'=>$sections,'links'=>[]]]);
+        foreach($defaults as $key=>[$title,$description])$sections[]=['key'=>$key,'title'=>Setting::getValue($key.'_title',$title),'html'=>nl2br(e(Setting::getValue($key.'_desc',$description)))];
+        return response()->json(['data'=>['title'=>Setting::getValue('about_hero_badge','Tentang Bintang Wisata'),'sections'=>$sections,'contact'=>$this->contactDetails(),'links'=>[]]]);
+    }
+    private function contactDetails():array
+    {
+        $phone=preg_replace('/\D+/','',(string)Setting::getValue('footer_whatsapp',''));
+        return ['address'=>Setting::getValue('footer_address',''),'phone'=>Setting::getValue('footer_phone',''),'email'=>Setting::getValue('footer_email',''),'whatsapp_url'=>$phone?'https://wa.me/'.(str_starts_with($phone,'0')?'62'.substr($phone,1):$phone):null];
     }
     public function home(Request $request)
     {

@@ -32,7 +32,7 @@ class BookingController extends Controller
                 abort_if(Order::where('customer_email',$request->user()->email)->where('promo_id',$promo->id)->exists(),422,'Kode promo ini sudah pernah digunakan untuk email ini.');
                 $request->merge(['promo_id'=>$promo->id]);
             }
-            $response=app('App\\Http\\Controllers\\Front\\'.$controllers[$type])->draft($request,$slug);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,'App\\Http\\Controllers\\Front\\'.$controllers[$type],'draft',null,['slug'=>$slug]);
             if($response->getStatusCode()>=400) throw new HttpResponseException($response);
             $payload=$response->getData(true);
             $id=(int)basename((string)parse_url($payload['redirect']??'',PHP_URL_PATH));

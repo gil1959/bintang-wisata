@@ -62,10 +62,10 @@ class CheckoutController extends Controller
             $channels = is_array($g->channels) ? $g->channels : [];
 
             // ✅ Fallback: kalau TriPay aktif tapi channels kosong, sync ulang di checkout
-            if ($g->name === 'tripay' && count($channels) === 0) {
+            if ($g->name === 'tripay' && count($channels) === 0 && \Illuminate\Support\Facades\Cache::add('checkout-tripay-channel-sync:'.$g->id, true, 60)) {
                 try {
                     $creds = is_array($g->credentials) ? $g->credentials : [];
-                    $fresh = $tripay->fetchChannels($creds);
+                    $fresh = $tripay->fetchChannels($creds, 5);
 
                     // ambil yang active saja
                     $fresh = array_values(array_filter($fresh, function ($c) {
@@ -88,6 +88,12 @@ class CheckoutController extends Controller
                 }
             }
 
+            $channels = array_values(array_filter($channels, fn($ch)=>!empty($ch['channel_code']) && ($ch['active'] ?? true)));
+            if ($g->name === 'xendit' && count($channels)>0) {
+                $saved = explode(':', (string)$order->payment_method, 3);
+                $chosen = collect($channels)->first(fn($ch)=>($saved[1]??'')==='xendit' && $ch['channel_code']===($saved[2]??'')) ?? $channels[0];
+                $channels = [$chosen];
+            }
             foreach ($channels as $ch) {
                 $code = $ch['channel_code'] ?? null;
                 if (!$code) continue;
@@ -97,11 +103,11 @@ class CheckoutController extends Controller
                     continue;
                 }
 
-                $gatewayLabel = $g->label ?? strtoupper($g->name);
+                $gatewayLabel = $g->label ?: ($g->name==='xendit' ? 'Xendit' : strtoupper($g->name));
 
                 $gatewayOptions[] = [
                     'value'         => "gateway:{$g->name}:{$code}",
-                    'label'         => $gatewayLabel . ' - ' . ($ch['name'] ?? $code),
+                    'label'         => $g->name==='xendit' ? $gatewayLabel : ($ch['name'] ?? $code),
 
                     // tambahan untuk UI checkout (logo + grouping)
                     'gateway'       => $g->name,

@@ -20,6 +20,7 @@ class SettingController extends Controller
     public function saveGeneral(Request $request)
     {
         $data = $request->validate([
+            'google_auth_enabled' => ['nullable', 'boolean'],
             'hero_title'       => ['required', 'string', 'max:120'],
             'hero_subtitle'    => ['required', 'string', 'max:180'],
             'hero_image'       => ['nullable', 'image', 'max:2048'],
@@ -295,6 +296,7 @@ class SettingController extends Controller
         );
 
 
+        if ($request->has('google_auth_enabled')) Setting::updateOrCreate(['key' => 'google_auth_enabled'], ['value' => $request->boolean('google_auth_enabled') ? '1' : '0']);
         Setting::updateOrCreate(['key' => 'hero_title'], ['value' => $data['hero_title']]);
         Setting::updateOrCreate(['key' => 'hero_subtitle'], ['value' => $data['hero_subtitle']]);
         Setting::updateOrCreate(['key' => 'home_search_title'], ['value' => $data['home_search_title'] ?? '']);

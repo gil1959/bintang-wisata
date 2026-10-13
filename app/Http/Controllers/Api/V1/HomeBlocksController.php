@@ -7,7 +7,13 @@ use Illuminate\Http\Request;
 
 class HomeBlocksController extends Controller
 {
-    private function image($path) {return !$path?null:(preg_match('~^https?://~i',$path)?$path:asset('storage/'.ltrim($path,'/')));}
+    private function image($path)
+    {
+        if (!$path) return null;
+        if (preg_match('~^https?://~i', $path)) return $path;
+        $relative = preg_replace('~^(?:storage/)+~', '', ltrim($path, '/'));
+        return asset('storage/'.$relative);
+    }
     private function link($url) {if(!$url)return null;if(str_starts_with($url,'/')&&!str_starts_with($url,'//'))return url($url);return preg_match('~^https?://~i',$url)?$url:null;}
     public function index(Request $request)
     {

@@ -36,6 +36,7 @@ class SiteSettingsController extends Controller
         $f=fn($key,$label,$type='text',$extra=[])=>ProductForms::field($key,$label,$type,$extra);
         $fields=json_decode(file_get_contents(resource_path('mobile/settings-forms.json')),true)[$module]??[];
         if($module==='system')return [];
+        if($module==='general')$fields[]=$f('google_auth_enabled','Login dan daftar melalui Google','boolean');
         if($module==='bank_add')return [$f('bank_name','Nama bank'),$f('account_number','Nomor rekening'),$f('account_holder','Pemilik rekening'),$f('swift_code','Kode SWIFT')];
         if($module==='bank_delete')return [$f('bank','Rekening','select',['options'=>\App\Models\PaymentMethod::where('type','manual')->get()->map(fn($m)=>['id'=>(string)$m->id,'label'=>$m->bank_name.' '.$m->account_number.' '.$m->account_holder])->all()])];
         if(str_starts_with($module,'gateway_')){

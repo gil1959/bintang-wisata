@@ -41,6 +41,20 @@ class MobileApiTest extends TestCase
         $this->getJson($url.'&tampered=1')->assertForbidden();
         $this->getJson($url)->assertOk();$this->assertTrue($user->fresh()->hasVerifiedEmail());
     }
+    public function test_browser_email_verification_shows_branded_result_and_rejects_expired_links()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active');$t->integer('sort_order');});
+        $user=User::create(['name'=>'New buyer','email'=>'new@example.test','password'=>Hash::make('Password123')]);$user->assignRole('user');
+        $expired=URL::temporarySignedRoute('mobile.verify',now()->subMinute(),['id'=>$user->id,'hash'=>sha1($user->email)]);
+        $this->get($expired)->assertForbidden()->assertSee('Tautan verifikasi tidak berlaku')->assertSee('bintangwisata://auth/verified',false);
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $url=URL::temporarySignedRoute('mobile.verify',now()->addMinutes(10),['id'=>$user->id,'hash'=>sha1($user->email)]);
+        $this->get($url)->assertOk()->assertSee('Email berhasil diverifikasi')->assertSee('Kembali ke aplikasi')->assertDontSee($user->email);
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $this->get($url)->assertOk()->assertSee('Email berhasil diverifikasi');
+        $this->getJson($url)->assertOk()->assertJsonPath('message','Email sudah diverifikasi. Silakan kembali ke aplikasi.');
+    }
     public function test_login_reports_each_role_and_denies_suspended_accounts()
     {
         foreach(['user','partner','admin','site_moderator'] as $role){
@@ -52,6 +66,7 @@ class MobileApiTest extends TestCase
     }
     public function test_catalog_hides_inactive_and_unapproved_partner_products()
     {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
         DB::table('rent_car_packages')->insert([
             ['slug'=>'public','title'=>'Mobil Publik','is_active'=>1,'created_by_partner_id'=>null,'partner_review_status'=>null],
             ['slug'=>'inactive','title'=>'Mobil Nonaktif','is_active'=>0,'created_by_partner_id'=>null,'partner_review_status'=>null],
@@ -72,13 +87,17 @@ class MobileApiTest extends TestCase
         Schema::create('home_promo_banners',function(Blueprint $t){$t->id();$t->string('section');$t->string('thumbnail_path');$t->string('link_url');$t->integer('sort_order')->default(0);$t->boolean('is_active');});
         Schema::create('destination_inspirations',function(Blueprint $t){$t->id();$t->string('title');$t->string('image_path')->nullable();$t->integer('sort_order')->default(0);$t->boolean('is_active');$t->integer('tour_category_id')->nullable();$t->integer('tour_subcategory_id')->nullable();});
         foreach(['client_logos','footer_logos'] as $table)Schema::create($table,function(Blueprint $t){$t->id();$t->string('name');$t->string('image_path');$t->string('url')->nullable();$t->integer('sort_order')->default(0);$t->boolean('is_active');});
-        Schema::create('popup_widgets',function(Blueprint $t){$t->id();$t->boolean('is_enabled');$t->boolean('show_on_mobile');$t->timestamp('start_at')->nullable();$t->timestamp('end_at')->nullable();$t->text('include_paths')->nullable();$t->text('exclude_paths')->nullable();$t->string('title');});
+        Schema::create('popup_widgets',function(Blueprint $t){$t->id();$t->boolean('is_enabled');$t->boolean('show_on_mobile');$t->timestamp('start_at')->nullable();$t->timestamp('end_at')->nullable();$t->text('include_paths')->nullable();$t->text('exclude_paths')->nullable();$t->string('title');$t->string('image_path')->nullable();});
         DB::table('home_promo_banners')->insert([['section'=>'discount','thumbnail_path'=>'ok.png','link_url'=>'https://bintangwisataholiday.com/paket-tour','is_active'=>true],['section'=>'discount','thumbnail_path'=>'hidden.png','link_url'=>'https://example.test','is_active'=>false]]);
         DB::table('settings')->insert(['key'=>'home_tabs','value'=>json_encode([['label'=>'Bad','url'=>'javascript:bad()']])]);
-        DB::table('popup_widgets')->insert(['is_enabled'=>true,'show_on_mobile'=>true,'start_at'=>now()->addDay(),'title'=>'Future popup']);
+        DB::table('popup_widgets')->insert(['is_enabled'=>true,'show_on_mobile'=>true,'start_at'=>now()->addDay(),'title'=>'Future popup','image_path'=>'/storage/popups/promo.png']);
         $response=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null)->assertDontSee('hidden.png')->assertDontSee('javascript:');
         DB::table('popup_widgets')->update(['start_at'=>now()->subDay()]);
-        $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.title','Future popup');
+        $popupResponse=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.title','Future popup');
+        $this->assertStringEndsWith('/storage/popups/promo.png',$popupResponse->json('data.popup.image_url'));
+        $popupResponse->assertDontSee('/storage/storage/');
+        DB::table('popup_widgets')->update(['image_path'=>'https://images.example.test/promo.png']);
+        $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.image_url','https://images.example.test/promo.png');
         DB::table('popup_widgets')->update(['exclude_paths'=>'["/"]']);
         $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null);
     }
@@ -97,6 +116,7 @@ class MobileApiTest extends TestCase
     }
     public function test_catalog_filters_category_search_and_price_without_exposing_pending_products()
     {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
         Schema::create('rent_car_categories',function(Blueprint $t){$t->id();$t->string('name');});
         Schema::table('rent_car_packages',function(Blueprint $t){$t->unsignedBigInteger('category_id')->nullable();$t->integer('price_per_12_hours')->default(0);});
         DB::table('rent_car_categories')->insert([['id'=>1,'name'=>'Mobil'],['id'=>2,'name'=>'Bus']]);
@@ -135,6 +155,17 @@ class MobileApiTest extends TestCase
         DB::table('settings')->insert(['key'=>'home_promo_enabled','value'=>'0']);
         $this->getJson('/api/v1/public/home')->assertOk()->assertJsonCount(0,'data.sections');
         $this->getJson('/api/v1/public/pages/about')->assertOk()->assertJsonCount(11,'data.sections');
+    }
+    public function test_public_information_uses_official_contact_and_preserves_editor_formatting()
+    {
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active');$t->integer('sort_order');});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
+        $html='<h2 style="text-align:center">Informasi resmi</h2><p style="text-align:justify">Konten dari editor admin.</p>';
+        foreach(['footer_address'=>'Alamat resmi','footer_email'=>'support@example.test','footer_phone'=>'021123456','footer_whatsapp'=>'08123456789','legal_privacy_html'=>$html,'travel_docs_passport_html'=>'Syarat paspor','mail_password'=>'PRIVATE'] as $key=>$value)DB::table('settings')->insert(compact('key','value'));
+        $this->getJson('/api/v1/public/pages/privacy')->assertOk()->assertJsonPath('data.sections.0.html',$html)->assertJsonPath('data.contact.email','support@example.test')->assertJsonPath('data.contact.whatsapp_url','https://wa.me/628123456789')->assertDontSee('PRIVATE');
+        $this->getJson('/api/v1/public/pages/contact')->assertOk()->assertJsonPath('data.contact.address','Alamat resmi');
+        $this->getJson('/api/v1/public/pages/about')->assertOk()->assertJsonPath('data.sections.0.key','about_hero');
+        $this->getJson('/api/v1/public/pages/travel')->assertOk()->assertJsonPath('data.sections.1.key','passportHtml');
     }
     public function test_admin_can_create_edit_and_delete_each_product_type_with_nested_forms()
     {
@@ -195,7 +226,7 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(0,'data');
         $this->postJson('/api/v1/catalog/rent_car/public/reviews',$body)->assertUnprocessable();
         $review->update(['status'=>'approved']);
-        $result=$this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.rating',4);
+        $result=$this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.rating',4)->assertJsonPath('meta.ratings.4',1);
         $this->assertStringNotContainsString('review@example.test',$result->getContent());
         $this->assertArrayNotHasKey('ip_address',$result->json('data.0'));
     }
@@ -404,4 +435,66 @@ class MobileApiTest extends TestCase
         $this->assertNotNull(DB::table('notifications')->where('id',$id)->value('read_at'));
         $this->postJson('/api/v1/account/notifications/'.\Illuminate\Support\Str::uuid().'/read')->assertNotFound();
     }
-}
+    private function googleReady(): void
+    {
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active')->default(true);$t->integer('sort_order')->default(0);});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        Schema::create('google_identities',function(Blueprint $t){$t->id();$t->string('subject')->unique();$t->unsignedBigInteger('user_id');$t->timestamps();});
+        DB::table('settings')->insert(['key'=>'google_auth_enabled','value'=>'1']);
+        config(['services.google.client_id'=>'test-client','services.google.client_secret'=>'test-secret','cache.default'=>'array']);
+        \Illuminate\Support\Facades\Cache::flush();
+    }
+    public function test_google_button_requires_enabled_setting_and_complete_configuration()
+    {
+        $this->googleReady();
+        $this->getJson('/api/v1/auth/config')->assertOk()->assertJsonPath('data.google_enabled',true)->assertDontSee('test-secret');
+        DB::table('settings')->update(['value'=>'0']);
+        $this->getJson('/api/v1/auth/config')->assertJsonPath('data.google_enabled',false);
+        $this->postJson('/api/v1/auth/google/start',['challenge'=>str_repeat('a',64)])->assertForbidden();
+        DB::table('settings')->update(['value'=>'1']);config(['services.google.client_secret'=>null]);
+        $this->getJson('/api/v1/auth/config')->assertJsonPath('data.google_enabled',false);
+    }
+    public function test_google_native_login_requires_verifier_and_only_creates_user_role()
+    {
+        $this->googleReady();$verifier=str_repeat('v',64);
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'google-sub','email'=>'google@example.test','email_verified'=>true,'name'=>'Google Buyer','roles'=>['admin']]),
+        ]);
+        $start=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->assertOk();$state=$start->json('data.request_id');
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertStatus(202)->assertJsonPath('data.pending',true);
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>str_repeat('x',64)])->assertForbidden();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertOk()->assertJsonPath('data.user.roles.0','user')->assertJsonPath('data.user.email_verified',true);
+        $this->assertSame(1,User::count());$this->assertSame(1,DB::table('google_identities')->count());
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertStatus(410);
+    }
+    public function test_google_unverified_identity_is_rejected_and_callback_cannot_be_replayed()
+    {
+        $this->googleReady();$verifier=str_repeat('v',64);
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'bad-sub','email'=>'bad@example.test','email_verified'=>false]),
+        ]);
+        $state=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->json('data.request_id');
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertUnprocessable();
+        $this->assertSame(0,User::count());
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertForbidden();
+    }    public function test_google_preserves_existing_partner_role_and_web_dashboard()
+    {
+        $this->googleReady();
+        $user=User::create(['name'=>'Partner','email'=>'partner-google@example.test','password'=>Hash::make('Password123'),'email_verified_at'=>now()]);$user->assignRole('partner');
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'partner-sub','email'=>$user->email,'email_verified'=>true]),
+        ]);
+        $verifier=str_repeat('v',64);
+        $state=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->json('data.request_id');
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertOk()->assertJsonPath('data.user.roles.0','partner');
+        $start=$this->get('/auth/google')->assertRedirect();parse_str(parse_url($start->headers->get('Location'),PHP_URL_QUERY),$query);
+        $this->get('/auth/google/callback?state='.$query['state'].'&code=google-code')->assertRedirect('/partner/dashboard');
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame(1,User::count());
+    }}

@@ -5,6 +5,7 @@ use App\Models\{TourPackage,RentCarPackage,ShipPackage,HotelPackage,RestoranPack
 use Illuminate\Http\Request;
 class CatalogController extends Controller
 {
+    private ?string $bookingContact=null;
     public const TYPES = [
         'tour'=>[TourPackage::class,'Paket Tour',['tiers','itineraries','photos']],
         'rent_car'=>[RentCarPackage::class,'Rental Mobil',[]],
@@ -37,6 +38,7 @@ class CatalogController extends Controller
         $path=(string)$model->thumbnail_path;
         $data['image_url']=$path===''?null:(preg_match('~^https?://~',$path)?$path:asset(str_starts_with($path,'storage/')?$path:'storage/'.ltrim($path,'/')));
         $data['type']=$type;
+        $data['contact_whatsapp']=$this->bookingContact??=preg_replace('/\D+/','',(string)\App\Models\Setting::getValue('footer_whatsapp',''));
         foreach(self::TYPES[$type][2] as $relation) $data[$relation]=$model->$relation->map(function($item){
             return collect($item->toArray())->except(['created_at','updated_at'])->all();
         });
@@ -89,8 +91,9 @@ class CatalogController extends Controller
         $model=$this->query($type)->where('slug',$slug)->firstOrFail();
         $query=$model->reviews()->approved();
         $count=(clone $query)->count();$average=(float)(clone $query)->avg('rating');
+        $ratings=(clone $query)->selectRaw('rating, COUNT(*) as total')->groupBy('rating')->pluck('total','rating');
         $rows=$query->latest()->paginate(10);
-        return response()->json(['data'=>$rows->getCollection()->map(fn($review)=>$review->only(['id','name','rating','comment','created_at'])),'meta'=>['page'=>$rows->currentPage(),'last_page'=>$rows->lastPage(),'count'=>$count,'average'=>$average]]);
+        return response()->json(['data'=>$rows->getCollection()->map(fn($review)=>$review->only(['id','name','rating','comment','created_at'])),'meta'=>['page'=>$rows->currentPage(),'last_page'=>$rows->lastPage(),'count'=>$count,'average'=>$average,'ratings'=>(object)$ratings->all()]]);
     }
     public function review(Request $request,string $type,string $slug)
     {

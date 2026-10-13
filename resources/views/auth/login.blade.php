@@ -128,6 +128,9 @@
                             </div>
 
                         </form>
+@if(\App\Http\Controllers\Api\V1\GoogleAuthController::enabled())
+    <a href="{{ route('google.login') }}" class="mt-4 block w-full rounded-xl bg-white px-5 py-3 text-center font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200">{{ $isEn ? 'Continue with Google' : 'Lanjutkan dengan Google' }}</a>
+@endif
                     </div>
 
                     {{-- mobile copyright --}}

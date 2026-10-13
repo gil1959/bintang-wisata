@@ -62,6 +62,6 @@ class Promo extends Model
             $disc = min($disc, $this->max_discount);
         }
 
-        return max(0, $disc);
+        return min(max(0, $disc), max(0, (float)$price));
     }
 }
