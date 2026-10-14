@@ -9,6 +9,7 @@ use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
 use App\Models\RestoranPackage;
 use App\Models\HotelPackage;
+use App\Models\TravelBusPackage;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -20,9 +21,10 @@ class OrderController extends Controller
         $shipIds = ShipPackage::where('created_by_partner_id', $partnerId)->pluck('id');
         $restoIds = RestoranPackage::where('created_by_partner_id', $partnerId)->pluck('id');
         $hotelIds = HotelPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+        $travelBusIds = TravelBusPackage::where('created_by_partner_id', $partnerId)->pluck('id');
 
         return Order::query()
-            ->where(function ($q) use ($tourIds, $rentIds, $shipIds, $restoIds, $hotelIds) {
+            ->where(function ($q) use ($tourIds, $rentIds, $shipIds, $restoIds, $hotelIds, $travelBusIds) {
                 $q->where(function ($w) use ($tourIds) {
                     $w->where('type', 'tour')->whereIn('product_id', $tourIds);
                 })
@@ -37,6 +39,9 @@ class OrderController extends Controller
                 })
                 ->orWhere(function ($w) use ($hotelIds) {
                     $w->where('type', 'hotel')->whereIn('product_id', $hotelIds);
+                })
+                ->orWhere(function ($w) use ($travelBusIds) {
+                    $w->where('type', 'travel_bus')->whereIn('product_id', $travelBusIds);
                 });
             });
     }

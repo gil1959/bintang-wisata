@@ -18,6 +18,9 @@ class OrderPartnerResolver
             'tour' => TourPackage::where('id', $order->product_id)->value('created_by_partner_id'),
             'rent_car' => RentCarPackage::where('id', $order->product_id)->value('created_by_partner_id'),
             'ship' => ShipPackage::where('id', $order->product_id)->value('created_by_partner_id'),
+            'restoran' => \App\Models\RestoranPackage::where('id', $order->product_id)->value('created_by_partner_id'),
+            'hotel' => \App\Models\HotelPackage::where('id', $order->product_id)->value('created_by_partner_id'),
+            'travel_bus' => \App\Models\TravelBusPackage::where('id', $order->product_id)->value('created_by_partner_id'),
             default => null,
         };
     }

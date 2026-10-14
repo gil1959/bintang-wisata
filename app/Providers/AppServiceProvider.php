@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
 
             $keys = [
+                'site_logo',
                 'hero_title',
                 'hero_title_en',
                 'hero_subtitle',
@@ -154,6 +155,45 @@ class AppServiceProvider extends ServiceProvider
                 'about_hero_title_en',
                 'about_hero_desc',
                 'about_hero_desc_en',
+                'about_hero_image',
+                'about_hero_btn1_text',
+                'about_hero_btn1_text_en',
+                'about_hero_btn1_url',
+                'about_hero_btn2_text',
+                'about_hero_btn2_text_en',
+                'about_hero_btn2_url',
+
+                // about trust stats
+                'about_stat1_label',
+                'about_stat1_label_en',
+                'about_stat1_title',
+                'about_stat1_title_en',
+                'about_stat1_desc',
+                'about_stat1_desc_en',
+                'about_stat2_label',
+                'about_stat2_label_en',
+                'about_stat2_title',
+                'about_stat2_title_en',
+                'about_stat2_desc',
+                'about_stat2_desc_en',
+                'about_stat3_label',
+                'about_stat3_label_en',
+                'about_stat3_title',
+                'about_stat3_title_en',
+                'about_stat3_desc',
+                'about_stat3_desc_en',
+
+                // about visual cards
+                'about_visual_title',
+                'about_visual_title_en',
+                'about_visual_desc',
+                'about_visual_desc_en',
+                'about_note_label',
+                'about_note_label_en',
+                'about_note_title',
+                'about_note_title_en',
+                'about_note_desc',
+                'about_note_desc_en',
 
                 // about values
                 'about_values_label',
@@ -657,7 +697,10 @@ class AppServiceProvider extends ServiceProvider
                         return $settings[$enKey];
                     }
                 }
-                return $settings[$key] ?? $default;
+                if (isset($settings[$key]) && trim((string)$settings[$key]) !== '') {
+                    return $settings[$key];
+                }
+                return $default;
             };
 
             $footerLogos = FooterLogo::where('is_active', true)
@@ -724,6 +767,9 @@ class AppServiceProvider extends ServiceProvider
 
 
             $view->with('siteSettings', [
+                'site_logo' => !empty($settings['site_logo'])
+                    ? (str_starts_with($settings['site_logo'], 'http') ? $settings['site_logo'] : asset(ltrim($settings['site_logo'], '/')))
+                    : asset('images/logo.png'),
                 'home_tabs' => $homeTabs,
                 // HERO
                 // HERO (locale-aware via *_en + fallback)
@@ -890,6 +936,47 @@ class AppServiceProvider extends ServiceProvider
                     'about_hero_desc',
                     $isEn ? 'Bintang Wisata provides travel and transportation services designed to make everything easier—from choosing packages and scheduling, to on-trip support. Transparency and service accuracy are our baseline standards.'
                         : 'Bintang Wisata menyediakan layanan perjalanan dan transportasi yang dirancang untuk memudahkan Anda: mulai dari pemilihan paket, penjadwalan, hingga dukungan selama perjalanan. Kami menempatkan transparansi dan ketepatan layanan sebagai standar utama.'
+                ),
+                'about_hero_image' => $settings['about_hero_image'] ?? null,
+
+                'about_hero_btn1_text' => $getSetting('about_hero_btn1_text', $isEn ? 'View Tour Packages' : 'Lihat Paket Tour'),
+                'about_hero_btn1_url'  => !empty($settings['about_hero_btn1_url']) ? $settings['about_hero_btn1_url'] : route('tours.index'),
+                'about_hero_btn2_text' => $getSetting('about_hero_btn2_text', $isEn ? 'Trip Documentation' : 'Dokumentasi Perjalanan'),
+                'about_hero_btn2_url'  => !empty($settings['about_hero_btn2_url']) ? $settings['about_hero_btn2_url'] : route('docs'),
+
+                'about_stat1_label' => $getSetting('about_stat1_label', $isEn ? 'Service Focus' : 'Fokus Layanan'),
+                'about_stat1_title' => $getSetting('about_stat1_title', $isEn ? 'Tours & Rentals' : 'Tour & Rental'),
+                'about_stat1_desc'  => $getSetting('about_stat1_desc', $isEn ? 'One standard, consistent quality.' : 'Satu standar, satu kualitas.'),
+
+                'about_stat2_label' => $getSetting('about_stat2_label', $isEn ? 'Process' : 'Proses'),
+                'about_stat2_title' => $getSetting('about_stat2_title', $isEn ? 'Fast & Clear' : 'Cepat & Jelas'),
+                'about_stat2_desc'  => $getSetting('about_stat2_desc', $isEn ? 'No confusing steps.' : 'Tanpa langkah membingungkan.'),
+
+                'about_stat3_label' => $getSetting('about_stat3_label', $isEn ? 'Commitment' : 'Komitmen'),
+                'about_stat3_title' => $getSetting('about_stat3_title', $isEn ? 'Transparent' : 'Transparan'),
+                'about_stat3_desc'  => $getSetting('about_stat3_desc', $isEn ? 'Clear pricing & inclusions.' : 'Harga & fasilitas jelas.'),
+
+                'about_visual_title' => $getSetting(
+                    'about_visual_title',
+                    $isEn ? 'Services designed for a comfortable experience'
+                        : 'Layanan yang dirancang untuk pengalaman yang nyaman'
+                ),
+                'about_visual_desc'  => $getSetting(
+                    'about_visual_desc',
+                    $isEn ? 'We prioritize a structured service flow: clear information, responsive communication, and execution as planned.'
+                        : 'Kami mengutamakan alur layanan yang tertata: informasi jelas, komunikasi responsif, dan eksekusi sesuai rencana.'
+                ),
+
+                'about_note_label' => $getSetting('about_note_label', $isEn ? 'Service Standard' : 'Standar Layanan'),
+                'about_note_title' => $getSetting(
+                    'about_note_title',
+                    $isEn ? 'Clear communication, measurable process'
+                        : 'Komunikasi jelas, proses terukur'
+                ),
+                'about_note_desc'  => $getSetting(
+                    'about_note_desc',
+                    $isEn ? 'Each request is handled with a clear flow so you can plan your trip with peace of mind.'
+                        : 'Setiap permintaan ditangani dengan alur yang jelas agar Anda dapat merencanakan perjalanan dengan tenang.'
                 ),
 
                 'about_values_label' => $getSetting('about_values_label', $isEn ? 'OUR VALUES' : 'NILAI KAMI'),

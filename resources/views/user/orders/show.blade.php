@@ -228,6 +228,69 @@
             </div>
             @endif
             @endif
+
+            @if($order->type === 'travel_bus')
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Departure Date' : 'Tanggal Keberangkatan' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->departure_date ? \Carbon\Carbon::parse($order->departure_date)->translatedFormat('d F Y') : '-' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Seats / Passengers' : 'Jumlah Kursi (Seat)' }}</div>
+                <div class="mt-1 font-semibold text-slate-900">
+                    {{ $order->participants ?? ($order->order_items['pax'] ?? 1) }} {{ $isEn ? 'seats' : 'kursi' }}
+                </div>
+            </div>
+
+            @if(!empty($order->order_items) && is_array($order->order_items))
+            <div class="sm:col-span-2 mt-2 pt-3 border-t border-slate-100">
+                <div class="text-xs font-extrabold text-slate-800 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="bus" class="w-3.5 h-3.5 text-sky-500"></i>
+                    <span>{{ $isEn ? 'Bus & Travel Ticket Details' : 'Rincian Tiket Travel & Bus' }}</span>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-xs space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Armada & Layanan:</span>
+                        <span class="font-bold text-slate-900">
+                            {{ $order->order_items['armada_name'] ?? '-' }} 
+                            ({{ $order->order_items['travel_type'] ?? 'Regular' }})
+                        </span>
+                    </div>
+                    @if(!empty($order->order_items['armada_type']))
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Tipe Kendaraan:</span>
+                        <span class="font-semibold text-slate-800">{{ $order->order_items['armada_type'] }}</span>
+                    </div>
+                    @endif
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Rute Perjalanan:</span>
+                        <span class="font-bold text-slate-900">
+                            {{ $order->order_items['departure_location'] ?? '-' }} &rarr; {{ $order->order_items['arrival_location'] ?? '-' }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Jadwal Keberangkatan:</span>
+                        <span class="font-bold text-slate-900">
+                            {{ $order->order_items['departure_time'] ?? '-' }} - {{ $order->order_items['arrival_time'] ?? '-' }} WIB
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Jumlah Kursi yang Dipesan:</span>
+                        <span class="font-extrabold text-blue-600">
+                            {{ $order->participants ?? ($order->order_items['pax'] ?? 1) }} kursi
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-200/80">
+                        <span class="text-slate-500">Tarif per Kursi:</span>
+                        <span class="font-extrabold text-sky-600">
+                            Rp {{ number_format($order->order_items['price_per_pax'] ?? ($order->subtotal / max(1, (int)$order->participants)), 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            @endif
+            @endif
         </div>
     </div>
 

@@ -9,6 +9,7 @@ use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
 use App\Models\RestoranPackage;
 use App\Models\HotelPackage;
+use App\Models\TravelBusPackage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -103,6 +104,10 @@ class PartnerPayoutService
 
             if ($order->type === 'hotel') {
                 return (int) HotelPackage::query()->whereKey($order->product_id)->value('created_by_partner_id') ?: null;
+            }
+
+            if ($order->type === 'travel_bus') {
+                return (int) TravelBusPackage::query()->whereKey($order->product_id)->value('created_by_partner_id') ?: null;
             }
 
             return null;

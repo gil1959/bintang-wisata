@@ -25,9 +25,9 @@ $mobileNav = [
 'label' => $isEn ? 'Ferry' : 'Kapal',
 ],
 [
-'route' => 'umrah.index',
-'icon' => 'landmark',
-'label' => $isEn ? 'Umrah' : 'Umrah',
+'route' => 'mice.index',
+'icon' => 'briefcase',
+'label' => 'MICE',
 ],
 [
 'route' => 'docs',
@@ -48,9 +48,11 @@ $mobileNav = [
         @foreach($mobileNav as $item)
         @php
         $active = request()->routeIs($item['route']);
-        // biar icon "Docs" tetap aktif juga saat user ada di docs.ship / docs.umrah (opsional)
+        // biar icon "Docs" / "MICE" tetap aktif saat user ada di sub-route
         if ($item['route'] === 'docs') {
-        $active = request()->routeIs('docs') || request()->routeIs('docs.*') || request()->is('dokumentasi*');
+          $active = request()->routeIs('docs') || request()->routeIs('docs.*') || request()->is('dokumentasi*');
+        } elseif ($item['route'] === 'mice.index') {
+          $active = request()->routeIs('mice.*') || request()->is('paket-mice*');
         }
         $label = $item['label'];
         @endphp

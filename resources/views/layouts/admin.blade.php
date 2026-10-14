@@ -64,16 +64,23 @@
                 :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
                 {{-- BRAND --}}
                 <div class="h-16 px-5 flex items-center justify-between border-b border-slate-200">
-                    <div class="flex items-center gap-3">
-                        <div class="h-10 w-10 rounded-2xl grid place-items-center border"
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 min-w-0">
+                        @if(!empty($siteSettings['site_logo']))
+                        <div class="h-10 w-10 rounded-2xl grid place-items-center border bg-white p-1 overflow-hidden shrink-0"
+                            style="border-color:rgba(1,148,243,0.22)">
+                            <img src="{{ $siteSettings['site_logo'] }}" alt="Logo" class="h-full w-full object-contain">
+                        </div>
+                        @else
+                        <div class="h-10 w-10 rounded-2xl grid place-items-center border shrink-0"
                             style="background:rgba(1,148,243,0.10);border-color:rgba(1,148,243,0.22)">
                             <i data-lucide="shield" class="w-5 h-5" style="color:#0194F3;"></i>
                         </div>
+                        @endif
                         <div class="min-w-0">
                             <div class="font-extrabold text-slate-900 leading-tight truncate">Admin Panel</div>
-                            <div class="text-xs text-slate-500 -mt-0.5 truncate">Bintang Wisata</div>
+                            <div class="text-xs text-slate-500 -mt-0.5 truncate">{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}</div>
                         </div>
-                    </div>
+                    </a>
 
                     <button
                         @click="sidebarOpen=false"
@@ -125,6 +132,15 @@
                 'icon' => 'building',
                 'children' => [
                 ['label'=>'Paket Hotel/Vila','route'=>'admin.hotel-packages.index','match'=>'admin.hotel-packages.*','icon'=>'building','perm'=>'admin.dashboard.view'],
+                ],
+                ],
+
+                // GROUP: Travel & Bus
+                [
+                'label' => 'Travel & Bus',
+                'icon' => 'bus',
+                'children' => [
+                ['label'=>'Paket Travel & Bus','route'=>'admin.travel-bus.index','match'=>'admin.travel-bus.*','icon'=>'bus','perm'=>'admin.dashboard.view'],
                 ],
                 ],
                 ['label'=>'Kode Promo','route'=>'admin.promos.index','match'=>'admin.promos.*','icon'=>'ticket-percent','perm'=>'admin.promos.manage'],

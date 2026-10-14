@@ -24,9 +24,11 @@
                     {{-- top --}}
                     <div class="px-6 py-6 lg:px-12 lg:py-10">
                         <div class="flex items-center gap-3">
-                            <img src="{{ asset('images/logo.png') }}"
-                                alt="Bintang Wisata"
-                                class="h-10 lg:h-12 w-auto object-contain">
+                            <a href="{{ route('home') }}">
+                                <img src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
+                                    alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
+                                    class="h-10 lg:h-12 w-auto object-contain">
+                            </a>
                         </div>
                     </div>
 

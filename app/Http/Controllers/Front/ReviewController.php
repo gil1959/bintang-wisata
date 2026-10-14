@@ -10,6 +10,7 @@ use App\Models\RestoranPackage;
 use App\Models\ShipPackage;
 use App\Models\TourPackage;
 use App\Models\UmrahPackage;
+use App\Models\TravelBusPackage;
 use Illuminate\Http\Request;
 
 
@@ -32,7 +33,7 @@ class ReviewController extends Controller
         }
 
         $data = $request->validate([
-            'reviewable_type' => ['required', 'in:tour,rent,ship,umrah,mice,hotel,restoran'],
+            'reviewable_type' => ['required', 'in:tour,rent,ship,umrah,mice,hotel,restoran,travel_bus'],
             'reviewable_id'   => ['required', 'integer'],
             'name'            => ['required', 'string', 'max:80'],
             'email'           => ['required', 'email', 'max:120'],
@@ -41,13 +42,14 @@ class ReviewController extends Controller
         ]);
 
         $model = match ($data['reviewable_type']) {
-            'tour'     => TourPackage::findOrFail($data['reviewable_id']),
-            'rent'     => RentCarPackage::findOrFail($data['reviewable_id']),
-            'ship'     => ShipPackage::findOrFail($data['reviewable_id']),
-            'umrah'    => UmrahPackage::findOrFail($data['reviewable_id']),
-            'mice'     => MicePackage::findOrFail($data['reviewable_id']),
-            'hotel'    => HotelPackage::findOrFail($data['reviewable_id']),
-            'restoran' => RestoranPackage::findOrFail($data['reviewable_id']),
+            'tour'       => TourPackage::findOrFail($data['reviewable_id']),
+            'rent'       => RentCarPackage::findOrFail($data['reviewable_id']),
+            'ship'       => ShipPackage::findOrFail($data['reviewable_id']),
+            'umrah'      => UmrahPackage::findOrFail($data['reviewable_id']),
+            'mice'       => MicePackage::findOrFail($data['reviewable_id']),
+            'hotel'      => HotelPackage::findOrFail($data['reviewable_id']),
+            'restoran'   => RestoranPackage::findOrFail($data['reviewable_id']),
+            'travel_bus' => TravelBusPackage::findOrFail($data['reviewable_id']),
         };
 
         // Anti spam soft: email yang sama untuk item yang sama dalam 10 menit diblok

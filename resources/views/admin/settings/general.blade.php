@@ -28,6 +28,27 @@
     </div>
   @endif
 
+  {{-- Errors --}}
+  @if($errors->any())
+    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-900">
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 border border-red-200 text-red-600 font-bold">
+            !
+          </span>
+        </div>
+        <div class="text-sm">
+          <div class="font-semibold text-red-800">Gagal Menyimpan (Validasi)</div>
+          <ul class="mt-1 list-disc list-inside text-xs text-red-700 space-y-0.5">
+            @foreach($errors->all() as $err)
+              <li>{{ $err }}</li>
+            @endforeach
+          </ul>
+        </div>
+      </div>
+    </div>
+  @endif
+
   <form method="POST" action="{{ route('admin.settings.general.save') }}" enctype="multipart/form-data"
         class="rounded-3xl border border-slate-200 bg-white shadow-sm">
     @csrf
@@ -107,10 +128,19 @@
     <label class="block text-sm font-medium mb-1">Logo (Navbar & Footer)</label>
     <input type="file"
            name="site_logo"
+           id="site_logo_input"
+           accept="image/png,image/jpeg,image/webp,image/svg+xml"
            class="w-full border rounded-lg px-3 py-2 bg-white" />
     <p class="mt-1 text-xs text-slate-500">Rekomendasi: PNG transparan, tinggi 80–120px, max 2MB.</p>
 
-    @if(empty($settings['site_logo']))
+    @if(!empty($settings['site_logo']))
+      <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <label class="inline-flex items-center gap-2 text-xs text-red-600 font-medium cursor-pointer">
+          <input type="checkbox" name="delete_site_logo" value="1" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+          Hapus logo kustom & kembalikan ke default
+        </label>
+      </div>
+    @else
       <p class="mt-2 text-xs text-slate-500">
         Default: <code class="px-1 py-0.5 bg-slate-100 rounded">public/images/logo.png</code>
       </p>
@@ -122,12 +152,12 @@
 
     @php
       $logo = !empty($settings['site_logo'])
-              ? $settings['site_logo']
+              ? (str_starts_with($settings['site_logo'], 'http') ? $settings['site_logo'] : asset(ltrim($settings['site_logo'], '/')))
               : asset('images/logo.png');
     @endphp
 
-    <div class="border rounded-xl bg-slate-50 p-4 flex items-center justify-center">
-      <img src="{{ $logo }}" class="h-16 w-auto object-contain" alt="Logo Preview">
+    <div class="border rounded-xl bg-slate-50 p-4 flex items-center justify-center min-h-[90px]">
+      <img id="site_logo_preview" src="{{ $logo }}" class="h-16 w-auto object-contain" alt="Logo Preview">
     </div>
 
     @if(!empty($settings['site_logo']))
@@ -137,6 +167,25 @@
     @endif
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('site_logo_input');
+    const preview = document.getElementById('site_logo_preview');
+    if (input && preview) {
+      input.addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            preview.src = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  });
+</script>
       <h2 class="text-lg font-extrabold text-slate-900">Footer — Kontak</h2>
       <p class="text-sm text-slate-600 mt-1">Alamat, telepon, email, dan WhatsApp.</p>
 
@@ -251,6 +300,173 @@
               <textarea name="about_hero_desc" rows="4"
                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
               >{{ old('about_hero_desc', $settings['about_hero_desc'] ?? '') }}</textarea>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-slate-900 mb-2">Hero Image (Kanan Visual)</label>
+              <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                <input type="file" name="about_hero_image" class="w-full text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-white file:font-semibold hover:file:bg-sky-700" />
+                <p class="text-xs text-slate-500 mt-2">Opsional: JPG/PNG/WEBP, landscape 800x600px atau rasio 4:3. Jika kosong, akan memakai ilustrasi dekoratif garis rute.</p>
+
+                @if(!empty($settings['about_hero_image']))
+                  <div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <img src="{{ $settings['about_hero_image'] }}" class="h-32 w-auto rounded-2xl object-cover border border-slate-200" alt="About Hero" />
+                    <label class="inline-flex items-center gap-2 text-xs text-red-600 font-semibold cursor-pointer">
+                      <input type="checkbox" name="delete_about_hero_image" value="1" class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+                      Hapus gambar kustom & kembalikan ke ilustrasi rute
+                    </label>
+                  </div>
+                @endif
+              </div>
+            </div>
+
+            {{-- Tombol CTA Hero --}}
+            <div class="md:col-span-2 pt-4 border-t border-slate-200">
+              <h4 class="text-sm font-bold text-slate-800">Tombol Aksi (CTA)</h4>
+              <p class="text-xs text-slate-500 mb-3">Teks dan link URL untuk dua tombol di bawah deskripsi Hero.</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 rounded-2xl bg-white border border-slate-200">
+                  <div class="text-xs font-bold text-slate-700 mb-3">Tombol 1 (Primary - Default: Lihat Paket Tour)</div>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Teks Tombol</label>
+                      <input name="about_hero_btn1_text"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_hero_btn1_text', $settings['about_hero_btn1_text'] ?? '') }}"
+                        placeholder="Lihat Paket Tour"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Link URL (Opsional, kosongkan untuk default)</label>
+                      <input name="about_hero_btn1_url"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_hero_btn1_url', $settings['about_hero_btn1_url'] ?? '') }}"
+                        placeholder="{{ route('tours.index') }}"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white border border-slate-200">
+                  <div class="text-xs font-bold text-slate-700 mb-3">Tombol 2 (Secondary - Default: Dokumentasi Perjalanan)</div>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Teks Tombol</label>
+                      <input name="about_hero_btn2_text"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_hero_btn2_text', $settings['about_hero_btn2_text'] ?? '') }}"
+                        placeholder="Dokumentasi Perjalanan"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Link URL (Opsional, kosongkan untuk default)</label>
+                      <input name="about_hero_btn2_url"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_hero_btn2_url', $settings['about_hero_btn2_url'] ?? '') }}"
+                        placeholder="{{ route('docs') }}"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {{-- Kartu Keunggulan (Trust Stats) --}}
+            <div class="md:col-span-2 pt-4 border-t border-slate-200">
+              <h4 class="text-sm font-bold text-slate-800">Kartu Keunggulan (Trust Stats)</h4>
+              <p class="text-xs text-slate-500 mb-3">3 kartu kecil di bawah tombol CTA.</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @php
+                  $statDefaults = [
+                    1 => ['label' => 'Fokus Layanan', 'title' => 'Tour & Rental', 'desc' => 'Satu standar, satu kualitas.'],
+                    2 => ['label' => 'Proses', 'title' => 'Cepat & Jelas', 'desc' => 'Tanpa langkah membingungkan.'],
+                    3 => ['label' => 'Komitmen', 'title' => 'Transparan', 'desc' => 'Harga & fasilitas jelas.'],
+                  ];
+                @endphp
+                @for($s = 1; $s <= 3; $s++)
+                  <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold text-slate-700">Kartu #{{ $s }}</div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Label</label>
+                      <input name="about_stat{{ $s }}_label"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_stat'.$s.'_label', $settings['about_stat'.$s.'_label'] ?? '') }}"
+                        placeholder="{{ $statDefaults[$s]['label'] }}"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Judul</label>
+                      <input name="about_stat{{ $s }}_title"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        value="{{ old('about_stat'.$s.'_title', $settings['about_stat'.$s.'_title'] ?? '') }}"
+                        placeholder="{{ $statDefaults[$s]['title'] }}"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label>
+                      <textarea name="about_stat{{ $s }}_desc" rows="2"
+                        class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        placeholder="{{ $statDefaults[$s]['desc'] }}"
+                      >{{ old('about_stat'.$s.'_desc', $settings['about_stat'.$s.'_desc'] ?? '') }}</textarea>
+                    </div>
+                  </div>
+                @endfor
+              </div>
+            </div>
+
+            {{-- Kartu Kanan Visual (Overlay & Floating Note) --}}
+            <div class="md:col-span-2 pt-4 border-t border-slate-200">
+              <h4 class="text-sm font-bold text-slate-800">Kartu Kanan Visual (Overlay & Floating Note)</h4>
+              <p class="text-xs text-slate-500 mb-3">Teks pada kartu overlay di atas gambar hero dan kartu catatan mengambang di bawahnya.</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Overlay Card --}}
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <div class="text-xs font-bold text-slate-700">Kartu Overlay (Di Atas Gambar)</div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Judul</label>
+                    <input name="about_visual_title"
+                      class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      value="{{ old('about_visual_title', $settings['about_visual_title'] ?? '') }}"
+                      placeholder="Layanan yang dirancang untuk pengalaman yang nyaman"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label>
+                    <textarea name="about_visual_desc" rows="3"
+                      class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      placeholder="Kami mengutamakan alur layanan yang tertata: informasi jelas, komunikasi responsif, dan eksekusi sesuai rencana."
+                    >{{ old('about_visual_desc', $settings['about_visual_desc'] ?? '') }}</textarea>
+                  </div>
+                </div>
+
+                {{-- Floating Note Card --}}
+                <div class="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <div class="text-xs font-bold text-slate-700">Kartu Catatan Mengambang (Floating Note)</div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Label</label>
+                    <input name="about_note_label"
+                      class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      value="{{ old('about_note_label', $settings['about_note_label'] ?? '') }}"
+                      placeholder="Standar Layanan"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Judul</label>
+                    <input name="about_note_title"
+                      class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      value="{{ old('about_note_title', $settings['about_note_title'] ?? '') }}"
+                      placeholder="Komunikasi jelas, proses terukur"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi</label>
+                    <textarea name="about_note_desc" rows="3"
+                      class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                      placeholder="Setiap permintaan ditangani dengan alur yang jelas agar Anda dapat merencanakan perjalanan dengan tenang."
+                    >{{ old('about_note_desc', $settings['about_note_desc'] ?? '') }}</textarea>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,7 +1,22 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-5" x-data="{
+    showModal: false,
+    modalType: '',
+    modalName: '',
+    modalFormId: '',
+    openModal(type, name, formId) {
+        this.modalType = type;
+        this.modalName = name;
+        this.modalFormId = formId;
+        this.showModal = true;
+    },
+    confirmAction() {
+        document.getElementById(this.modalFormId).submit();
+        this.showModal = false;
+    }
+}">
     @if(session('success'))
     <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
         <div class="font-extrabold">Sukses</div>
@@ -86,6 +101,15 @@
                                         </button>
                                     </form>
                                 @endif
+<form id="impersonate-form-{{ $u->id }}" action="{{ route('admin.users.impersonate', $u) }}" method="POST" class="hidden">
+    @csrf
+</form>
+<button @click="openModal('login', '{{ addslashes($u->name) }}', 'impersonate-form-{{ $u->id }}')"
+        class="px-3 py-2 rounded-2xl font-extrabold text-white"
+        style="background:#f59e0b;">
+    Login As
+</button>
+
 <form method="POST" action="{{ route('admin.partners.users.destroy', $u->id) }}"
       onsubmit="return confirm('Yakin hapus user partner ini? Aksi ini tidak bisa dibatalkan.');">
     @csrf
@@ -119,5 +143,72 @@
     </div>
 
     <div>{{ $users->links() }}</div>
+    {{-- POPUP MODAL --}}
+    <div x-show="showModal"
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+         @keydown.escape.window="showModal = false">
+
+        {{-- Backdrop --}}
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showModal = false"></div>
+
+        {{-- Modal Card --}}
+        <div x-show="showModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+             @click.stop>
+
+            {{-- Icon --}}
+            <div class="mx-auto w-14 h-14 rounded-2xl grid place-items-center mb-4"
+                 :style="modalType === 'login'
+                    ? 'background: rgba(245,158,11,0.12); border: 1.5px solid rgba(245,158,11,0.25);'
+                    : 'background: rgba(239,68,68,0.10); border: 1.5px solid rgba(239,68,68,0.25);'">
+                <template x-if="modalType === 'login'">
+                    <i data-lucide="log-in" style="width:24px; height:24px; color:#f59e0b;"></i>
+                </template>
+                <template x-if="modalType === 'delete'">
+                    <i data-lucide="trash-2" style="width:24px; height:24px; color:#ef4444;"></i>
+                </template>
+            </div>
+
+            {{-- Title --}}
+            <h3 class="text-lg font-extrabold text-slate-900 text-center"
+                x-text="modalType === 'login' ? 'Login sebagai User' : 'Hapus User'"></h3>
+
+            {{-- Description --}}
+            <p class="mt-2 text-sm text-slate-600 text-center">
+                <template x-if="modalType === 'login'">
+                    <span>Anda akan masuk ke akun <strong x-text="modalName" class="text-slate-900"></strong>. Lanjutkan?</span>
+                </template>
+                <template x-if="modalType === 'delete'">
+                    <span>User <strong x-text="modalName" class="text-slate-900"></strong> akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.</span>
+                </template>
+            </p>
+
+            {{-- Buttons --}}
+            <div class="mt-6 flex items-center justify-center gap-3">
+                <button @click="showModal = false"
+                        class="px-5 py-2.5 rounded-xl font-extrabold text-slate-700 border border-slate-200 hover:bg-slate-50 transition">
+                    Batal
+                </button>
+                <button @click="confirmAction()"
+                        class="px-5 py-2.5 rounded-xl font-extrabold text-white transition"
+                        :style="modalType === 'login' ? 'background:#f59e0b;' : 'background:#ef4444;'"
+                        x-text="modalType === 'login' ? 'Ya, Login' : 'Ya, Hapus'">
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

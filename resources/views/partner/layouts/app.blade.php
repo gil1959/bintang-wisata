@@ -31,11 +31,13 @@
 <body class="bg-slate-50 antialiased">
 
 @if(session('impersonating_admin_id'))
-<div style="background:#f59e0b; color:#fff; text-align:center; padding:10px 16px; font-weight:800; font-size:14px; position:relative; z-index:9999;">
-    ⚠️ Anda sedang login sebagai {{ Auth::user()->name }} ({{ Auth::user()->email }})
+<div class="bg-amber-500 text-white text-center py-2.5 px-4 font-extrabold text-sm relative z-[9999] flex items-center justify-center gap-2 flex-wrap">
+    <svg class="w-4 h-4 shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <span>Anda sedang login sebagai {{ Auth::user()->name }} ({{ Auth::user()->email }})</span>
     <a href="{{ route('admin.impersonate.leave') }}"
-       style="margin-left:12px; background:#fff; color:#f59e0b; padding:6px 16px; border-radius:8px; font-weight:800; text-decoration:none;">
-        ← Kembali ke Admin
+       class="ml-2 bg-white text-amber-600 px-3 py-1 rounded-lg font-black text-xs hover:bg-amber-50 transition inline-flex items-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <span>Kembali ke Admin</span>
     </a>
 </div>
 @endif
@@ -98,6 +100,17 @@
             'icon'  => 'building',
             'children' => [
                 ['label'=>'Paket Hotel/Vila','route'=>'partner.hotel-packages.index','match'=>'partner.hotel-packages.*','icon'=>'building'],
+            ],
+        ];
+    }
+
+   if (in_array(auth()->user()->partner_type, ['agency_travel_bus', 'agency_rental_mobil', 'general', null])) {
+        // GROUP: Travel & Bus
+        $nav[] = [
+            'label' => 'Travel & Bus',
+            'icon'  => 'bus',
+            'children' => [
+                ['label'=>'Paket Travel & Bus','route'=>'partner.travel-bus.index','match'=>'partner.travel-bus.*','icon'=>'bus'],
             ],
         ];
     }
