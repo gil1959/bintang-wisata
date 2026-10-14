@@ -15,7 +15,7 @@ class GuestBookingController extends Controller
     }
     public function store(Request $request,string $type,string $slug)
     {
-        $controllers=['tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController','hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController'];
+        $controllers=['tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController','hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController','travel_bus'=>'TravelBusOrderController'];
         abort_unless(isset($controllers[$type]),404);
         $request->validate(['email'=>'required|email|max:255','idempotency_key'=>'required|uuid','promo_code'=>'nullable|string|max:100']);
         $hash=$this->hash($request);$fingerprint=hash('sha256',$type.':'.$slug.':'.json_encode($request->all()));
@@ -27,6 +27,7 @@ class GuestBookingController extends Controller
             if($entry->order_id)return $this->result(Order::findOrFail($entry->order_id));
             $model=CatalogController::TYPES[$type][0];$product=$model::where('slug',$slug)->where('is_active',true)->firstOrFail();
             abort_if($type!=='hotel'&&$product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+            abort_if($type==='travel_bus'&&$product->partner_review_status!=='approved',404);
             if($type==='hotel'&&$request->filled('room_id'))abort_unless($product->rooms()->whereKey($request->room_id)->exists(),422);
             $request->merge(['promo_id'=>null]);
             if($request->filled('promo_code')){

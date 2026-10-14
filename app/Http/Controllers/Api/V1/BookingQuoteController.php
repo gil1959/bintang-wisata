@@ -12,9 +12,10 @@ class BookingQuoteController extends Controller
     {
         abort_unless(isset(CatalogController::TYPES[$type]),404);
         $model=CatalogController::TYPES[$type][0];
-        $relations=match($type){'hotel'=>['rooms'],'restoran'=>['menus'],'rent_car'=>[],default=>['tiers']};
+        $relations=match($type){'hotel'=>['rooms'],'restoran'=>['menus'],'rent_car','travel_bus'=>[],default=>['tiers']};
         $product=$model::with($relations)->where('slug',$slug)->where('is_active',true)->firstOrFail();
         abort_if($type!=='hotel'&&$product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+        abort_if($type==='travel_bus'&&$product->partner_review_status!=='approved',404);
         $request->validate(['promo_code'=>'nullable|string|max:100','email'=>'nullable|email']);
         if(in_array($type,['tour','ship','umrah','mice'])){
             $request->validate(['tier_id'=>'required|integer','participants'=>$type==='ship'?'nullable|integer|min:1|max:9999':('required|integer|min:1|max:'.($type==='umrah'?'999':'9999')),'qty'=>'nullable|integer|min:1|max:999']);
@@ -23,6 +24,9 @@ class BookingQuoteController extends Controller
             $count=$type==='ship'?(int)$request->input('qty',1):(int)$request->participants;
             if($type==='tour'&&($count<(int)$tier->min_people||($tier->max_people!==null&&$count>(int)$tier->max_people)))throw ValidationException::withMessages(['participants'=>'Jumlah peserta tidak sesuai pilihan paket.']);
             $subtotal=(float)$tier->price*$count;
+        }elseif($type==='travel_bus'){
+            $request->validate(['departure_date'=>'required|date|after_or_equal:today','pax'=>'required|integer|min:1|max:9999']);
+            $subtotal=(float)$product->price*(int)$request->pax;
         }elseif($type==='hotel'){
             $request->validate(['checkin_date'=>'required|date|after_or_equal:tomorrow','checkout_date'=>'required|date|after:checkin_date','room_id'=>'nullable|integer','room_count'=>'required|integer|min:1','with_breakfast'=>'nullable|boolean']);
             $room=$request->filled('room_id')?$product->rooms->firstWhere('id',(int)$request->room_id):null;

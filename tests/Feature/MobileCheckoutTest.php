@@ -28,6 +28,7 @@ class MobileCheckoutTest extends TestCase
         }
         foreach(['ship','umrah','mice'] as $type) Schema::create($type.'_package_tiers',function(Blueprint $t)use($type){$t->id();$t->unsignedBigInteger($type.'_package_id');$t->string('type')->default('domestic');$t->string('label_text')->default('Pilihan');$t->integer('sort_order')->default(1);$t->integer('price')->default(125000);});
         Schema::create('hotel_rooms',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');$t->string('name');$t->integer('sort_order')->default(1);$t->integer('price')->default(100000);$t->integer('price_with_breakfast')->default(120000);});
+        Schema::create('travel_bus_packages',function(Blueprint $t){$t->id();foreach((new \App\Models\TravelBusPackage)->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});
         Schema::create('restoran_menus',function(Blueprint $t){$t->id();$t->unsignedBigInteger('restoran_package_id');$t->string('name');$t->integer('price')->default(50000);$t->boolean('is_ready')->default(true);});
         Schema::create('orders',function(Blueprint $t){
             $t->id();$t->unsignedBigInteger('user_id')->nullable();$t->unsignedBigInteger('product_id')->nullable();
@@ -457,6 +458,29 @@ class MobileCheckoutTest extends TestCase
         DB::table('hotel_packages')->where('id',1)->update(['is_active'=>true]);
         $this->postJson('/api/v1/guest/bookings/hotel/atrium',$body,$headers)->assertCreated()->assertJsonPath('data.final_price',100000);
         $this->assertSame(1,Order::count());
+    }
+    public function test_bus_quote_booking_and_guest_use_the_web_passenger_price()
+    {
+        $this->user();
+        DB::table('travel_bus_packages')->insert(['id'=>1,'slug'=>'night-bus','armada_name'=>'Night Bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'price'=>250000,'is_active'=>true,'partner_review_status'=>'approved']);
+        $body=['departure_date'=>now()->addDay()->toDateString(),'pax'=>3,'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/travel_bus/night-bus/quote',$body)->assertOk()->assertJsonPath('data.total',750000);
+        $response=$this->postJson('/api/v1/bookings/travel_bus/night-bus',$body)->assertCreated()->assertJsonPath('data.final_price',750000);
+        $order=Order::findOrFail($response->json('data.id'));$this->assertSame('travel_bus',$order->type);$this->assertEquals(3,$order->order_items['pax']);
+        $this->getJson('/api/v1/account/orders?type=travel_bus')->assertOk();
+        DB::table('travel_bus_packages')->where('id',1)->update(['partner_review_status'=>'pending']);
+        $this->postJson('/api/v1/catalog/travel_bus/night-bus/quote',$body)->assertNotFound();
+        $this->postJson('/api/v1/bookings/travel_bus/night-bus',$body)->assertNotFound();
+    }
+    public function test_bus_guest_can_create_one_order_and_resume_it()
+    {
+        Schema::create('mobile_guest_bookings',function(Blueprint $t){$t->id();$t->string('token_hash')->unique();$t->string('fingerprint');$t->unsignedBigInteger('order_id')->nullable();$t->timestamp('expires_at');$t->timestamps();});
+        DB::table('travel_bus_packages')->insert(['id'=>1,'slug'=>'bus','armada_name'=>'Bus','travel_type'=>'VIP','price'=>200000,'is_active'=>true,'partner_review_status'=>'approved']);
+        $body=['email'=>'bus-guest@example.test','name'=>'Guest','phone'=>'08123456789','departure_date'=>now()->addDay()->toDateString(),'pax'=>2,'idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $headers=['X-Guest-Token'=>str_repeat('d',64)];
+        $this->postJson('/api/v1/guest/bookings/travel_bus/bus',$body,$headers)->assertCreated()->assertJsonPath('data.final_price',400000);
+        $this->postJson('/api/v1/guest/bookings/travel_bus/bus',$body,$headers)->assertCreated();$this->assertSame(1,Order::count());
+        $this->getJson('/api/v1/guest/resume',$headers)->assertOk();
     }
     public function test_hotel_breakfast_fallback_matches_quote_and_created_booking()
     {

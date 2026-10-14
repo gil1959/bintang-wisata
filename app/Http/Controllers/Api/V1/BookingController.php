@@ -13,12 +13,13 @@ class BookingController extends Controller
     {
         $controllers=[
             'tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController',
-            'hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController',
+            'hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController','travel_bus'=>'TravelBusOrderController',
         ];
         abort_unless(isset($controllers[$type]),404);
         $class=CatalogController::TYPES[$type][0];
         $package=$class::where('slug',$slug)->where('is_active',true)->firstOrFail();
         if($type!=='hotel'&&$package->created_by_partner_id) abort_unless($package->partner_review_status==='approved',404);
+        abort_if($type==='travel_bus'&&$package->partner_review_status!=='approved',404);
         if($type==='hotel' && $request->filled('room_id')) abort_unless($package->rooms()->whereKey($request->room_id)->exists(),422,'Pilihan kamar tidak tersedia.');
         $request->validate(['idempotency_key'=>'required|uuid','promo_code'=>'nullable|string|max:100']);
         $request->merge(['email'=>$request->user()->email]);

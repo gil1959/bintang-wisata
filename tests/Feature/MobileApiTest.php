@@ -27,6 +27,8 @@ class MobileApiTest extends TestCase
         Schema::create('personal_access_tokens',function(Blueprint $t){$t->id();$t->morphs('tokenable');$t->string('name');$t->string('token',64)->unique();$t->text('abilities')->nullable();$t->timestamp('last_used_at')->nullable();$t->timestamps();});
         Schema::create('rent_car_packages',function(Blueprint $t){$t->id();$t->string('slug');$t->string('title');$t->boolean('is_active');$t->unsignedBigInteger('created_by_partner_id')->nullable();$t->string('partner_review_status')->nullable();$t->timestamps();});
         foreach(['tour_packages','ship_packages','hotel_packages','restoran_packages'] as $table) Schema::create($table,function(Blueprint $t){$t->id();$t->unsignedBigInteger('created_by_partner_id')->nullable();});
+        Schema::create('travel_bus_packages',function(Blueprint $t){$t->id();foreach((new \App\Models\TravelBusPackage)->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});
+        Schema::create('travel_bus_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('travel_bus_package_id');$t->text('photo_path');$t->timestamps();});
         Schema::create('orders',function(Blueprint $t){$t->id();$t->unsignedBigInteger('user_id')->nullable();$t->string('customer_email');$t->string('invoice_number');$t->string('product_name');$t->string('type');$t->unsignedBigInteger('product_id');$t->string('order_status')->default('pending');$t->string('payment_status')->default('unpaid');$t->integer('final_price')->default(100000);$t->timestamps();});
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         foreach(['user','partner','admin','site_moderator'] as $role) Role::create(['name'=>$role,'guard_name'=>'web']);
@@ -75,7 +77,7 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/rent_car')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.slug','public');
         $this->getJson('/api/v1/catalog/rent_car/pending')->assertNotFound();
         $this->getJson('/api/v1/catalog/unknown')->assertNotFound();
-        $this->getJson('/api/v1/catalog/types')->assertOk()->assertJsonCount(7,'data');
+        $this->getJson('/api/v1/catalog/types')->assertOk()->assertJsonCount(8,'data');
     }
     public function test_hotel_catalog_matches_web_publication_and_updates_after_admin_changes()
     {
@@ -100,6 +102,46 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/hotel?q=atrium')->assertOk()->assertJsonPath('data.0.title','Updated Atrium');
         DB::table('hotel_packages')->where('id',2)->delete();
         $this->getJson('/api/v1/catalog/hotel/new-atrium')->assertNotFound();
+    }
+    public function test_bus_catalog_uses_real_route_price_schedule_and_approval()
+    {
+        Schema::create('reviews',function(Blueprint $t){$t->id();$t->morphs('reviewable');$t->integer('rating');$t->string('status');$t->timestamps();});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        $base=['armada_name'=>'Bus Jogja','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Yogyakarta','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'duration_minutes'=>600,'price'=>250000,'is_active'=>true,'partner_review_status'=>'approved'];
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>1,'slug'=>'bus-jogja']));
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>2,'slug'=>'pending','partner_review_status'=>'pending']));
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>3,'slug'=>'inactive','is_active'=>false]));
+        DB::table('reviews')->insert([['reviewable_type'=>\App\Models\TravelBusPackage::class,'reviewable_id'=>1,'rating'=>4,'status'=>'approved'],['reviewable_type'=>\App\Models\TravelBusPackage::class,'reviewable_id'=>1,'rating'=>1,'status'=>'pending']]);
+        $this->getJson('/api/v1/catalog/travel_bus?q=jakarta&sort=price_asc')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.title','Bus Jogja')->assertJsonPath('data.0.price',250000)->assertJsonPath('data.0.arrival_days_offset',1)->assertJsonPath('data.0.duration_text','10 Jam');
+        $this->getJson('/api/v1/catalog/travel_bus/bus-jogja')->assertOk()->assertJsonPath('data.departure_time','20:00')->assertJsonPath('data.rating_count',1)->assertJsonPath('data.rating_value',4);
+        $this->getJson('/api/v1/catalog/travel_bus/pending')->assertNotFound();
+        $this->getJson('/api/v1/catalog/travel_bus/filters')->assertOk();
+    }
+    public function test_bus_partner_crud_keeps_ownership_gallery_and_admin_review()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $permission=\Spatie\Permission\Models\Permission::create(['name'=>'admin.dashboard.view','guard_name'=>'web']);
+        $admin=User::create(['name'=>'Admin Bus','email'=>'admin-bus@example.test','password'=>Hash::make('Password123')]);$admin->assignRole('admin');$admin->givePermissionTo($permission);
+        $partner=User::create(['name'=>'Partner Bus','email'=>'partner-bus@example.test','password'=>Hash::make('Password123'),'partner_type'=>'agency_travel_bus']);$partner->assignRole('partner');
+        \Laravel\Sanctum\Sanctum::actingAs($partner);
+        $this->getJson('/api/v1/manage/products')->assertOk()->assertJsonPath('data.0.key','travel_bus');
+        $body=['armada_name'=>'Night Bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'price'=>250000,'route_details'=>['Semarang'],'facilities'=>['wifi','ac'],'is_active'=>1,'created_by_partner_id'=>$admin->id,'partner_review_status'=>'approved'];
+        $png=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
+        $photo=fn()=>\Illuminate\Http\UploadedFile::fake()->createWithContent('photo.png',$png);
+        $this->post('/api/v1/manage/products/travel_bus/save',['payload'=>json_encode($body),'thumbnail'=>$photo(),'gallery'=>[$photo()]],['Accept'=>'application/json'])->assertCreated();
+        $bus=\App\Models\TravelBusPackage::firstOrFail();$this->assertSame($partner->id,(int)$bus->created_by_partner_id);$this->assertFalse($bus->is_active);$this->assertSame('pending',$bus->partner_review_status);$this->assertSame(600,(int)$bus->duration_minutes);
+        $gallery=$bus->photos()->firstOrFail();\Illuminate\Support\Facades\Storage::disk('public')->assertExists($gallery->photo_path);
+        $this->getJson('/api/v1/manage/products/travel_bus/form/'.$bus->id)->assertOk()->assertJsonPath('data.values.armada_name','Night Bus')->assertJsonPath('data.values.photos.0.file_path',$gallery->photo_path);
+        $stranger=User::create(['name'=>'Other Bus','email'=>'other-bus@example.test','password'=>Hash::make('Password123'),'partner_type'=>'agency_travel_bus']);$stranger->assignRole('partner');\Laravel\Sanctum\Sanctum::actingAs($stranger);
+        $this->postJson('/api/v1/manage/products/travel_bus/save/'.$bus->id,['payload'=>json_encode($body)])->assertNotFound();
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/delete')->assertNotFound();
+        \Laravel\Sanctum\Sanctum::actingAs($admin);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/review/approve',[])->assertOk();$this->assertTrue($bus->fresh()->is_active);
+        $body['armada_name']='Updated Bus';$body['is_active']=0;$body['created_by_partner_id']=$partner->id;
+        $this->postJson('/api/v1/manage/products/travel_bus/save/'.$bus->id,['payload'=>json_encode($body)])->assertOk();$this->assertFalse($bus->fresh()->is_active);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/photos/'.$gallery->id.'/delete')->assertOk();
+        $this->assertSame(0,$bus->photos()->count());\Illuminate\Support\Facades\Storage::disk('public')->assertMissing($gallery->photo_path);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/delete')->assertOk();$this->assertSame(0,\App\Models\TravelBusPackage::count());
     }
     public function test_account_requires_authentication()
     {
@@ -230,12 +272,13 @@ class MobileApiTest extends TestCase
             foreach($spec[4] as $relation){$related=$model->$relation()->getRelated();$relationTable=$related->getTable();if(!Schema::hasTable($relationTable))Schema::create($relationTable,function(Blueprint $t)use($related){$t->id();foreach($related->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});}
             $tier=['label_text'=>'Standard','price'=>150000,'min_people'=>1,'max_people'=>10,'type'=>'domestic','is_custom'=>'0'];
             $payload=['title'=>'Package '.$type,'slug'=>'package-'.$type,'category_id'=>1,'duration_text'=>'2 hari','flight_info'=>'not_included','is_active'=>'1','price_per_12_hours'=>150000,'price_per_24_hours'=>250000,'price_per_night'=>200000,'price_per_pax'=>75000,'tiers'=>in_array($type,['tour','mice'])?['domestic'=>[$tier]]:[array_merge($tier,['type'=>'weekday'])],'rooms'=>[['name'=>'Room','price'=>200000,'is_ready'=>'1']],'menus'=>[['name'=>'Menu','price'=>75000,'is_ready'=>'1']]];
+            if($type==='travel_bus')$payload=['armada_name'=>'Package travel_bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'08:00','arrival_time'=>'14:00','price'=>150000,'is_active'=>1];
             $this->postJson('/api/v1/manage/products/'.$type.'/save',['payload'=>json_encode($payload)])->assertCreated();
             $saved=$class::firstOrFail();
-            $this->getJson('/api/v1/manage/products/'.$type.'/form/'.$saved->id)->assertOk()->assertJsonPath('data.values.title','Package '.$type);
-            $payload['title']='Updated '.$type;
+            $this->getJson('/api/v1/manage/products/'.$type.'/form/'.$saved->id)->assertOk()->assertJsonPath($type==='travel_bus'?'data.values.armada_name':'data.values.title','Package '.$type);
+            $payload[$type==='travel_bus'?'armada_name':'title']='Updated '.$type;
             $this->postJson('/api/v1/manage/products/'.$type.'/save/'.$saved->id,['payload'=>json_encode($payload)])->assertOk();
-            $this->assertSame('Updated '.$type,$saved->fresh()->title);
+            $this->assertSame('Updated '.$type,$type==='travel_bus'?$saved->fresh()->armada_name:$saved->fresh()->title);
             $this->postJson('/api/v1/manage/products/'.$type.'/'.$saved->id.'/delete')->assertOk();
             $this->assertSame(0,$class::count());
         }
@@ -391,7 +434,7 @@ class MobileApiTest extends TestCase
         $this->assertNull($model->fresh());
         $partner->syncRoles('user');$this->postJson('/api/v1/manage/products/rent_car/save',$payload)->assertForbidden();
         $partner->syncRoles('site_moderator');$this->getJson('/api/v1/manage/products/rent_car')->assertForbidden();
-        $partner->syncRoles('admin');$this->getJson('/api/v1/manage/products')->assertOk()->assertJsonCount(7,'data');
+        $partner->syncRoles('admin');$this->getJson('/api/v1/manage/products')->assertOk()->assertJsonCount(8,'data');
         $this->getJson('/api/v1/manage/products/rent_car/form/999')->assertOk();
     }
     public function test_partner_wallet_retries_do_not_double_withdraw_and_cancellation_restores_balance()
