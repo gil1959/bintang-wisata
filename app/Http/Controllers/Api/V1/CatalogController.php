@@ -38,6 +38,8 @@ class CatalogController extends Controller
         $path=(string)$model->thumbnail_path;
         $data['image_url']=$path===''?null:(preg_match('~^https?://~',$path)?$path:asset(str_starts_with($path,'storage/')?$path:'storage/'.ltrim($path,'/')));
         $data['type']=$type;
+        $data['rating_value']=is_numeric($model->rating_value)?(float)$model->rating_value:null;
+        $data['rating_count']=is_numeric($model->rating_count)?(int)$model->rating_count:null;
         $data['contact_whatsapp']=$this->bookingContact??=preg_replace('/\D+/','',(string)\App\Models\Setting::getValue('footer_whatsapp',''));
         foreach(self::TYPES[$type][2] as $relation) $data[$relation]=$model->$relation->map(function($item){
             return collect($item->toArray())->except(['created_at','updated_at'])->all();

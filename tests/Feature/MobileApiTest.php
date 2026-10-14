@@ -91,7 +91,7 @@ class MobileApiTest extends TestCase
         DB::table('home_promo_banners')->insert([['section'=>'discount','thumbnail_path'=>'ok.png','link_url'=>'https://bintangwisataholiday.com/paket-tour','is_active'=>true],['section'=>'discount','thumbnail_path'=>'hidden.png','link_url'=>'https://example.test','is_active'=>false]]);
         DB::table('settings')->insert(['key'=>'home_tabs','value'=>json_encode([['label'=>'Bad','url'=>'javascript:bad()']])]);
         DB::table('popup_widgets')->insert(['is_enabled'=>true,'show_on_mobile'=>true,'start_at'=>now()->addDay(),'title'=>'Future popup','image_path'=>'/storage/popups/promo.png']);
-        $response=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null)->assertDontSee('hidden.png')->assertDontSee('javascript:');
+        $response=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.blocks.2.key','discount')->assertJsonPath('data.blocks.3.key','missions')->assertJsonPath('data.popup',null)->assertDontSee('hidden.png')->assertDontSee('javascript:');
         DB::table('popup_widgets')->update(['start_at'=>now()->subDay()]);
         $popupResponse=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.title','Future popup');
         $this->assertStringEndsWith('/storage/popups/promo.png',$popupResponse->json('data.popup.image_url'));
@@ -101,6 +101,30 @@ class MobileApiTest extends TestCase
         DB::table('popup_widgets')->update(['exclude_paths'=>'["/"]']);
         $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null);
     }
+    public function test_home_cards_expose_real_prices_and_hide_unapproved_partner_packages()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->string('key')->primary();$t->text('value')->nullable();});
+        foreach(['home_ship_promo_enabled','home_umrah_promo_enabled','home_mice_promo_enabled'] as $key)DB::table('settings')->insert(['key'=>$key,'value'=>'0']);
+        Schema::table('tour_packages',function(Blueprint $t){
+            $t->string('slug');$t->unsignedBigInteger('category_id')->nullable();$t->string('title');$t->string('label');$t->boolean('is_active');$t->string('partner_review_status')->nullable();$t->string('thumbnail_path')->nullable();$t->string('duration_text')->nullable();$t->decimal('rating_value')->nullable();$t->integer('rating_count')->nullable();$t->timestamps();
+        });
+        Schema::create('tour_categories',function(Blueprint $t){$t->id();$t->string('name');});
+        $category=DB::table('tour_categories')->insertGetId(['name'=>'JOGJA']);
+        Schema::create('tour_itineraries',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('sort_order')->default(0);});
+        Schema::create('tour_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');});
+        Schema::create('tour_package_tiers',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('price');});
+        $id=DB::table('tour_packages')->insertGetId(['slug'=>'real-trip','category_id'=>$category,'title'=>'Real trip','label'=>'PROMO','is_active'=>true,'duration_text'=>'1D','rating_value'=>4.5,'rating_count'=>7]);
+        DB::table('tour_package_tiers')->insert([['tour_package_id'=>$id,'price'=>2606000],['tour_package_id'=>$id,'price'=>2078000],['tour_package_id'=>$id,'price'=>0]]);
+        DB::table('tour_packages')->insert(['slug'=>'pending-trip','title'=>'Hidden trip','label'=>'PROMO','is_active'=>true,'created_by_partner_id'=>99,'partner_review_status'=>'pending']);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonCount(1,'data.sections.0.products')->assertJsonPath('data.card_schema_version',3)->assertJsonPath('data.sections.0.key','tour')->assertJsonPath('data.sections.0.products.0.starting_price',2078000)->assertJsonPath('data.sections.0.products.0.price_unit','orang')->assertJsonPath('data.sections.0.products.0.category_name','JOGJA')->assertJsonPath('data.sections.0.products.0.duration_text','1D')->assertJsonPath('data.sections.0.products.0.rating_value',4.5)->assertJsonPath('data.sections.0.products.0.rating_count',7)->assertDontSee('pending-trip');
+        DB::table('settings')->insert([['key'=>'home_promo_mode','value'=>'custom'],['key'=>'home_promo_custom_ids','value'=>json_encode([$id])]]);
+        DB::table('tour_packages')->where('id',$id)->update(['rating_value'=>2.25,'rating_count'=>3,'label'=>'FLASH SALE','title'=>'Judul dari admin','duration_text'=>'2D']);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.sections.0.products.0.card_display.stars',5)->assertJsonPath('data.sections.0.products.0.card_display.rating_count',3)->assertJsonPath('data.sections.0.products.0.card_display.category_name','JOGJA')->assertJsonPath('data.sections.0.products.0.rating_value',2.25)->assertJsonPath('data.sections.0.products.0.rating_count',3)->assertJsonPath('data.sections.0.products.0.label','FLASH SALE')->assertJsonPath('data.sections.0.products.0.title','Judul dari admin')->assertJsonPath('data.sections.0.products.0.duration_text','2D');
+        $this->getJson('/api/v1/catalog/tour')->assertOk()->assertJsonPath('data.0.rating_value',2.25)->assertJsonPath('data.0.rating_count',3)->assertJsonPath('data.0.label','FLASH SALE');
+        DB::table('tour_packages')->where('id',$id)->update(['rating_value'=>null,'rating_count'=>null,'label'=>'','duration_text'=>null,'category_id'=>null]);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.sections.0.products.0.card_display.stars',5)->assertJsonPath('data.sections.0.products.0.card_display.rating_count',0)->assertJsonPath('data.sections.0.products.0.card_display.category_name','Tour')->assertJsonPath('data.sections.0.products.0.rating_value',null)->assertJsonPath('data.sections.0.products.0.rating_count',null)->assertJsonPath('data.sections.0.products.0.label','')->assertJsonPath('data.sections.0.products.0.category_name',null)->assertJsonPath('data.sections.0.products.0.duration_text',null);
+    }
+
     public function test_push_device_registration_requires_account_and_encrypts_device_token()
     {
         Schema::create('mobile_devices',function(Blueprint $t){$t->id();$t->unsignedBigInteger('user_id');$t->unsignedBigInteger('access_token_id');$t->string('token_hash')->unique();$t->text('token');$t->timestamps();});
@@ -149,6 +173,8 @@ class MobileApiTest extends TestCase
     {
         Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
         Schema::table('tour_packages',function(Blueprint $t){foreach(['title','slug','label','thumbnail_path','partner_review_status'] as $field)$t->text($field)->nullable();$t->boolean('is_active')->default(true);$t->timestamps();});
+        Schema::create('tour_categories',function(Blueprint $t){$t->id();$t->string('name');});
+        Schema::create('tour_package_tiers',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('price');});
         foreach(['home_ship_promo_enabled'=>'0','home_umrah_promo_enabled'=>'0','home_mice_promo_enabled'=>'0','home_promo_mode'=>'custom','home_promo_custom_ids'=>'[2,1,3]','hero_title'=>'Judul admin','mail_password'=>'PRIVATE'] as $key=>$value)DB::table('settings')->insert(compact('key','value'));
         DB::table('tour_packages')->insert([['id'=>1,'title'=>'First','slug'=>'first','created_by_partner_id'=>null,'partner_review_status'=>null],['id'=>2,'title'=>'Second','slug'=>'second','created_by_partner_id'=>null,'partner_review_status'=>null],['id'=>3,'title'=>'Hidden','slug'=>'hidden','created_by_partner_id'=>999,'partner_review_status'=>'pending']]);
         $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.hero.title','Judul admin')->assertJsonPath('data.sections.0.products.0.slug','second')->assertJsonCount(2,'data.sections.0.products')->assertDontSee('PRIVATE');
