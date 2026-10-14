@@ -26,7 +26,7 @@ class GuestBookingController extends Controller
             abort_if(now()->gt($entry->expires_at),403,'Akses tamu sudah berakhir.');
             if($entry->order_id)return $this->result(Order::findOrFail($entry->order_id));
             $model=CatalogController::TYPES[$type][0];$product=$model::where('slug',$slug)->where('is_active',true)->firstOrFail();
-            abort_if($product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+            abort_if($type!=='hotel'&&$product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
             if($type==='hotel'&&$request->filled('room_id'))abort_unless($product->rooms()->whereKey($request->room_id)->exists(),422);
             $request->merge(['promo_id'=>null]);
             if($request->filled('promo_code')){

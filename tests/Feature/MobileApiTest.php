@@ -77,6 +77,30 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/unknown')->assertNotFound();
         $this->getJson('/api/v1/catalog/types')->assertOk()->assertJsonCount(7,'data');
     }
+    public function test_hotel_catalog_matches_web_publication_and_updates_after_admin_changes()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        Schema::table('hotel_packages',function(Blueprint $t){$t->string('slug');$t->string('title');$t->boolean('is_active');$t->string('partner_review_status')->nullable();$t->timestamps();});
+        Schema::create('hotel_rooms',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');$t->integer('sort_order')->default(0);$t->integer('price')->default(500000);});
+        Schema::create('hotel_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');});
+        DB::table('hotel_packages')->insert([
+            ['id'=>1,'slug'=>'existing','title'=>'Existing','is_active'=>1,'created_by_partner_id'=>null,'partner_review_status'=>null],
+            ['id'=>2,'slug'=>'new-atrium','title'=>'The New Atrium','is_active'=>1,'created_by_partner_id'=>12,'partner_review_status'=>'pending'],
+            ['id'=>3,'slug'=>'asri','title'=>'Hotel Asri','is_active'=>0,'created_by_partner_id'=>12,'partner_review_status'=>'pending'],
+        ]);
+        $web=app(\App\Http\Controllers\Front\HotelController::class)->index(\Illuminate\Http\Request::create('/hotel-vila'))->getData()['packages']->pluck('slug')->sort()->values()->all();
+        $response=$this->getJson('/api/v1/catalog/hotel')->assertOk()->assertJsonCount(2,'data');
+        $actual=collect($response->json('data'))->pluck('slug')->sort()->values()->all();
+        $this->assertSame($web,$actual);
+        $this->getJson('/api/v1/catalog/hotel/new-atrium')->assertOk()->assertJsonPath('data.slug','new-atrium');
+        $this->getJson('/api/v1/catalog/hotel/asri')->assertNotFound();
+        DB::table('hotel_packages')->where('id',2)->update(['title'=>'Updated Atrium','is_active'=>0]);
+        $this->getJson('/api/v1/catalog/hotel?q=atrium')->assertOk()->assertJsonCount(0,'data');
+        DB::table('hotel_packages')->where('id',2)->update(['is_active'=>1]);
+        $this->getJson('/api/v1/catalog/hotel?q=atrium')->assertOk()->assertJsonPath('data.0.title','Updated Atrium');
+        DB::table('hotel_packages')->where('id',2)->delete();
+        $this->getJson('/api/v1/catalog/hotel/new-atrium')->assertNotFound();
+    }
     public function test_account_requires_authentication()
     {
         $this->getJson('/api/v1/auth/me')->assertUnauthorized();

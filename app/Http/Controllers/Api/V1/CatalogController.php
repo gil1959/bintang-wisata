@@ -24,7 +24,9 @@ class CatalogController extends Controller
         abort_unless(isset(self::TYPES[$type]),404);
         [$model,,$relations]=self::TYPES[$type];
         $query=$model::query()->where('is_active',true)->with($relations);
-        if (in_array('created_by_partner_id',(new $model)->getFillable(),true)) {
+        // HotelController and HotelOrderController publish hotels using is_active.
+        // Keep the API aligned when an admin activates an existing partner hotel.
+        if ($type!=='hotel' && in_array('created_by_partner_id',(new $model)->getFillable(),true)) {
             $query->where(function($q){
                 $q->whereNull('created_by_partner_id')->orWhere('partner_review_status','approved');
             });

@@ -433,6 +433,31 @@ class MobileCheckoutTest extends TestCase
         $this->postJson('/api/v1/catalog/tour/trip/quote',$body)->assertUnprocessable();
         $this->assertSame(1,Order::count());
     }
+    public function test_web_active_partner_hotel_can_be_quoted_and_booked_by_member()
+    {
+        $this->user();
+        DB::table('hotel_packages')->insert(['id'=>1,'title'=>'New Atrium','slug'=>'atrium','created_by_partner_id'=>12,'partner_review_status'=>'pending','is_active'=>true]);
+        $body=['checkin_date'=>now()->addDay()->toDateString(),'checkout_date'=>now()->addDays(2)->toDateString(),'room_count'=>1,'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/hotel/atrium/quote',$body)->assertOk()->assertJsonPath('data.total',100000);
+        $this->postJson('/api/v1/bookings/hotel/atrium',$body)->assertCreated()->assertJsonPath('data.final_price',100000);
+        DB::table('hotel_packages')->where('id',1)->update(['is_active'=>false]);
+        $this->postJson('/api/v1/catalog/hotel/atrium/quote',$body)->assertNotFound();
+        $body['idempotency_key']=(string)\Illuminate\Support\Str::uuid();
+        $this->postJson('/api/v1/bookings/hotel/atrium',$body)->assertNotFound();
+        $this->assertSame(1,Order::count());
+    }
+    public function test_guest_can_book_web_active_partner_hotel_but_not_inactive_hotel()
+    {
+        Schema::create('mobile_guest_bookings',function(Blueprint $t){$t->id();$t->string('token_hash')->unique();$t->string('fingerprint');$t->unsignedBigInteger('order_id')->nullable();$t->timestamp('expires_at');$t->timestamps();});
+        DB::table('hotel_packages')->insert(['id'=>1,'title'=>'New Atrium','slug'=>'atrium','created_by_partner_id'=>12,'partner_review_status'=>'pending','is_active'=>false]);
+        $body=['email'=>'guest-hotel@example.test','checkin_date'=>now()->addDay()->toDateString(),'checkout_date'=>now()->addDays(2)->toDateString(),'room_count'=>1,'name'=>'Guest','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $headers=['X-Guest-Token'=>str_repeat('c',64)];
+        $this->postJson('/api/v1/guest/bookings/hotel/atrium',$body,$headers)->assertNotFound();
+        $this->assertSame(0,Order::count());
+        DB::table('hotel_packages')->where('id',1)->update(['is_active'=>true]);
+        $this->postJson('/api/v1/guest/bookings/hotel/atrium',$body,$headers)->assertCreated()->assertJsonPath('data.final_price',100000);
+        $this->assertSame(1,Order::count());
+    }
     public function test_hotel_breakfast_fallback_matches_quote_and_created_booking()
     {
         $this->user();

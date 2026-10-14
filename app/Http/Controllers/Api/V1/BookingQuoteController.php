@@ -14,7 +14,7 @@ class BookingQuoteController extends Controller
         $model=CatalogController::TYPES[$type][0];
         $relations=match($type){'hotel'=>['rooms'],'restoran'=>['menus'],'rent_car'=>[],default=>['tiers']};
         $product=$model::with($relations)->where('slug',$slug)->where('is_active',true)->firstOrFail();
-        abort_if($product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+        abort_if($type!=='hotel'&&$product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
         $request->validate(['promo_code'=>'nullable|string|max:100','email'=>'nullable|email']);
         if(in_array($type,['tour','ship','umrah','mice'])){
             $request->validate(['tier_id'=>'required|integer','participants'=>$type==='ship'?'nullable|integer|min:1|max:9999':('required|integer|min:1|max:'.($type==='umrah'?'999':'9999')),'qty'=>'nullable|integer|min:1|max:999']);
