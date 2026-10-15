@@ -51,14 +51,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Set initial content dari textarea (edit page)
-        const initialHtml = ta.value || '';
+        let initialHtml = ta.value || '';
+        // Jika konten di database mengandung HTML entity double-escaped (e.g. &lt;p&gt;), decode sekali agar tidak tampil sebagai raw HTML text
+        if (initialHtml.includes('&lt;') && initialHtml.includes('&gt;')) {
+            const parser = new DOMParser();
+            const decoded = parser.parseFromString(initialHtml, 'text/html').body.textContent;
+            if (decoded && decoded.includes('<')) {
+                initialHtml = decoded;
+            }
+        }
         q.root.innerHTML = initialHtml;
 
-        // Saat submit: update textarea value
+        // Sinkronisasi realtime ke textarea
+        q.on('text-change', function () {
+            const text = q.getText().trim();
+            ta.value = text.length === 0 ? '' : q.root.innerHTML;
+        });
+
+        // Saat submit: pastikan textarea value sinkron dan bersihkan tag kosong
         const form = ta.closest('form');
         if (form) {
             form.addEventListener('submit', function () {
-                ta.value = q.root.innerHTML;
+                const text = q.getText().trim();
+                ta.value = text.length === 0 ? '' : q.root.innerHTML;
             });
         }
     });

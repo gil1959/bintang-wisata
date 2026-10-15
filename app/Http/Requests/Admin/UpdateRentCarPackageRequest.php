@@ -21,6 +21,8 @@ class UpdateRentCarPackageRequest extends FormRequest
             'price_per_12_hours' => 'required|numeric|min:0',
             'price_per_24_hours' => 'required|numeric|min:0',
             'thumbnail' => 'nullable|image|max:2048',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'image|max:3072',
             'is_active' => 'boolean',
 
             'features' => 'nullable|array',

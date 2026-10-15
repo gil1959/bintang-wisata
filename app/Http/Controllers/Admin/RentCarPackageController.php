@@ -80,6 +80,15 @@ class RentCarPackageController extends Controller
 
             $package = RentCarPackage::create($data);
 
+            // Simpan gallery foto
+            if ($request->hasFile('gallery')) {
+                foreach ($request->file('gallery') as $file) {
+                    if ($file->isValid()) {
+                        $path = $file->store('rentcar/gallery', 'public');
+                        $package->photos()->create(['file_path' => $path]);
+                    }
+                }
+            }
 
             if ($request->hasFile('seo_image')) {
                 if ($package->seo_image_path) {
@@ -100,7 +109,7 @@ class RentCarPackageController extends Controller
 
     public function edit(RentCarPackage $rent_car_package)
     {
-        $package = $rent_car_package;
+        $package = $rent_car_package->load('photos');
         $categories = RentCarCategory::orderBy('name')->get();
         return view('admin.rentcar.edit', compact('package', 'categories'));
     }
@@ -119,6 +128,16 @@ class RentCarPackageController extends Controller
                     Storage::disk('public')->delete($rent_car_package->thumbnail_path);
                 }
                 $data['thumbnail_path'] = $request->file('thumbnail')->store('rentcar', 'public');
+            }
+
+            // Simpan foto gallery baru
+            if ($request->hasFile('gallery')) {
+                foreach ($request->file('gallery') as $file) {
+                    if ($file->isValid()) {
+                        $path = $file->store('rentcar/gallery', 'public');
+                        $rent_car_package->photos()->create(['file_path' => $path]);
+                    }
+                }
             }
 
             // Update features
@@ -150,10 +169,27 @@ class RentCarPackageController extends Controller
             ->with('success', 'Package updated successfully.');
     }
 
+    public function deletePhoto(\App\Models\RentCarPackagePhoto $photo)
+    {
+        if ($photo->file_path && Storage::disk('public')->exists($photo->file_path)) {
+            Storage::disk('public')->delete($photo->file_path);
+        }
+
+        $photo->delete();
+
+        return back()->with('success', 'Foto galeri berhasil dihapus.');
+    }
+
     public function destroy(RentCarPackage $rent_car_package)
     {
         if ($rent_car_package->thumbnail_path) {
             Storage::disk('public')->delete($rent_car_package->thumbnail_path);
+        }
+
+        foreach ($rent_car_package->photos as $photo) {
+            if ($photo->file_path && Storage::disk('public')->exists($photo->file_path)) {
+                Storage::disk('public')->delete($photo->file_path);
+            }
         }
 
         $rent_car_package->delete();

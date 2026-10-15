@@ -64,6 +64,16 @@ $galleryImages[] = [
 ];
 }
 
+if ($package->photos && $package->photos->count()) {
+    foreach ($package->photos as $photo) {
+        $galleryImages[] = [
+            'src' => asset('storage/' . $photo->file_path),
+            'alt' => 'Gallery photo',
+            'is_thumb' => false,
+        ];
+    }
+}
+
 $i18n = [
 'per_day' => $isEn ? '/ Hour' : '/ Jam',
 'package_features' => $isEn ? 'Package Features' : 'Fitur Paket',
@@ -95,22 +105,44 @@ $i18n = [
     {{-- LEFT CONTENT --}}
     <div class="lg:col-span-2 space-y-8">
 
-      {{-- IMAGE --}}
-      <div class="rounded-3xl overflow-hidden shadow-sm border border-slate-200 bg-white">
-        @if($package->thumbnail_path)
-        <button type="button" class="block w-full" data-lb-open="0">
+      {{-- THUMBNAIL (STYLE SEPERTI PAKET TOUR DENGAN BORDER & ROUNDED) --}}
+      @if($package->thumbnail_path)
+      <div class="-mt-4 -mx-4 md:mx-0">
+        <button type="button" class="block w-full rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:opacity-95 transition bg-white p-1.5" data-lb-open="0">
           <img
             src="{{ asset('storage/' . $package->thumbnail_path) }}"
             alt="{{ $title }}"
-            class="w-full h-[360px] object-cover cursor-zoom-in">
+            class="w-full h-64 md:h-80 object-cover rounded-xl cursor-zoom-in">
         </button>
-        @else
-        <img
-          src="https://via.placeholder.com/1200x600?text=Rent+Car"
-          alt="{{ $title }}"
-          class="w-full h-[360px] object-cover">
-        @endif
       </div>
+      @else
+      <div class="-mt-4 -mx-4 md:mx-0">
+        <div class="w-full rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white p-1.5">
+          <img
+            src="https://via.placeholder.com/1200x600?text=Rent+Car"
+            alt="{{ $title }}"
+            class="w-full h-64 md:h-80 object-cover rounded-xl">
+        </div>
+      </div>
+      @endif
+
+      {{-- GALLERY / FOTO TAMBAHAN (SEPERTI PAKET TOUR) --}}
+      @if($package->photos && $package->photos->count())
+      <section class="mt-2">
+        <div class="grid grid-cols-3 gap-3">
+          @foreach($package->photos as $idx => $photo)
+          @php $openIndex = ($package->thumbnail_path ? 1 : 0) + $idx; @endphp
+          <button type="button" class="block rounded-xl border border-slate-200 bg-white p-1 shadow-xs hover:border-sky-300 hover:opacity-95 transition overflow-hidden" data-lb-open="{{ $openIndex }}">
+            <img
+              src="{{ asset('storage/' . $photo->file_path) }}"
+              class="w-full h-24 md:h-28 object-cover rounded-lg cursor-zoom-in"
+              alt="Gallery photo"
+              loading="lazy">
+          </button>
+          @endforeach
+        </div>
+      </section>
+      @endif
 
       {{-- TITLE + PRICE --}}
       <div>
@@ -147,6 +179,22 @@ $i18n = [
         <div class="text-sm text-slate-500">{{ $i18n['no_features'] }}</div>
         @endif
       </section>
+
+      {{-- DESKRIPSI (STYLE SEPERTI PAKET TOUR) --}}
+      @if(!empty($descHtml) && trim(strip_tags($descHtml)) !== '')
+      <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <h2 class="text-lg font-bold text-slate-900 mb-4 text-[#0194F3] flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-[#0194F3]"></i>
+          <span>{{ $i18n['description'] }}</span>
+        </h2>
+        @php
+        $descToRender = html_entity_decode((string)$descHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        @endphp
+        <div class="quill-content break-words text-slate-700 leading-relaxed">
+          {!! $descToRender !!}
+        </div>
+      </section>
+      @endif
 
     </div>
 
@@ -250,19 +298,6 @@ $i18n = [
     </aside>
 
   </div>
-  {{-- DESKRIPSI --}}
-  @if(!empty($package->long_description))
-  <div class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="text-lg font-extrabold text-slate-900 mb-4">{{ $i18n['description'] }}</div>
-    <div class="prose max-w-none break-all overflow-hidden">
-      @php
-      $descToRender = html_entity_decode((string)$descHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-      @endphp
-      {!! $descToRender !!}
-    </div>
-
-  </div>
-  @endif
 
   {{-- REVIEWS --}}
   <div class="mt-14">

@@ -29,6 +29,21 @@
     </form>
 
 </div>
+
+<form id="deletePhotoForm" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+    window.__bwDeletePhoto = function(actionUrl) {
+        if (!confirm('Hapus foto galeri ini?')) return;
+        const f = document.getElementById('deletePhotoForm');
+        f.action = actionUrl;
+        f.submit();
+    }
+</script>
+
 @include('admin.partials.wysiwyg')
 
 @endsection

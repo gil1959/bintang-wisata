@@ -56,7 +56,7 @@ class RentCarController extends Controller
      */
     public function show($slug)
     {
-        $package = RentCarPackage::where('slug', $slug)->firstOrFail();
+        $package = RentCarPackage::where('slug', $slug)->with(['photos', 'category'])->firstOrFail();
 
         return view('front.rentcar.show', compact('package'));
     }

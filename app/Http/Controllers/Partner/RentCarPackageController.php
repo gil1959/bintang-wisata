@@ -69,7 +69,16 @@ return view('partner.rentcar.create', compact('categories'));
             $data['seo_image_path'] = $request->file('seo_image')->store('seo_images', 'public');
         }
 
-        RentCarPackage::create($data);
+        $package = RentCarPackage::create($data);
+
+        if ($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $file) {
+                if ($file->isValid()) {
+                    $path = $file->store('rentcar/gallery', 'public');
+                    $package->photos()->create(['file_path' => $path]);
+                }
+            }
+        }
 
         return redirect()->route('partner.rent-car-packages.index')
             ->with('success', 'Package created and waiting admin review.');
@@ -81,7 +90,7 @@ return view('partner.rentcar.create', compact('categories'));
 
         abort_unless((int)$rent_car_package->created_by_partner_id === (int)auth()->id(), 403);
 
-        $package = $rent_car_package;
+        $package = $rent_car_package->load('photos');
         $categories = RentCarCategory::query()
     ->where(function ($q) {
         $q->whereNull('created_by_partner_id')
@@ -107,6 +116,15 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
                 Storage::disk('public')->delete($rent_car_package->thumbnail_path);
             }
             $data['thumbnail_path'] = $request->file('thumbnail')->store('rentcar', 'public');
+        }
+
+        if ($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $file) {
+                if ($file->isValid()) {
+                    $path = $file->store('rentcar/gallery', 'public');
+                    $rent_car_package->photos()->create(['file_path' => $path]);
+                }
+            }
         }
 
         $cleanFeatures = [];
@@ -140,6 +158,20 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
             ->with('success', 'Package updated and waiting admin review.');
     }
 
+    public function deletePhoto(\App\Models\RentCarPackagePhoto $photo)
+    {
+        abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
+        abort_unless((int)$photo->package->created_by_partner_id === (int)auth()->id(), 403);
+
+        if ($photo->file_path && Storage::disk('public')->exists($photo->file_path)) {
+            Storage::disk('public')->delete($photo->file_path);
+        }
+
+        $photo->delete();
+
+        return back()->with('success', 'Foto galeri berhasil dihapus.');
+    }
+
     public function destroy(RentCarPackage $rent_car_package)
     {
         abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
@@ -147,6 +179,12 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
 
         if ($rent_car_package->thumbnail_path) {
             Storage::disk('public')->delete($rent_car_package->thumbnail_path);
+        }
+
+        foreach ($rent_car_package->photos as $photo) {
+            if ($photo->file_path && Storage::disk('public')->exists($photo->file_path)) {
+                Storage::disk('public')->delete($photo->file_path);
+            }
         }
 
         $rent_car_package->delete();

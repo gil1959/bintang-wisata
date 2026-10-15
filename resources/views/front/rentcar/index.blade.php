@@ -317,12 +317,12 @@
             <div class="relative bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200">
                 <div class="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-3 sm:gap-4">
                     
-                    {{-- Left: Car Image (Compact, Fixed Dimensions) --}}
-                    <a href="{{ $detailUrl }}" class="shrink-0 flex items-center justify-center overflow-hidden" style="width: 170px; height: 105px;">
+                    {{-- Left: Car Image (Compact with Rounded Border Frame) --}}
+                    <a href="{{ $detailUrl }}" class="shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 p-2 shadow-xs hover:border-sky-300 transition duration-200" style="width: 170px; height: 105px;">
                         <img
                             src="{{ $imgUrl }}"
                             alt="{{ $cardTitle }}"
-                            class="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
+                            class="max-h-full max-w-full object-contain rounded-lg transition-transform duration-300 hover:scale-105"
                             loading="lazy">
                     </a>
 

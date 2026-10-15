@@ -61,60 +61,95 @@
         </div>
     </div>
 
-    {{-- Thumbnail --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        <div class="lg:col-span-7">
-            <label class="block text-sm font-extrabold text-slate-800 mb-1">Thumbnail</label>
-            <input type="file"
-                name="thumbnail"
-                id="rentcar_thumb_input"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
-                accept="image/*"
-                onchange="previewRentcarThumb(this)">
-            <div class="text-xs text-slate-500 mt-1">JPG/PNG/WEBP disarankan.</div>
-            {{-- Live preview --}}
-            <div id="rentcar_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
-                <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Foto Baru</div>
-                <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
-                    <img id="rentcar_thumb_new" src="" class="h-full w-full object-cover" alt="">
+    {{-- Photos: Thumbnail & Gallery --}}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
+        <div>
+            <div class="text-sm font-extrabold text-slate-900">Foto Thumbnail & Galeri Foto</div>
+            <div class="text-xs text-slate-500 mt-0.5">Thumbnail untuk cover utama kartu & galeri foto tambahan untuk tampilan detail.</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            {{-- Thumbnail Input --}}
+            <div class="md:col-span-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <label class="block text-sm font-extrabold text-slate-800 mb-1">Thumbnail Utama</label>
+                <input type="file"
+                    name="thumbnail"
+                    id="rentcar_thumb_input"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                    accept="image/*"
+                    onchange="previewRentcarThumb(this)">
+                <div class="text-xs text-slate-500 mt-1">PNG/JPG/WEBP disarankan. Maks 2MB.</div>
+
+                {{-- Live preview thumbnail --}}
+                <div id="rentcar_thumb_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                    <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Foto Baru</div>
+                    <div class="h-28 rounded-xl overflow-hidden border border-slate-200">
+                        <img id="rentcar_thumb_new" src="" class="h-full w-full object-cover" alt="">
+                    </div>
+                </div>
+
+                @isset($package->thumbnail_path)
+                <div id="rentcar-thumb-existing" class="mt-3">
+                    <div class="text-xs font-bold text-slate-600 mb-1">Thumbnail Saat Ini:</div>
+                    <div class="h-28 w-44 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <img src="{{ asset('storage/' . $package->thumbnail_path) }}"
+                            id="rentcar_thumb_existing_img"
+                            class="h-full w-full object-cover"
+                            alt="Thumbnail">
+                    </div>
+                </div>
+                @endisset
+            </div>
+
+            {{-- Gallery Input --}}
+            <div class="md:col-span-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <label class="block text-sm font-extrabold text-slate-800 mb-1">Galeri Foto Tambahan</label>
+                <input type="file"
+                    name="gallery[]"
+                    id="rentcar_gallery_input"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"
+                    accept="image/*"
+                    multiple
+                    onchange="previewRentcarGallery(this)">
+                <div class="text-xs text-slate-500 mt-1">Pilih beberapa foto sekaligus (PNG/JPG/WEBP, maks 3MB/foto).</div>
+
+                {{-- Live preview gallery baru --}}
+                <div id="rentcar_gallery_new_wrap" class="hidden mt-3 rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                    <div class="text-xs font-extrabold text-blue-600 mb-2">Preview Galeri Baru</div>
+                    <div id="rentcar_gallery_new_grid" class="grid grid-cols-3 gap-2"></div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-5">
-            @isset($package->thumbnail_path)
-            <div id="rentcar-thumb-existing" class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div class="text-xs font-extrabold text-slate-600 mb-2">Current Thumbnail</div>
-                <div class="h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-                    <img src="{{ asset('storage/' . $package->thumbnail_path) }}"
-                        id="rentcar_thumb_existing_img"
-                        class="h-full w-full object-cover"
-                        alt="Thumbnail">
+        {{-- Existing Gallery Photos --}}
+        @if(isset($package) && $package->photos && $package->photos->count())
+        <div class="pt-3 border-t border-slate-200">
+            <div class="text-sm font-extrabold text-slate-900 mb-3">Galeri Foto Tersimpan</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                @foreach($package->photos as $photo)
+                <div class="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xs">
+                    <div class="h-24 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <img src="{{ asset('storage/' . $photo->file_path) }}"
+                            class="h-full w-full object-cover"
+                            alt="Galeri">
+                    </div>
+                    <div class="mt-2.5">
+                        <button type="button"
+                            class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-white transition cursor-pointer"
+                            style="background:#ef4444"
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'"
+                            onclick="window.__bwDeletePhoto('{{ route('admin.rent-car-packages.delete-photo', $photo->id) }}')">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            Hapus
+                        </button>
+                    </div>
                 </div>
+                @endforeach
             </div>
-            @endisset
         </div>
+        @endif
     </div>
-
-    <script>
-    function previewRentcarThumb(input) {
-        const wrap = document.getElementById('rentcar_thumb_new_wrap');
-        const img  = document.getElementById('rentcar_thumb_new');
-        const existing = document.getElementById('rentcar_thumb_existing_img');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                img.src = e.target.result;
-                wrap.classList.remove('hidden');
-                if (existing) existing.style.opacity = '0.4';
-            };
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            wrap.classList.add('hidden');
-            if (existing) existing.style.opacity = '1';
-        }
-    }
-    </script>
 
 
     {{-- Status --}}
@@ -140,7 +175,7 @@
 
             <button type="button"
                 id="add-feature"
-                class="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold border border-slate-200 bg-white hover:bg-slate-50 transition">
+                class="relative z-10 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-xs font-extrabold border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition shadow-xs">
                 <i data-lucide="plus" class="w-4 h-4" style="color:#0194F3;"></i>
                 Add Feature
             </button>
@@ -228,17 +263,53 @@
 
 {{-- SCRIPT --}}
 <script>
+    function previewRentcarThumb(input) {
+        const wrap = document.getElementById('rentcar_thumb_new_wrap');
+        const img  = document.getElementById('rentcar_thumb_new');
+        const existing = document.getElementById('rentcar-thumb-existing');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                wrap.classList.remove('hidden');
+                if (existing) existing.style.opacity = '0.4';
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            wrap.classList.add('hidden');
+            if (existing) existing.style.opacity = '1';
+        }
+    }
+
+    function previewRentcarGallery(input) {
+        const wrap = document.getElementById('rentcar_gallery_new_wrap');
+        const grid = document.getElementById('rentcar_gallery_new_grid');
+        grid.innerHTML = '';
+        if (input.files && input.files.length > 0) {
+            wrap.classList.remove('hidden');
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const box = document.createElement('div');
+                    box.className = 'h-20 rounded-xl overflow-hidden border border-slate-200 bg-white';
+                    box.innerHTML = `<img src="${e.target.result}" class="h-full w-full object-cover">`;
+                    grid.appendChild(box);
+                };
+                reader.readAsDataURL(file);
+            });
+        } else {
+            wrap.classList.add('hidden');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const list = document.getElementById('feature-list');
         const addBtn = document.getElementById('add-feature');
 
-        let index = {
-            {
-                count($features)
-            }
-        };
+        let index = {{ is_array($features) ? count($features) : 0 }};
 
-        addBtn?.addEventListener('click', function() {
+        addBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
             const row = document.createElement('div');
             row.className = 'feature-row rounded-2xl border border-slate-200 bg-white p-3';
 
@@ -259,28 +330,34 @@
                         <input type="checkbox"
                                class="rounded border-slate-300"
                                name="features[${index}][available]"
-                               value="1">
+                               value="1"
+                               checked>
                         <span class="font-bold text-slate-700">Yes</span>
                     </label>
                 </div>
 
                 <div class="md:col-span-2 md:text-right">
                     <button type="button"
-                            class="remove-feature inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-extrabold text-white transition w-full md:w-auto"
-                            style="background:#ef4444">
+                            class="remove-feature cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-extrabold text-white transition w-full md:w-auto"
+                            style="background:#ef4444"
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'">
+                        <i data-lucide="x" class="w-4 h-4"></i>
                         <span>Remove</span>
                     </button>
                 </div>
             </div>
-        `;
+            `;
 
             list.appendChild(row);
             index++;
+            if (window.lucide) lucide.createIcons();
         });
 
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.remove-feature');
             if (!btn) return;
+            e.preventDefault();
             btn.closest('.feature-row')?.remove();
         });
     });

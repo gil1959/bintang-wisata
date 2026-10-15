@@ -60,8 +60,15 @@ class RentCarPackage extends Model
     {
         return $this->morphMany(Review::class, 'reviewable');
     }
+
+    public function photos()
+    {
+        return $this->hasMany(RentCarPackagePhoto::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(RentCarCategory::class, 'category_id');
     }
 }
+

@@ -232,6 +232,8 @@ Route::prefix('bw-admin')
         Route::post('users/{user}/impersonate', [AdminUserController::class, 'impersonate'])
             ->name('users.impersonate')->middleware('permission:admin.users.manage');
         // Rent Car Package CRUD
+        Route::delete('rent-car-packages/photo/{photo}', [RentCarPackageController::class, 'deletePhoto'])
+            ->name('rent-car-packages.delete-photo')->middleware('permission:admin.dashboard.view');
         Route::resource('rent-car-packages', RentCarPackageController::class)->middleware('permission:admin.rent-car-packages.manage');
         Route::delete('restoran-packages/photo/{photo}', [\App\Http\Controllers\Admin\RestoranPackageController::class, 'deletePhoto'])
             ->name('restoran-packages.delete-photo')->middleware('permission:admin.dashboard.view');
@@ -494,6 +496,8 @@ Route::prefix('partner')->name('partner.')->middleware(['auth', 'impersonate_or_
     Route::delete('tour-packages/photo/{photo}', [\App\Http\Controllers\Partner\TourPackageController::class, 'deletePhoto'])
         ->name('tour-packages.delete-photo');
 
+    Route::delete('rent-car-packages/photo/{photo}', [\App\Http\Controllers\Partner\RentCarPackageController::class, 'deletePhoto'])
+        ->name('rent-car-packages.delete-photo');
     Route::resource('rent-car-packages', \App\Http\Controllers\Partner\RentCarPackageController::class);
 
     // agency_restoran
