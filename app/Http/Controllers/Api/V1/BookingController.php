@@ -13,12 +13,13 @@ class BookingController extends Controller
     {
         $controllers=[
             'tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController',
-            'hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController',
+            'hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController','travel_bus'=>'TravelBusOrderController',
         ];
         abort_unless(isset($controllers[$type]),404);
         $class=CatalogController::TYPES[$type][0];
         $package=$class::where('slug',$slug)->where('is_active',true)->firstOrFail();
-        if($package->created_by_partner_id) abort_unless($package->partner_review_status==='approved',404);
+        if($type!=='hotel'&&$package->created_by_partner_id) abort_unless($package->partner_review_status==='approved',404);
+        abort_if($type==='travel_bus'&&$package->partner_review_status!=='approved',404);
         if($type==='hotel' && $request->filled('room_id')) abort_unless($package->rooms()->whereKey($request->room_id)->exists(),422,'Pilihan kamar tidak tersedia.');
         $request->validate(['idempotency_key'=>'required|uuid','promo_code'=>'nullable|string|max:100']);
         $request->merge(['email'=>$request->user()->email]);
@@ -32,7 +33,7 @@ class BookingController extends Controller
                 abort_if(Order::where('customer_email',$request->user()->email)->where('promo_id',$promo->id)->exists(),422,'Kode promo ini sudah pernah digunakan untuk email ini.');
                 $request->merge(['promo_id'=>$promo->id]);
             }
-            $response=app('App\\Http\\Controllers\\Front\\'.$controllers[$type])->draft($request,$slug);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,'App\\Http\\Controllers\\Front\\'.$controllers[$type],'draft',null,['slug'=>$slug]);
             if($response->getStatusCode()>=400) throw new HttpResponseException($response);
             $payload=$response->getData(true);
             $id=(int)basename((string)parse_url($payload['redirect']??'',PHP_URL_PATH));

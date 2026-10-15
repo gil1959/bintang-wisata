@@ -27,6 +27,8 @@ class MobileApiTest extends TestCase
         Schema::create('personal_access_tokens',function(Blueprint $t){$t->id();$t->morphs('tokenable');$t->string('name');$t->string('token',64)->unique();$t->text('abilities')->nullable();$t->timestamp('last_used_at')->nullable();$t->timestamps();});
         Schema::create('rent_car_packages',function(Blueprint $t){$t->id();$t->string('slug');$t->string('title');$t->boolean('is_active');$t->unsignedBigInteger('created_by_partner_id')->nullable();$t->string('partner_review_status')->nullable();$t->timestamps();});
         foreach(['tour_packages','ship_packages','hotel_packages','restoran_packages'] as $table) Schema::create($table,function(Blueprint $t){$t->id();$t->unsignedBigInteger('created_by_partner_id')->nullable();});
+        Schema::create('travel_bus_packages',function(Blueprint $t){$t->id();foreach((new \App\Models\TravelBusPackage)->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});
+        Schema::create('travel_bus_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('travel_bus_package_id');$t->text('photo_path');$t->timestamps();});
         Schema::create('orders',function(Blueprint $t){$t->id();$t->unsignedBigInteger('user_id')->nullable();$t->string('customer_email');$t->string('invoice_number');$t->string('product_name');$t->string('type');$t->unsignedBigInteger('product_id');$t->string('order_status')->default('pending');$t->string('payment_status')->default('unpaid');$t->integer('final_price')->default(100000);$t->timestamps();});
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         foreach(['user','partner','admin','site_moderator'] as $role) Role::create(['name'=>$role,'guard_name'=>'web']);
@@ -41,6 +43,20 @@ class MobileApiTest extends TestCase
         $this->getJson($url.'&tampered=1')->assertForbidden();
         $this->getJson($url)->assertOk();$this->assertTrue($user->fresh()->hasVerifiedEmail());
     }
+    public function test_browser_email_verification_shows_branded_result_and_rejects_expired_links()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active');$t->integer('sort_order');});
+        $user=User::create(['name'=>'New buyer','email'=>'new@example.test','password'=>Hash::make('Password123')]);$user->assignRole('user');
+        $expired=URL::temporarySignedRoute('mobile.verify',now()->subMinute(),['id'=>$user->id,'hash'=>sha1($user->email)]);
+        $this->get($expired)->assertForbidden()->assertSee('Tautan verifikasi tidak berlaku')->assertSee('bintangwisata://auth/verified',false);
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $url=URL::temporarySignedRoute('mobile.verify',now()->addMinutes(10),['id'=>$user->id,'hash'=>sha1($user->email)]);
+        $this->get($url)->assertOk()->assertSee('Email berhasil diverifikasi')->assertSee('Kembali ke aplikasi')->assertDontSee($user->email);
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $this->get($url)->assertOk()->assertSee('Email berhasil diverifikasi');
+        $this->getJson($url)->assertOk()->assertJsonPath('message','Email sudah diverifikasi. Silakan kembali ke aplikasi.');
+    }
     public function test_login_reports_each_role_and_denies_suspended_accounts()
     {
         foreach(['user','partner','admin','site_moderator'] as $role){
@@ -52,6 +68,7 @@ class MobileApiTest extends TestCase
     }
     public function test_catalog_hides_inactive_and_unapproved_partner_products()
     {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
         DB::table('rent_car_packages')->insert([
             ['slug'=>'public','title'=>'Mobil Publik','is_active'=>1,'created_by_partner_id'=>null,'partner_review_status'=>null],
             ['slug'=>'inactive','title'=>'Mobil Nonaktif','is_active'=>0,'created_by_partner_id'=>null,'partner_review_status'=>null],
@@ -60,7 +77,71 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/rent_car')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.slug','public');
         $this->getJson('/api/v1/catalog/rent_car/pending')->assertNotFound();
         $this->getJson('/api/v1/catalog/unknown')->assertNotFound();
-        $this->getJson('/api/v1/catalog/types')->assertOk()->assertJsonCount(7,'data');
+        $this->getJson('/api/v1/catalog/types')->assertOk()->assertJsonCount(8,'data');
+    }
+    public function test_hotel_catalog_matches_web_publication_and_updates_after_admin_changes()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        Schema::table('hotel_packages',function(Blueprint $t){$t->string('slug');$t->string('title');$t->boolean('is_active');$t->string('partner_review_status')->nullable();$t->timestamps();});
+        Schema::create('hotel_rooms',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');$t->integer('sort_order')->default(0);$t->integer('price')->default(500000);});
+        Schema::create('hotel_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');});
+        DB::table('hotel_packages')->insert([
+            ['id'=>1,'slug'=>'existing','title'=>'Existing','is_active'=>1,'created_by_partner_id'=>null,'partner_review_status'=>null],
+            ['id'=>2,'slug'=>'new-atrium','title'=>'The New Atrium','is_active'=>1,'created_by_partner_id'=>12,'partner_review_status'=>'pending'],
+            ['id'=>3,'slug'=>'asri','title'=>'Hotel Asri','is_active'=>0,'created_by_partner_id'=>12,'partner_review_status'=>'pending'],
+        ]);
+        $web=app(\App\Http\Controllers\Front\HotelController::class)->index(\Illuminate\Http\Request::create('/hotel-vila'))->getData()['packages']->pluck('slug')->sort()->values()->all();
+        $response=$this->getJson('/api/v1/catalog/hotel')->assertOk()->assertJsonCount(2,'data');
+        $actual=collect($response->json('data'))->pluck('slug')->sort()->values()->all();
+        $this->assertSame($web,$actual);
+        $this->getJson('/api/v1/catalog/hotel/new-atrium')->assertOk()->assertJsonPath('data.slug','new-atrium');
+        $this->getJson('/api/v1/catalog/hotel/asri')->assertNotFound();
+        DB::table('hotel_packages')->where('id',2)->update(['title'=>'Updated Atrium','is_active'=>0]);
+        $this->getJson('/api/v1/catalog/hotel?q=atrium')->assertOk()->assertJsonCount(0,'data');
+        DB::table('hotel_packages')->where('id',2)->update(['is_active'=>1]);
+        $this->getJson('/api/v1/catalog/hotel?q=atrium')->assertOk()->assertJsonPath('data.0.title','Updated Atrium');
+        DB::table('hotel_packages')->where('id',2)->delete();
+        $this->getJson('/api/v1/catalog/hotel/new-atrium')->assertNotFound();
+    }
+    public function test_bus_catalog_uses_real_route_price_schedule_and_approval()
+    {
+        Schema::create('reviews',function(Blueprint $t){$t->id();$t->morphs('reviewable');$t->integer('rating');$t->string('status');$t->timestamps();});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        $base=['armada_name'=>'Bus Jogja','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Yogyakarta','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'duration_minutes'=>600,'price'=>250000,'is_active'=>true,'partner_review_status'=>'approved'];
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>1,'slug'=>'bus-jogja']));
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>2,'slug'=>'pending','partner_review_status'=>'pending']));
+        DB::table('travel_bus_packages')->insert(array_merge($base,['id'=>3,'slug'=>'inactive','is_active'=>false]));
+        DB::table('reviews')->insert([['reviewable_type'=>\App\Models\TravelBusPackage::class,'reviewable_id'=>1,'rating'=>4,'status'=>'approved'],['reviewable_type'=>\App\Models\TravelBusPackage::class,'reviewable_id'=>1,'rating'=>1,'status'=>'pending']]);
+        $this->getJson('/api/v1/catalog/travel_bus?q=jakarta&sort=price_asc')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.title','Bus Jogja')->assertJsonPath('data.0.price',250000)->assertJsonPath('data.0.arrival_days_offset',1)->assertJsonPath('data.0.duration_text','10 Jam');
+        $this->getJson('/api/v1/catalog/travel_bus/bus-jogja')->assertOk()->assertJsonPath('data.departure_time','20:00')->assertJsonPath('data.rating_count',1)->assertJsonPath('data.rating_value',4);
+        $this->getJson('/api/v1/catalog/travel_bus/pending')->assertNotFound();
+        $this->getJson('/api/v1/catalog/travel_bus/filters')->assertOk();
+    }
+    public function test_bus_partner_crud_keeps_ownership_gallery_and_admin_review()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $permission=\Spatie\Permission\Models\Permission::create(['name'=>'admin.dashboard.view','guard_name'=>'web']);
+        $admin=User::create(['name'=>'Admin Bus','email'=>'admin-bus@example.test','password'=>Hash::make('Password123')]);$admin->assignRole('admin');$admin->givePermissionTo($permission);
+        $partner=User::create(['name'=>'Partner Bus','email'=>'partner-bus@example.test','password'=>Hash::make('Password123'),'partner_type'=>'agency_travel_bus']);$partner->assignRole('partner');
+        \Laravel\Sanctum\Sanctum::actingAs($partner);
+        $this->getJson('/api/v1/manage/products')->assertOk()->assertJsonPath('data.0.key','travel_bus');
+        $body=['armada_name'=>'Night Bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'price'=>250000,'route_details'=>['Semarang'],'facilities'=>['wifi','ac'],'is_active'=>1,'created_by_partner_id'=>$admin->id,'partner_review_status'=>'approved'];
+        $png=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
+        $photo=fn()=>\Illuminate\Http\UploadedFile::fake()->createWithContent('photo.png',$png);
+        $this->post('/api/v1/manage/products/travel_bus/save',['payload'=>json_encode($body),'thumbnail'=>$photo(),'gallery'=>[$photo()]],['Accept'=>'application/json'])->assertCreated();
+        $bus=\App\Models\TravelBusPackage::firstOrFail();$this->assertSame($partner->id,(int)$bus->created_by_partner_id);$this->assertFalse($bus->is_active);$this->assertSame('pending',$bus->partner_review_status);$this->assertSame(600,(int)$bus->duration_minutes);
+        $gallery=$bus->photos()->firstOrFail();\Illuminate\Support\Facades\Storage::disk('public')->assertExists($gallery->photo_path);
+        $this->getJson('/api/v1/manage/products/travel_bus/form/'.$bus->id)->assertOk()->assertJsonPath('data.values.armada_name','Night Bus')->assertJsonPath('data.values.photos.0.file_path',$gallery->photo_path);
+        $stranger=User::create(['name'=>'Other Bus','email'=>'other-bus@example.test','password'=>Hash::make('Password123'),'partner_type'=>'agency_travel_bus']);$stranger->assignRole('partner');\Laravel\Sanctum\Sanctum::actingAs($stranger);
+        $this->postJson('/api/v1/manage/products/travel_bus/save/'.$bus->id,['payload'=>json_encode($body)])->assertNotFound();
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/delete')->assertNotFound();
+        \Laravel\Sanctum\Sanctum::actingAs($admin);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/review/approve',[])->assertOk();$this->assertTrue($bus->fresh()->is_active);
+        $body['armada_name']='Updated Bus';$body['is_active']=0;$body['created_by_partner_id']=$partner->id;
+        $this->postJson('/api/v1/manage/products/travel_bus/save/'.$bus->id,['payload'=>json_encode($body)])->assertOk();$this->assertFalse($bus->fresh()->is_active);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/photos/'.$gallery->id.'/delete')->assertOk();
+        $this->assertSame(0,$bus->photos()->count());\Illuminate\Support\Facades\Storage::disk('public')->assertMissing($gallery->photo_path);
+        $this->postJson('/api/v1/manage/products/travel_bus/'.$bus->id.'/delete')->assertOk();$this->assertSame(0,\App\Models\TravelBusPackage::count());
     }
     public function test_account_requires_authentication()
     {
@@ -72,16 +153,44 @@ class MobileApiTest extends TestCase
         Schema::create('home_promo_banners',function(Blueprint $t){$t->id();$t->string('section');$t->string('thumbnail_path');$t->string('link_url');$t->integer('sort_order')->default(0);$t->boolean('is_active');});
         Schema::create('destination_inspirations',function(Blueprint $t){$t->id();$t->string('title');$t->string('image_path')->nullable();$t->integer('sort_order')->default(0);$t->boolean('is_active');$t->integer('tour_category_id')->nullable();$t->integer('tour_subcategory_id')->nullable();});
         foreach(['client_logos','footer_logos'] as $table)Schema::create($table,function(Blueprint $t){$t->id();$t->string('name');$t->string('image_path');$t->string('url')->nullable();$t->integer('sort_order')->default(0);$t->boolean('is_active');});
-        Schema::create('popup_widgets',function(Blueprint $t){$t->id();$t->boolean('is_enabled');$t->boolean('show_on_mobile');$t->timestamp('start_at')->nullable();$t->timestamp('end_at')->nullable();$t->text('include_paths')->nullable();$t->text('exclude_paths')->nullable();$t->string('title');});
+        Schema::create('popup_widgets',function(Blueprint $t){$t->id();$t->boolean('is_enabled');$t->boolean('show_on_mobile');$t->timestamp('start_at')->nullable();$t->timestamp('end_at')->nullable();$t->text('include_paths')->nullable();$t->text('exclude_paths')->nullable();$t->string('title');$t->string('image_path')->nullable();});
         DB::table('home_promo_banners')->insert([['section'=>'discount','thumbnail_path'=>'ok.png','link_url'=>'https://bintangwisataholiday.com/paket-tour','is_active'=>true],['section'=>'discount','thumbnail_path'=>'hidden.png','link_url'=>'https://example.test','is_active'=>false]]);
         DB::table('settings')->insert(['key'=>'home_tabs','value'=>json_encode([['label'=>'Bad','url'=>'javascript:bad()']])]);
-        DB::table('popup_widgets')->insert(['is_enabled'=>true,'show_on_mobile'=>true,'start_at'=>now()->addDay(),'title'=>'Future popup']);
-        $response=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null)->assertDontSee('hidden.png')->assertDontSee('javascript:');
+        DB::table('popup_widgets')->insert(['is_enabled'=>true,'show_on_mobile'=>true,'start_at'=>now()->addDay(),'title'=>'Future popup','image_path'=>'/storage/popups/promo.png']);
+        $response=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.blocks.2.key','discount')->assertJsonPath('data.blocks.3.key','missions')->assertJsonPath('data.popup',null)->assertDontSee('hidden.png')->assertDontSee('javascript:');
         DB::table('popup_widgets')->update(['start_at'=>now()->subDay()]);
-        $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.title','Future popup');
+        $popupResponse=$this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.title','Future popup');
+        $this->assertStringEndsWith('/storage/popups/promo.png',$popupResponse->json('data.popup.image_url'));
+        $popupResponse->assertDontSee('/storage/storage/');
+        DB::table('popup_widgets')->update(['image_path'=>'https://images.example.test/promo.png']);
+        $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup.image_url','https://images.example.test/promo.png');
         DB::table('popup_widgets')->update(['exclude_paths'=>'["/"]']);
         $this->getJson('/api/v1/public/home/blocks')->assertOk()->assertJsonPath('data.popup',null);
     }
+    public function test_home_cards_expose_real_prices_and_hide_unapproved_partner_packages()
+    {
+        Schema::create('settings',function(Blueprint $t){$t->string('key')->primary();$t->text('value')->nullable();});
+        foreach(['home_ship_promo_enabled','home_umrah_promo_enabled','home_mice_promo_enabled'] as $key)DB::table('settings')->insert(['key'=>$key,'value'=>'0']);
+        Schema::table('tour_packages',function(Blueprint $t){
+            $t->string('slug');$t->unsignedBigInteger('category_id')->nullable();$t->string('title');$t->string('label');$t->boolean('is_active');$t->string('partner_review_status')->nullable();$t->string('thumbnail_path')->nullable();$t->string('duration_text')->nullable();$t->decimal('rating_value')->nullable();$t->integer('rating_count')->nullable();$t->timestamps();
+        });
+        Schema::create('tour_categories',function(Blueprint $t){$t->id();$t->string('name');});
+        $category=DB::table('tour_categories')->insertGetId(['name'=>'JOGJA']);
+        Schema::create('tour_itineraries',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('sort_order')->default(0);});
+        Schema::create('tour_package_photos',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');});
+        Schema::create('tour_package_tiers',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('price');});
+        $id=DB::table('tour_packages')->insertGetId(['slug'=>'real-trip','category_id'=>$category,'title'=>'Real trip','label'=>'PROMO','is_active'=>true,'duration_text'=>'1D','rating_value'=>4.5,'rating_count'=>7]);
+        DB::table('tour_package_tiers')->insert([['tour_package_id'=>$id,'price'=>2606000],['tour_package_id'=>$id,'price'=>2078000],['tour_package_id'=>$id,'price'=>0]]);
+        DB::table('tour_packages')->insert(['slug'=>'pending-trip','title'=>'Hidden trip','label'=>'PROMO','is_active'=>true,'created_by_partner_id'=>99,'partner_review_status'=>'pending']);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonCount(1,'data.sections.0.products')->assertJsonPath('data.card_schema_version',3)->assertJsonPath('data.sections.0.key','tour')->assertJsonPath('data.sections.0.products.0.starting_price',2078000)->assertJsonPath('data.sections.0.products.0.price_unit','orang')->assertJsonPath('data.sections.0.products.0.category_name','JOGJA')->assertJsonPath('data.sections.0.products.0.duration_text','1D')->assertJsonPath('data.sections.0.products.0.rating_value',4.5)->assertJsonPath('data.sections.0.products.0.rating_count',7)->assertDontSee('pending-trip');
+        DB::table('settings')->insert([['key'=>'home_promo_mode','value'=>'custom'],['key'=>'home_promo_custom_ids','value'=>json_encode([$id])]]);
+        DB::table('tour_packages')->where('id',$id)->update(['rating_value'=>2.25,'rating_count'=>3,'label'=>'FLASH SALE','title'=>'Judul dari admin','duration_text'=>'2D']);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.sections.0.products.0.card_display.stars',5)->assertJsonPath('data.sections.0.products.0.card_display.rating_count',3)->assertJsonPath('data.sections.0.products.0.card_display.category_name','JOGJA')->assertJsonPath('data.sections.0.products.0.rating_value',2.25)->assertJsonPath('data.sections.0.products.0.rating_count',3)->assertJsonPath('data.sections.0.products.0.label','FLASH SALE')->assertJsonPath('data.sections.0.products.0.title','Judul dari admin')->assertJsonPath('data.sections.0.products.0.duration_text','2D');
+        $this->getJson('/api/v1/catalog/tour')->assertOk()->assertJsonPath('data.0.rating_value',2.25)->assertJsonPath('data.0.rating_count',3)->assertJsonPath('data.0.label','FLASH SALE');
+        DB::table('tour_packages')->where('id',$id)->update(['rating_value'=>null,'rating_count'=>null,'label'=>'','duration_text'=>null,'category_id'=>null]);
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.sections.0.products.0.card_display.stars',5)->assertJsonPath('data.sections.0.products.0.card_display.rating_count',0)->assertJsonPath('data.sections.0.products.0.card_display.category_name','Tour')->assertJsonPath('data.sections.0.products.0.rating_value',null)->assertJsonPath('data.sections.0.products.0.rating_count',null)->assertJsonPath('data.sections.0.products.0.label','')->assertJsonPath('data.sections.0.products.0.category_name',null)->assertJsonPath('data.sections.0.products.0.duration_text',null);
+    }
+
     public function test_push_device_registration_requires_account_and_encrypts_device_token()
     {
         Schema::create('mobile_devices',function(Blueprint $t){$t->id();$t->unsignedBigInteger('user_id');$t->unsignedBigInteger('access_token_id');$t->string('token_hash')->unique();$t->text('token');$t->timestamps();});
@@ -97,6 +206,7 @@ class MobileApiTest extends TestCase
     }
     public function test_catalog_filters_category_search_and_price_without_exposing_pending_products()
     {
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
         Schema::create('rent_car_categories',function(Blueprint $t){$t->id();$t->string('name');});
         Schema::table('rent_car_packages',function(Blueprint $t){$t->unsignedBigInteger('category_id')->nullable();$t->integer('price_per_12_hours')->default(0);});
         DB::table('rent_car_categories')->insert([['id'=>1,'name'=>'Mobil'],['id'=>2,'name'=>'Bus']]);
@@ -129,12 +239,25 @@ class MobileApiTest extends TestCase
     {
         Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
         Schema::table('tour_packages',function(Blueprint $t){foreach(['title','slug','label','thumbnail_path','partner_review_status'] as $field)$t->text($field)->nullable();$t->boolean('is_active')->default(true);$t->timestamps();});
+        Schema::create('tour_categories',function(Blueprint $t){$t->id();$t->string('name');});
+        Schema::create('tour_package_tiers',function(Blueprint $t){$t->id();$t->unsignedBigInteger('tour_package_id');$t->integer('price');});
         foreach(['home_ship_promo_enabled'=>'0','home_umrah_promo_enabled'=>'0','home_mice_promo_enabled'=>'0','home_promo_mode'=>'custom','home_promo_custom_ids'=>'[2,1,3]','hero_title'=>'Judul admin','mail_password'=>'PRIVATE'] as $key=>$value)DB::table('settings')->insert(compact('key','value'));
         DB::table('tour_packages')->insert([['id'=>1,'title'=>'First','slug'=>'first','created_by_partner_id'=>null,'partner_review_status'=>null],['id'=>2,'title'=>'Second','slug'=>'second','created_by_partner_id'=>null,'partner_review_status'=>null],['id'=>3,'title'=>'Hidden','slug'=>'hidden','created_by_partner_id'=>999,'partner_review_status'=>'pending']]);
         $this->getJson('/api/v1/public/home')->assertOk()->assertJsonPath('data.hero.title','Judul admin')->assertJsonPath('data.sections.0.products.0.slug','second')->assertJsonCount(2,'data.sections.0.products')->assertDontSee('PRIVATE');
         DB::table('settings')->insert(['key'=>'home_promo_enabled','value'=>'0']);
         $this->getJson('/api/v1/public/home')->assertOk()->assertJsonCount(0,'data.sections');
         $this->getJson('/api/v1/public/pages/about')->assertOk()->assertJsonCount(11,'data.sections');
+    }
+    public function test_public_information_uses_official_contact_and_preserves_editor_formatting()
+    {
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active');$t->integer('sort_order');});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();$t->timestamps();});
+        $html='<h2 style="text-align:center">Informasi resmi</h2><p style="text-align:justify">Konten dari editor admin.</p>';
+        foreach(['footer_address'=>'Alamat resmi','footer_email'=>'support@example.test','footer_phone'=>'021123456','footer_whatsapp'=>'08123456789','legal_privacy_html'=>$html,'travel_docs_passport_html'=>'Syarat paspor','mail_password'=>'PRIVATE'] as $key=>$value)DB::table('settings')->insert(compact('key','value'));
+        $this->getJson('/api/v1/public/pages/privacy')->assertOk()->assertJsonPath('data.sections.0.html',$html)->assertJsonPath('data.contact.email','support@example.test')->assertJsonPath('data.contact.whatsapp_url','https://wa.me/628123456789')->assertDontSee('PRIVATE');
+        $this->getJson('/api/v1/public/pages/contact')->assertOk()->assertJsonPath('data.contact.address','Alamat resmi');
+        $this->getJson('/api/v1/public/pages/about')->assertOk()->assertJsonPath('data.sections.0.key','about_hero');
+        $this->getJson('/api/v1/public/pages/travel')->assertOk()->assertJsonPath('data.sections.1.key','passportHtml');
     }
     public function test_admin_can_create_edit_and_delete_each_product_type_with_nested_forms()
     {
@@ -149,12 +272,13 @@ class MobileApiTest extends TestCase
             foreach($spec[4] as $relation){$related=$model->$relation()->getRelated();$relationTable=$related->getTable();if(!Schema::hasTable($relationTable))Schema::create($relationTable,function(Blueprint $t)use($related){$t->id();foreach($related->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});}
             $tier=['label_text'=>'Standard','price'=>150000,'min_people'=>1,'max_people'=>10,'type'=>'domestic','is_custom'=>'0'];
             $payload=['title'=>'Package '.$type,'slug'=>'package-'.$type,'category_id'=>1,'duration_text'=>'2 hari','flight_info'=>'not_included','is_active'=>'1','price_per_12_hours'=>150000,'price_per_24_hours'=>250000,'price_per_night'=>200000,'price_per_pax'=>75000,'tiers'=>in_array($type,['tour','mice'])?['domestic'=>[$tier]]:[array_merge($tier,['type'=>'weekday'])],'rooms'=>[['name'=>'Room','price'=>200000,'is_ready'=>'1']],'menus'=>[['name'=>'Menu','price'=>75000,'is_ready'=>'1']]];
+            if($type==='travel_bus')$payload=['armada_name'=>'Package travel_bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'08:00','arrival_time'=>'14:00','price'=>150000,'is_active'=>1];
             $this->postJson('/api/v1/manage/products/'.$type.'/save',['payload'=>json_encode($payload)])->assertCreated();
             $saved=$class::firstOrFail();
-            $this->getJson('/api/v1/manage/products/'.$type.'/form/'.$saved->id)->assertOk()->assertJsonPath('data.values.title','Package '.$type);
-            $payload['title']='Updated '.$type;
+            $this->getJson('/api/v1/manage/products/'.$type.'/form/'.$saved->id)->assertOk()->assertJsonPath($type==='travel_bus'?'data.values.armada_name':'data.values.title','Package '.$type);
+            $payload[$type==='travel_bus'?'armada_name':'title']='Updated '.$type;
             $this->postJson('/api/v1/manage/products/'.$type.'/save/'.$saved->id,['payload'=>json_encode($payload)])->assertOk();
-            $this->assertSame('Updated '.$type,$saved->fresh()->title);
+            $this->assertSame('Updated '.$type,$type==='travel_bus'?$saved->fresh()->armada_name:$saved->fresh()->title);
             $this->postJson('/api/v1/manage/products/'.$type.'/'.$saved->id.'/delete')->assertOk();
             $this->assertSame(0,$class::count());
         }
@@ -195,7 +319,7 @@ class MobileApiTest extends TestCase
         $this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(0,'data');
         $this->postJson('/api/v1/catalog/rent_car/public/reviews',$body)->assertUnprocessable();
         $review->update(['status'=>'approved']);
-        $result=$this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.rating',4);
+        $result=$this->getJson('/api/v1/catalog/rent_car/public/reviews')->assertOk()->assertJsonCount(1,'data')->assertJsonPath('data.0.rating',4)->assertJsonPath('meta.ratings.4',1);
         $this->assertStringNotContainsString('review@example.test',$result->getContent());
         $this->assertArrayNotHasKey('ip_address',$result->json('data.0'));
     }
@@ -310,7 +434,7 @@ class MobileApiTest extends TestCase
         $this->assertNull($model->fresh());
         $partner->syncRoles('user');$this->postJson('/api/v1/manage/products/rent_car/save',$payload)->assertForbidden();
         $partner->syncRoles('site_moderator');$this->getJson('/api/v1/manage/products/rent_car')->assertForbidden();
-        $partner->syncRoles('admin');$this->getJson('/api/v1/manage/products')->assertOk()->assertJsonCount(7,'data');
+        $partner->syncRoles('admin');$this->getJson('/api/v1/manage/products')->assertOk()->assertJsonCount(8,'data');
         $this->getJson('/api/v1/manage/products/rent_car/form/999')->assertOk();
     }
     public function test_partner_wallet_retries_do_not_double_withdraw_and_cancellation_restores_balance()
@@ -404,4 +528,66 @@ class MobileApiTest extends TestCase
         $this->assertNotNull(DB::table('notifications')->where('id',$id)->value('read_at'));
         $this->postJson('/api/v1/account/notifications/'.\Illuminate\Support\Str::uuid().'/read')->assertNotFound();
     }
-}
+    private function googleReady(): void
+    {
+        Schema::create('footer_logos',function(Blueprint $t){$t->id();$t->boolean('is_active')->default(true);$t->integer('sort_order')->default(0);});
+        Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
+        Schema::create('google_identities',function(Blueprint $t){$t->id();$t->string('subject')->unique();$t->unsignedBigInteger('user_id');$t->timestamps();});
+        DB::table('settings')->insert(['key'=>'google_auth_enabled','value'=>'1']);
+        config(['services.google.client_id'=>'test-client','services.google.client_secret'=>'test-secret','cache.default'=>'array']);
+        \Illuminate\Support\Facades\Cache::flush();
+    }
+    public function test_google_button_requires_enabled_setting_and_complete_configuration()
+    {
+        $this->googleReady();
+        $this->getJson('/api/v1/auth/config')->assertOk()->assertJsonPath('data.google_enabled',true)->assertDontSee('test-secret');
+        DB::table('settings')->update(['value'=>'0']);
+        $this->getJson('/api/v1/auth/config')->assertJsonPath('data.google_enabled',false);
+        $this->postJson('/api/v1/auth/google/start',['challenge'=>str_repeat('a',64)])->assertForbidden();
+        DB::table('settings')->update(['value'=>'1']);config(['services.google.client_secret'=>null]);
+        $this->getJson('/api/v1/auth/config')->assertJsonPath('data.google_enabled',false);
+    }
+    public function test_google_native_login_requires_verifier_and_only_creates_user_role()
+    {
+        $this->googleReady();$verifier=str_repeat('v',64);
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'google-sub','email'=>'google@example.test','email_verified'=>true,'name'=>'Google Buyer','roles'=>['admin']]),
+        ]);
+        $start=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->assertOk();$state=$start->json('data.request_id');
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertStatus(202)->assertJsonPath('data.pending',true);
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>str_repeat('x',64)])->assertForbidden();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertOk()->assertJsonPath('data.user.roles.0','user')->assertJsonPath('data.user.email_verified',true);
+        $this->assertSame(1,User::count());$this->assertSame(1,DB::table('google_identities')->count());
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertStatus(410);
+    }
+    public function test_google_unverified_identity_is_rejected_and_callback_cannot_be_replayed()
+    {
+        $this->googleReady();$verifier=str_repeat('v',64);
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'bad-sub','email'=>'bad@example.test','email_verified'=>false]),
+        ]);
+        $state=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->json('data.request_id');
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertUnprocessable();
+        $this->assertSame(0,User::count());
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertForbidden();
+    }    public function test_google_preserves_existing_partner_role_and_web_dashboard()
+    {
+        $this->googleReady();
+        $user=User::create(['name'=>'Partner','email'=>'partner-google@example.test','password'=>Hash::make('Password123'),'email_verified_at'=>now()]);$user->assignRole('partner');
+        \Illuminate\Support\Facades\Http::fake([
+            'oauth2.googleapis.com/token'=>\Illuminate\Support\Facades\Http::response(['access_token'=>'google-access']),
+            'openidconnect.googleapis.com/v1/userinfo'=>\Illuminate\Support\Facades\Http::response(['sub'=>'partner-sub','email'=>$user->email,'email_verified'=>true]),
+        ]);
+        $verifier=str_repeat('v',64);
+        $state=$this->postJson('/api/v1/auth/google/start',['challenge'=>hash('sha256',$verifier)])->json('data.request_id');
+        $this->get('/auth/google/callback?state='.$state.'&code=google-code')->assertOk();
+        $this->postJson('/api/v1/auth/google/exchange',['request_id'=>$state,'verifier'=>$verifier])->assertOk()->assertJsonPath('data.user.roles.0','partner');
+        $start=$this->get('/auth/google')->assertRedirect();parse_str(parse_url($start->headers->get('Location'),PHP_URL_QUERY),$query);
+        $this->get('/auth/google/callback?state='.$query['state'].'&code=google-code')->assertRedirect('/partner/dashboard');
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame(1,User::count());
+    }}

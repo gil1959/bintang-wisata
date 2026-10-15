@@ -3,6 +3,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\{AuthController,CatalogController,AccountController};
 use App\Http\Middleware\MobileAccountActive;
 Route::prefix('v1')->group(function(){
+    Route::get('auth/config',[\App\Http\Controllers\Api\V1\GoogleAuthController::class,'configuration']);
+    Route::post('auth/google/start',[\App\Http\Controllers\Api\V1\GoogleAuthController::class,'start'])->middleware('throttle:5,1');
+    Route::post('auth/google/exchange',[\App\Http\Controllers\Api\V1\GoogleAuthController::class,'exchange'])->middleware('throttle:20,1');
     Route::post('guest/bookings/{type}/{slug}',[\App\Http\Controllers\Api\V1\GuestBookingController::class,'store'])->middleware('throttle:3,1,guest-booking');
     Route::middleware('throttle:20,1,guest-checkout')->group(function(){
 
@@ -20,6 +23,7 @@ Route::prefix('v1')->group(function(){
     Route::get('catalog/{type}/filters',[CatalogController::class,'filters']);
     Route::get('catalog/{type}',[CatalogController::class,'index']);
     Route::get('catalog/{type}/{slug}',[CatalogController::class,'show']);
+    Route::post('catalog/{type}/{slug}/quote',[\App\Http\Controllers\Api\V1\BookingQuoteController::class,'show'])->middleware('throttle:30,1');
     Route::get('catalog/{type}/{slug}/reviews',[CatalogController::class,'reviews']);
     Route::post('catalog/{type}/{slug}/reviews',[CatalogController::class,'review'])->middleware('throttle:3,1');
     Route::post('auth/login',[AuthController::class,'login'])->middleware('throttle:5,1');
@@ -27,7 +31,7 @@ Route::prefix('v1')->group(function(){
     Route::post('auth/register-partner',[\App\Http\Controllers\Api\V1\PartnerRegistrationController::class,'store'])->middleware('throttle:3,1');
     Route::post('auth/forgot-password',[AuthController::class,'forgot'])->middleware('throttle:3,1');
     Route::post('auth/reset-password',[AuthController::class,'reset'])->middleware('throttle:5,1');
-    Route::get('auth/verify/{id}/{hash}',[AuthController::class,'verify'])->middleware(['signed','throttle:10,1'])->name('mobile.verify');
+    Route::get('auth/verify/{id}/{hash}',[AuthController::class,'verify'])->middleware([\App\Http\Middleware\MobileVerificationSignature::class,'throttle:10,1'])->name('mobile.verify');
     Route::middleware(['auth:sanctum',MobileAccountActive::class])->group(function(){
         Route::post('account/device',[\App\Http\Controllers\Api\V1\DeviceController::class,'save'])->middleware('throttle:20,1');
         Route::post('account/device/remove',[\App\Http\Controllers\Api\V1\DeviceController::class,'destroy']);

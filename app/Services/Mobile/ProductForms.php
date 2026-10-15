@@ -11,12 +11,29 @@ class ProductForms
         'ship'=>['ShipPackage','ShipCategory','Kapal',null,['tiers']],
         'umrah'=>['UmrahPackage','UmrahCategory','Umrah',null,['tiers','photos']],
         'mice'=>['MicePackage','MiceCategory','MICE',null,['tiers','photos']],
+        'travel_bus'=>['TravelBusPackage',null,'Bus dan Travel','agency_travel_bus',['photos']],
     ];
     public static function field($key,$label,$type='text',$extra=[]): array
     { return array_merge(compact('key','label','type'),$extra); }
     public static function fields(string $type, bool $partner): array
     {
         $f = fn($key,$label,$kind='text',$extra=[])=>self::field($key,$label,$kind,$extra);
+        if($type==='travel_bus') {
+            $required=['required'=>true];
+            $fields=[$f('armada_name','Nama armada','text',$required),$f('armada_type','Jenis armada','text',$required),$f('travel_type','Kelas layanan','select',['required'=>true,'default'=>'BUSINESS','options'=>array_map(fn($value)=>['id'=>$value,'label'=>$value],['BUSINESS','EXECUTIVE','VIP','SLEEPER','ECONOMY'])])];
+            foreach(['departure_location'=>'Lokasi keberangkatan','arrival_location'=>'Lokasi tujuan'] as $key=>$label)$fields[]=$f($key,$label,'text',$required);
+            $fields[]=$f('route_details','Titik rute, satu per baris','lines');
+            foreach(['departure_time'=>'Jam keberangkatan','arrival_time'=>'Jam tiba'] as $key=>$label)$fields[]=$f($key,$label,'time',$required);
+            $fields[]=$f('arrival_days_offset','Selisih hari kedatangan','select',['default'=>'0','options'=>array_map(fn($day)=>['id'=>(string)$day,'label'=>$day===0?'Hari yang sama':$day.' hari setelah keberangkatan'],range(0,14))]);
+            $fields[]=$f('duration_text','Teks durasi opsional');
+            $fields[]=$f('price','Harga per penumpang','number',$required);
+            $facilities=['tv'=>'TV / Audio','reclining_seat'=>'Reclining Seat','wifi'=>'Free WiFi','baggage'=>'Bagasi','usb'=>'USB Charger','ac'=>'AC Penuh','snack'=>'Snack & Minuman','toilet'=>'Toilet'];
+            $fields[]=$f('facilities','Fasilitas','multiselect',['options'=>collect($facilities)->map(fn($label,$id)=>compact('id','label'))->values()->all()]);
+            $fields[]=$f('description','Deskripsi','multiline');$fields[]=$f('terms_conditions','Syarat dan ketentuan','multiline');
+            if(!$partner){$fields[]=$f('created_by_partner_id','Pemilik partner','select');$fields[]=$f('is_active','Aktif','boolean',['default'=>'1']);}
+            $fields[]=$f('thumbnail','Foto utama','file');$fields[]=$f('gallery','Tambahkan galeri','files');
+            return $fields;
+        }
         $repeat = fn($key,$label,$fields)=>$f($key,$label,'repeat',['fields'=>$fields]);
         $fields = [$f('title','Nama paket','text',['required'=>true]),$f('label','Label')];
         if (!in_array($type,['rent_car','hotel','restoran'])) $fields[]=$f('slug','Slug URL','text',['required'=>true]);

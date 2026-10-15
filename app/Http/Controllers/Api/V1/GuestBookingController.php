@@ -15,7 +15,7 @@ class GuestBookingController extends Controller
     }
     public function store(Request $request,string $type,string $slug)
     {
-        $controllers=['tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController','hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController'];
+        $controllers=['tour'=>'TourOrderController','rent_car'=>'RentCarOrderController','ship'=>'ShipOrderController','hotel'=>'HotelOrderController','restoran'=>'RestoranOrderController','umrah'=>'UmrahOrderController','mice'=>'MiceOrderController','travel_bus'=>'TravelBusOrderController'];
         abort_unless(isset($controllers[$type]),404);
         $request->validate(['email'=>'required|email|max:255','idempotency_key'=>'required|uuid','promo_code'=>'nullable|string|max:100']);
         $hash=$this->hash($request);$fingerprint=hash('sha256',$type.':'.$slug.':'.json_encode($request->all()));
@@ -26,7 +26,8 @@ class GuestBookingController extends Controller
             abort_if(now()->gt($entry->expires_at),403,'Akses tamu sudah berakhir.');
             if($entry->order_id)return $this->result(Order::findOrFail($entry->order_id));
             $model=CatalogController::TYPES[$type][0];$product=$model::where('slug',$slug)->where('is_active',true)->firstOrFail();
-            abort_if($product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+            abort_if($type!=='hotel'&&$product->created_by_partner_id&&$product->partner_review_status!=='approved',404);
+            abort_if($type==='travel_bus'&&$product->partner_review_status!=='approved',404);
             if($type==='hotel'&&$request->filled('room_id'))abort_unless($product->rooms()->whereKey($request->room_id)->exists(),422);
             $request->merge(['promo_id'=>null]);
             if($request->filled('promo_code')){
@@ -35,7 +36,7 @@ class GuestBookingController extends Controller
                 abort_if(Order::where('customer_email',$request->email)->where('promo_id',$promo->id)->exists(),422,'Kode promo sudah digunakan.');
                 $request->merge(['promo_id'=>$promo->id]);
             }
-            $response=app('App\\Http\\Controllers\\Front\\'.$controllers[$type])->draft($request,$slug);
+            $response=app(\App\Services\Mobile\WebAction::class)->run($request,'App\\Http\\Controllers\\Front\\'.$controllers[$type],'draft',null,['slug'=>$slug]);
             if($response->getStatusCode()>=400)throw new HttpResponseException($response);
             $payload=$response->getData(true);$id=(int)basename((string)parse_url($payload['redirect']??'',PHP_URL_PATH));
             $order=Order::where('customer_email',$request->email)->findOrFail($id);
@@ -57,8 +58,24 @@ class GuestBookingController extends Controller
     public function resume(Request $request){return $this->result($this->authorizeOrder($request))->setStatusCode(200);}
     public function checkout(Request $request,$id,string $action='show')
     {
-        $this->authorizeOrder($request,$id);
+        $order=$this->authorizeOrder($request,$id);
         abort_unless(in_array($action,['show','process','gateway','proof'],true),404);
+        if($action==='process')return DB::transaction(function()use($request,$id,$order){
+            $order=Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $request->validate(['billing_first_name'=>'required|string|max:120','billing_last_name'=>'required|string|max:120','billing_country'=>'required|string','billing_address'=>'required|string','billing_city'=>'required|string','billing_state'=>'required|string','billing_postal'=>'required|string|max:20','billing_phone'=>'required|string|max:20','payment_method'=>'required|string']);
+            $session=null;
+            if(!$order->user_id){
+                if(\App\Models\User::where('email',$order->customer_email)->exists())throw \Illuminate\Validation\ValidationException::withMessages(['email'=>'Email sudah terdaftar. Silakan login untuk melanjutkan pembayaran dari menu Pesanan.']);
+                $user=\App\Models\User::create(['name'=>trim($request->billing_first_name.' '.$request->billing_last_name),'email'=>$order->customer_email,'password'=>\Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(32)),'phone'=>$request->billing_phone,'address'=>implode(', ',[$request->billing_address,$request->billing_city,$request->billing_state,$request->billing_postal,$request->billing_country]),'email_verified_at'=>now()]);
+                $user->assignRole('user');
+                $order->update(['user_id'=>$user->id]);
+                $session=['token'=>$user->createToken('android-checkout')->plainTextToken,'user'=>['id'=>$user->id,'name'=>$user->name,'email'=>$user->email,'phone'=>$user->phone,'address'=>$user->address,'email_verified'=>true,'roles'=>['user'],'permissions'=>[]]];
+            }
+            $response=app(CheckoutController::class)->process($request,$id);
+            $data=$response->getData(true);
+            if($session){$data['data']['session']=$session;$data['data']['account_created']=true;$response->setData($data);}
+            return $response;
+        });
         return app(CheckoutController::class)->$action($request,$id);
     }
 }

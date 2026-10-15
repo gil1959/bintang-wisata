@@ -42,9 +42,9 @@ class ProductManagementController extends Controller
         $spec=$this->spec($request,$type);
         $request->validate(['q'=>'nullable|string|max:150','page'=>'nullable|integer|min:1']);
         $query=$this->query($request,$spec);
-        if ($request->filled('q')) $query->where('title','like','%'.$request->q.'%');
+        if ($request->filled('q')) $query->where($type==='travel_bus'?'armada_name':'title','like','%'.$request->q.'%');
         $rows=$query->latest('id')->paginate(20);
-        return response()->json(['data'=>$rows->getCollection()->map(fn($row)=>array_merge($row->only(['id','title','slug','is_active','partner_review_status','partner_review_note','thumbnail_path']),['can_review'=>$spec['area']==='Admin'&&(bool)$row->created_by_partner_id])),'meta'=>['page'=>$rows->currentPage(),'last_page'=>$rows->lastPage(),'total'=>$rows->total()]]);
+        return response()->json(['data'=>$rows->getCollection()->map(fn($row)=>array_merge($row->only(['id','title','slug','is_active','partner_review_status','partner_review_note','thumbnail_path']),['title'=>$type==='travel_bus'?$row->armada_name:$row->title,'can_review'=>$spec['area']==='Admin'&&(bool)$row->created_by_partner_id])),'meta'=>['page'=>$rows->currentPage(),'last_page'=>$rows->lastPage(),'total'=>$rows->total()]]);
     }
     public function form(Request $request,string $type,?int $id=null)
     {
@@ -55,6 +55,7 @@ class ProductManagementController extends Controller
             foreach($fields as $field) {
                 $key=$field['key'];if(str_contains($key,'.') || in_array($field['type'],['file','files'])) continue;
                 $data[$key]=$model->getAttribute($key);
+                if($type==='travel_bus'&&$field['type']==='time')$data[$key]=substr((string)$data[$key],0,5);
             }
             if (in_array($type,['tour','mice'])) $data['tiers']=$model->tiers->groupBy('type')->toArray();
             if ($type==='tour') {
@@ -65,13 +66,18 @@ class ProductManagementController extends Controller
             foreach(['rooms','menus'] as $relation) if(in_array($relation,$spec[4])) {
                 $data[$relation]=$model->$relation->map(function($row){$values=$row->toArray();$values['existing_photos']=$row->photos?:array_values(array_filter([$row->photo_path??$row->thumbnail_path]));return $values;})->all();
             }
-            $data['photos']=in_array('photos',$spec[4])?$model->photos->map(fn($row)=>$row->only(['id','file_path']))->all():[];
+            $data['photos']=in_array('photos',$spec[4])?$model->photos->map(fn($row)=>['id'=>$row->id,'file_path'=>$type==='travel_bus'?$row->photo_path:$row->file_path])->all():[];
         }
         if ($spec[1]) {
             $class='App\\Models\\'.$spec[1];$categories=$class::query();
             if ($partner) $categories->where(fn($q)=>$q->whereNull('created_by_partner_id')->orWhere('created_by_partner_id',$request->user()->id));
             $options=$categories->orderBy('name')->get()->map(fn($row)=>['id'=>(string)$row->id,'label'=>$row->name,'parent_id'=>$row->parent_id])->all();
             foreach($fields as &$field) if(in_array($field['key'],['category_id','subcategory_id'])) $field['options']=$options;
+            unset($field);
+        }
+        if($type==='travel_bus'&&!$partner) {
+            $options=\App\Models\User::role('partner')->orderBy('name')->get()->map(fn($user)=>['id'=>(string)$user->id,'label'=>$user->name])->all();
+            foreach($fields as &$field)if($field['key']==='created_by_partner_id')$field['options']=$options;
             unset($field);
         }
         return response()->json(['data'=>['title'=>$spec[2],'fields'=>$fields,'values'=>$data]]);
@@ -108,6 +114,11 @@ class ProductManagementController extends Controller
             abort_unless($category::whereKey($request->category_id)->where(fn($q)=>$q->whereNull('created_by_partner_id')->orWhere('created_by_partner_id',$request->user()->id))->exists(),422,'Kategori tidak tersedia.');
         }
         $request->validate(['seo_image'=>'nullable|image|max:4096','rooms.*.photos.*'=>'nullable|image|max:3072','menus.*.photos.*'=>'nullable|image|max:3072','rooms.*.price'=>'nullable|numeric|min:0','menus.*.price'=>'nullable|numeric|min:0','rooms.*.available_rooms'=>'nullable|integer|min:0','rooms.*.max_guests'=>'nullable|integer|min:1']);
+        if($type==='travel_bus') {
+            $request->validate(['departure_time'=>'required|date_format:H:i','arrival_time'=>'required|date_format:H:i','route_details'=>'nullable|array','route_details.*'=>'nullable|string|max:255','facilities'=>'nullable|array','facilities.*'=>'in:tv,reclining_seat,wifi,baggage,usb,ac,snack,toilet']);
+            if($request->filled('created_by_partner_id'))abort_unless(\App\Models\User::role('partner')->whereKey($request->created_by_partner_id)->exists(),422,'Pemilik harus akun partner.');
+            if($spec['area']==='Admin'&&!$request->boolean('is_active'))$request->request->remove('is_active');
+        }
         // Child IDs and stored photos must belong to this exact product.
         foreach(['tiers','rooms','menus'] as $relation) {
             if (!in_array($relation,$spec[4])) continue;
@@ -134,15 +145,19 @@ class ProductManagementController extends Controller
     {
         $spec=$this->spec($request,$type);abort_unless(in_array('photos',$spec[4]),404);
         $model=$this->query($request,$spec)->findOrFail($id);$row=$model->photos()->findOrFail($photo);
-        Storage::disk('public')->delete($row->file_path);$row->delete();
+        Storage::disk('public')->delete($type==='travel_bus'?$row->photo_path:$row->file_path);$row->delete();
         return response()->json(['message'=>'Foto berhasil dihapus.']);
     }
     public function review(Request $request,string $type,int $id,string $action)
     {
-        $spec=$this->spec($request,$type);abort_unless($spec['area']==='Admin',403);abort_unless(in_array($action,['approve','reject','disable'])&&in_array($type,['tour','rent_car','ship','hotel','restoran']),404);
+        $spec=$this->spec($request,$type);abort_unless($spec['area']==='Admin',403);abort_unless(in_array($action,['approve','reject','disable'])&&in_array($type,['tour','rent_car','ship','hotel','restoran','travel_bus']),404);
         $request->validate(['note'=>'nullable|string|max:2000']);
         DB::transaction(function()use($request,$spec,$type,$id,$action){
-            $this->query($request,$spec)->whereNotNull('created_by_partner_id')->lockForUpdate()->findOrFail($id);
+            $product=$this->query($request,$spec)->whereNotNull('created_by_partner_id')->lockForUpdate()->findOrFail($id);
+            if($type==='travel_bus') {
+                $product->update(['is_active'=>$action==='approve','partner_review_status'=>match($action){'approve'=>'approved','reject'=>'rejected',default=>'disabled'},'partner_review_note'=>$request->note,'partner_reviewed_by'=>$request->user()->id,'partner_reviewed_at'=>now()]);
+                return;
+            }
             app(WebAction::class)->run($request,\App\Http\Controllers\Admin\PartnerProductReviewController::class,$action,null,['type'=>$type==='rent_car'?'rentcar':$type,'id'=>$id]);
         });return response()->json(['message'=>'Status review produk diperbarui.']);
     }

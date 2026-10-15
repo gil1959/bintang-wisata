@@ -15,7 +15,7 @@ class TripayService
             : 'https://tripay.co.id/api-sandbox';
     }
 
-    public function fetchChannels(array $credentials): array
+    public function fetchChannels(array $credentials, int $timeout = 20): array
     {
         $apiKey = $credentials['api_key'] ?? null;
         if (!$apiKey) {
@@ -24,7 +24,7 @@ class TripayService
 
         $base = $this->baseUrl($credentials);
 
-        $resp = Http::timeout(20)
+        $resp = Http::withOptions(['connect_timeout'=>min(5, $timeout)])->timeout($timeout)
             ->acceptJson()
             ->withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,

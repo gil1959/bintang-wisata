@@ -254,7 +254,7 @@ if (
         $found = false;
 
         foreach ($channels as $ch) {
-            if (($ch['channel_code'] ?? null) === $channelCode) {
+            if (($ch['channel_code'] ?? null) === $channelCode && ($ch['active'] ?? true)) {
                 $gatewayMethodLabel = $ch['name'] ?? $channelCode;
                 $found = true;
                 break;
@@ -381,7 +381,7 @@ return redirect()
         $channels = is_array($gateway->channels) ? $gateway->channels : [];
         $valid = false;
         foreach ($channels as $ch) {
-            if (($ch['channel_code'] ?? null) === $channelCode) {
+            if (($ch['channel_code'] ?? null) === $channelCode && ($ch['active'] ?? true)) {
                 $valid = true;
                 break;
             }
@@ -540,29 +540,19 @@ $payload = [
     'description' => 'Order ' . $order->invoice_number,
     'success_redirect_url' => $returnUrl,
     'failure_redirect_url' => $returnUrl,
+    'currency' => 'IDR',
 ];
 
 
-            $http = Http::withBasicAuth($cred['secret_key'] ?? '', '')
-                ->post('https://api.xendit.co/v2/invoices', $payload);
-
-            if ($http->failed()) {
-   Log::error('Xendit create invoice failed', [
-    'status' => $http->status(),
-    'body' => $http->body(),
-    'mode' => $cred['mode'] ?? null,
-    'key_prefix' => substr(($cred['secret_key'] ?? ''), 0, 20),
-]);
-
-    return redirect()
-        ->route('payment.gateway.page', $order->id)
-        ->with('error', 'Xendit sedang bermasalah. Coba lagi atau pilih metode lain.')
-        ->with('show_change_method', true);
-}
-
-
-            $resp = $http->json();
-
+            $recover = (bool)($payment->gateway_payload['xendit_request_started'] ?? false);
+            $payment->gateway_payload = ['xendit_request_started'=>true];
+            $payment->save();
+            try {
+                $resp = app(\App\Services\Payments\XenditService::class)->createOrRecover($cred, $payload, $recover);
+            } catch (\RuntimeException $e) {
+                Log::warning('Xendit invoice belum tersedia', ['order_id'=>$order->id,'payment_id'=>$payment->id]);
+                return back()->with('error', $e->getMessage());
+            }
             $payment->gateway_reference = $resp['id'] ?? null;
             $payment->payment_url = $resp['invoice_url'] ?? null;
             $payment->gateway_payload = $resp;

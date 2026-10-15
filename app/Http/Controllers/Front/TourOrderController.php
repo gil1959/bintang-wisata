@@ -29,11 +29,13 @@ class TourOrderController extends Controller
             'phone'          => 'required|string|max:50',
             'departure_date' => 'required|date|after_or_equal:today',
             'participants'   => 'required|integer|min:1',
+            'tier_id'        => 'nullable|integer',
             'promo_id'       => 'nullable|integer',
         ]);
 
         // ===================== HITUNG TIER ======================
         $tier = $package->tiers->first(function ($t) use ($data) {
+            if (!empty($data['tier_id']) && (int)$t->id !== (int)$data['tier_id']) return false;
             return $data['participants'] >= $t->min_people &&
                 ($t->max_people === null || $data['participants'] <= $t->max_people);
         });
@@ -137,6 +139,7 @@ $userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
         if ($affLinkId) {
     AffiliateLink::where('id', $affLinkId)->increment('conversions');
 }
+        app(\App\Services\Mobile\InvoiceDelivery::class)->send($request, function () use ($order) {
         try {
             if (!empty($order->customer_email)) {
                 Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));
@@ -162,6 +165,8 @@ $userId = auth()->id() ?: User::where('email', $data['email'])->value('id');
                 'error' => $e->getMessage(),
             ]);
         }
+
+        });
 
         return response()->json([
             'redirect' => route('checkout.show', $order->id)

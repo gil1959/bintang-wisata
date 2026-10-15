@@ -180,6 +180,7 @@ class RestoranOrderController extends Controller
             AffiliateLink::where('id', $affLinkId)->increment('conversions');
         }
 
+        app(\App\Services\Mobile\InvoiceDelivery::class)->send($request, function () use ($order) {
         try {
             if (!empty($order->customer_email)) {
                 Mail::to($order->customer_email)->send(new OrderInvoiceMail($order, false));
@@ -204,6 +205,8 @@ class RestoranOrderController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+
+        });
 
         return response()->json([
             'redirect' => route('checkout.show', $order->id)

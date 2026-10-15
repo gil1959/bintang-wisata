@@ -53,6 +53,15 @@
         class="rounded-3xl border border-slate-200 bg-white shadow-sm">
     @csrf
 
+    <section class="p-6 lg:p-8 border-b border-slate-100">
+      <h2 class="text-lg font-extrabold text-slate-900">Login Google</h2>
+      <p class="text-sm text-slate-600 mt-1">Berlaku untuk website dan aplikasi Android. Google Client ID dan Client Secret harus dikonfigurasi di hosting.</p>
+      <input type="hidden" name="google_auth_enabled" value="0">
+      <label class="mt-4 inline-flex items-center gap-3 text-sm font-semibold text-slate-900">
+        <input type="checkbox" name="google_auth_enabled" value="1" class="rounded text-[#0194F3]" @checked(old('google_auth_enabled', $settings['google_auth_enabled'] ?? '0') == '1')>
+        Aktifkan login dan pendaftaran melalui Google
+      </label>
+    </section>
     {{-- ================= HERO ================= --}}
     <div class="p-6 lg:p-8">
       <div class="flex items-center justify-between gap-4">

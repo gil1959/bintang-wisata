@@ -47,12 +47,12 @@ class PublicContentController extends Controller
         if($page==='about')return $this->about();
         if ($page!=='travel') {
             $data=app(LegalController::class)->$page()->getData();
-            return response()->json(['data'=>['title'=>$data['title'],'sections'=>[['title'=>'','html'=>$data['html']]],'links'=>[]]]);
+            return response()->json(['data'=>['title'=>$data['title'],'sections'=>[['title'=>'','html'=>$data['html']]],'contact'=>$this->contactDetails(),'links'=>[]]]);
         }
         $data=app(TravelDocumentController::class)->index()->getData();
-        $sections=[['title'=>$data['heroTitle'],'html'=>$data['heroDesc']]];
+        $sections=[['key'=>'hero','title'=>$data['heroTitle'],'html'=>$data['heroDesc']]];
         foreach(['tabPassportTitle'=>'passportHtml','tabVisaTitle'=>'visaHtml','passportPriceTitle'=>'passportPriceHtml','visaPriceTitle'=>'visaPriceHtml','immigrationTitle'=>'immigrationHtml','orderTitle'=>'orderHtml'] as $title=>$html) {
-            if (!empty($data[$html])) $sections[]=['title'=>$data[$title],'html'=>$data[$html]];
+            if (!empty($data[$html])) $sections[]=['key'=>$html,'title'=>$data[$title],'html'=>$data[$html]];
         }
         $links=collect($data['downloads'])->filter(fn($link)=>is_array($link)&&preg_match('~^https?://~i',$link['url']??''))->map(fn($link)=>['label'=>$link['label']??'Unduh dokumen','url'=>$link['url']])->values()->all();
         $phone=preg_replace('/\D/','',$data['orderWa']);
@@ -84,8 +84,13 @@ class PublicContentController extends Controller
             'about_step3'=>['Pemesanan','Lengkapi data dan lakukan proses sesuai instruksi.'],
             'about_step4'=>['Perjalanan dimulai','Nikmati perjalanan, tim kami siap membantu bila diperlukan.'],
         ];
-        foreach($defaults as $key=>[$title,$description])$sections[]=['title'=>Setting::getValue($key.'_title',$title),'html'=>nl2br(e(Setting::getValue($key.'_desc',$description)))];
-        return response()->json(['data'=>['title'=>Setting::getValue('about_hero_badge','Tentang Bintang Wisata'),'sections'=>$sections,'links'=>[]]]);
+        foreach($defaults as $key=>[$title,$description])$sections[]=['key'=>$key,'title'=>Setting::getValue($key.'_title',$title),'html'=>nl2br(e(Setting::getValue($key.'_desc',$description)))];
+        return response()->json(['data'=>['title'=>Setting::getValue('about_hero_badge','Tentang Bintang Wisata'),'sections'=>$sections,'contact'=>$this->contactDetails(),'links'=>[]]]);
+    }
+    private function contactDetails():array
+    {
+        $phone=preg_replace('/\D+/','',(string)Setting::getValue('footer_whatsapp',''));
+        return ['address'=>Setting::getValue('footer_address',''),'phone'=>Setting::getValue('footer_phone',''),'email'=>Setting::getValue('footer_email',''),'whatsapp_url'=>$phone?'https://wa.me/'.(str_starts_with($phone,'0')?'62'.substr($phone,1):$phone):null];
     }
     public function home(Request $request)
     {
@@ -94,13 +99,19 @@ class PublicContentController extends Controller
         $sections=[];
         foreach(['tour'=>'home_promo','ship'=>'home_ship_promo','umrah'=>'home_umrah_promo','mice'=>'home_mice_promo'] as $type=>$prefix){
             if(!filter_var(Setting::getValue($prefix.'_enabled','1'),FILTER_VALIDATE_BOOLEAN))continue;
-            $model=CatalogController::TYPES[$type][0];$query=$model::where('is_active',true);
+            $model=CatalogController::TYPES[$type][0];$query=$model::where('is_active',true)->with('tiers');
+            if(in_array($type,['tour','mice'],true))$query->with('category');
             if(in_array('created_by_partner_id',(new $model)->getFillable(),true))$query->where(fn($q)=>$q->whereNull('created_by_partner_id')->orWhere('partner_review_status','approved'));
             $ids=json_decode(Setting::getValue($prefix.'_custom_ids','[]'),true);$ids=is_array($ids)?array_values(array_filter(array_map('intval',$ids))):[];
             $custom=Setting::getValue($prefix.'_mode','auto')==='custom'&&count($ids)>0;
             $rows=$custom?$query->whereIn('id',$ids)->get()->sortBy(fn($row)=>array_search($row->id,$ids))->take(20):$query->where('label','PROMO')->latest()->limit(20)->get();
-            if($rows->count())$sections[]=['title'=>Setting::getValue($prefix.'_title',CatalogController::TYPES[$type][1]),'products'=>$rows->map(fn($row)=>['type'=>$type,'slug'=>$row->slug,'title'=>$row->title,'image_url'=>$this->image($row->thumbnail_path)])->values()];
+            if($rows->count())$sections[]=['key'=>$type,'title'=>Setting::getValue($prefix.'_title',CatalogController::TYPES[$type][1]),'products'=>$rows->map(function($row)use($type){
+                $tiers=$row->tiers;
+                if($type==='mice'&&$tiers->where('type','domestic')->where('price','>',0)->isNotEmpty())$tiers=$tiers->where('type','domestic');
+                $prices=$tiers->pluck('price')->filter(fn($price)=>is_numeric($price)&&(float)$price>0);
+                return ['card_display'=>['stars'=>5,'rating_count'=>(int)($row->rating_count??0),'category_name'=>in_array($type,['tour','mice'],true)?($row->category?->name??($type==='tour'?'Tour':'MICE')):null], 'type'=>$type,'slug'=>$row->slug,'title'=>$row->title,'image_url'=>$this->image($row->thumbnail_path),'label'=>$row->label,'category_name'=>in_array($type,['tour','mice'],true)?$row->category?->name:null,'destination'=>$row->destination,'duration_text'=>$row->duration_text,'starting_price'=>$prices->isNotEmpty()?(float)$prices->min():null,'price_unit'=>$type==='tour'?'orang':'paket','rating_value'=>is_numeric($row->rating_value)?(float)$row->rating_value:null,'rating_count'=>is_numeric($row->rating_count)?(int)$row->rating_count:null];
+            })->values()];
         }
-        return response()->json(['data'=>['hero'=>$hero,'sections'=>$sections]]);
+        return response()->json(['data'=>['card_schema_version'=>3,'hero'=>$hero,'sections'=>$sections]]);
     }
 }

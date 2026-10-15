@@ -48,7 +48,7 @@ class AdminWorkflows
         if(in_array($module,['partners','users'])) {
             $fields=[];foreach(['name'=>'Nama','email'=>'Email','phone'=>'Telepon','address'=>'Alamat','full_address'=>'Alamat lengkap','sub_district'=>'Kecamatan'] as $key=>$label)$fields[]=$f($key,$label);
             $fields[]=$f('password','Sandi','password');$fields[]=$s('role','Role',$module==='partners'?['user'=>'User','partner'=>'Partner']:['user'=>'User','partner'=>'Partner','site_moderator'=>'Moderator']);$fields[]=$f('is_verified','Email terverifikasi','boolean');
-            $fields[]=$s('partner_type','Jenis usaha',['agency_paket_tour'=>'Tour','agency_rental_mobil'=>'Rental mobil','agency_restoran'=>'Restoran','agency_hotel_vila'=>'Hotel dan vila']);
+            $fields[]=$s('partner_type','Jenis usaha',['agency_paket_tour'=>'Tour','agency_rental_mobil'=>'Rental mobil','agency_restoran'=>'Restoran','agency_hotel_vila'=>'Hotel dan vila','agency_travel_bus'=>'Bus dan Travel']);
             foreach(['partner_bank_name'=>'Nama bank','partner_bank_account_number'=>'Nomor rekening','partner_bank_account_holder'=>'Nama pemilik rekening'] as $key=>$label)$fields[]=$f($key,$label);
             if($module==='partners')$fields[]=$f('partner_tax_percent','Persentase pajak','number');
             else $fields[]=$f('permissions','Izin moderator','multiselect',['options'=>collect(config('admin_permissions',[]))->map(fn($v,$id)=>['id'=>$id,'label'=>$v['label']??$id])->values()->all()]);

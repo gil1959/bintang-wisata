@@ -18,7 +18,7 @@ class AccountController extends Controller
         }
         if($user->hasRole('partner')) {
             return Order::where(function($q)use($user){
-                foreach(['tour'=>TourPackage::class,'rent_car'=>RentCarPackage::class,'ship'=>ShipPackage::class,'hotel'=>HotelPackage::class,'restoran'=>RestoranPackage::class] as $type=>$model) {
+                foreach(['tour'=>TourPackage::class,'rent_car'=>RentCarPackage::class,'ship'=>ShipPackage::class,'hotel'=>HotelPackage::class,'restoran'=>RestoranPackage::class,'travel_bus'=>\App\Models\TravelBusPackage::class] as $type=>$model) {
                     $q->orWhere(fn($w)=>$w->where('type',$type)->whereIn('product_id',$model::select('id')->where('created_by_partner_id',$user->id)));
                 }
             });
@@ -32,7 +32,7 @@ class AccountController extends Controller
     }
     public function orders(Request $request)
     {
-        $data=$request->validate(['q'=>'nullable|string|max:100','page'=>'nullable|integer|min:1','status'=>'nullable|in:pending,approved,rejected','type'=>'nullable|in:tour,rent_car,ship,hotel,restoran,umrah,mice','payment_status'=>'nullable|in:unpaid,pending,waiting_verification,paid,failed,expired']);
+        $data=$request->validate(['q'=>'nullable|string|max:100','page'=>'nullable|integer|min:1','status'=>'nullable|in:pending,approved,rejected','type'=>'nullable|in:tour,rent_car,ship,hotel,restoran,umrah,mice,travel_bus','payment_status'=>'nullable|in:unpaid,pending,waiting_verification,paid,failed,expired']);
         $query=$this->ordersQuery($request);
         foreach(['type','payment_status'] as $field) if(!empty($data[$field])) $query->where($field,$data[$field]);
         if(!empty($data['status'])) $query->where('order_status',$data['status']);

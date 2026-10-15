@@ -16,7 +16,8 @@ class MobileCheckoutTest extends TestCase
         config(['database.default'=>'sqlite','database.connections.sqlite.database'=>':memory:','cache.default'=>'array','session.driver'=>'array','mail.default'=>'array','app.key'=>'base64:'.base64_encode(str_repeat('a',32))]);
         DB::purge('sqlite');$this->assertSame(':memory:',DB::connection()->getDatabaseName());
         Schema::create('mobile_mutations',function(Blueprint $t){$t->id();$t->unsignedBigInteger('user_id');$t->uuid('request_id');$t->string('fingerprint');$t->text('response');$t->timestamps();$t->unique(['user_id','request_id']);});
-        Schema::create('users',function(Blueprint $t){$t->id();$t->string('name');$t->string('email');$t->string('password');$t->timestamp('email_verified_at')->nullable();$t->boolean('is_suspended')->default(false);$t->timestamps();});
+        Schema::create('users',function(Blueprint $t){$t->id();$t->string('name');$t->string('email');$t->string('password');$t->string('phone')->nullable();$t->text('address')->nullable();$t->timestamp('email_verified_at')->nullable();$t->boolean('is_suspended')->default(false);$t->timestamps();});
+        Schema::create('personal_access_tokens',function(Blueprint $t){$t->id();$t->morphs('tokenable');$t->string('name');$t->string('token',64)->unique();$t->text('abilities')->nullable();$t->timestamp('last_used_at')->nullable();$t->timestamp('expires_at')->nullable();$t->timestamps();});
         Schema::create('roles',function(Blueprint $t){$t->id();$t->string('name');$t->string('guard_name');$t->timestamps();});
         Schema::create('model_has_roles',function(Blueprint $t){$t->unsignedBigInteger('role_id');$t->string('model_type');$t->unsignedBigInteger('model_id');});
         Schema::create('settings',function(Blueprint $t){$t->id();$t->string('key');$t->text('value')->nullable();});
@@ -27,6 +28,7 @@ class MobileCheckoutTest extends TestCase
         }
         foreach(['ship','umrah','mice'] as $type) Schema::create($type.'_package_tiers',function(Blueprint $t)use($type){$t->id();$t->unsignedBigInteger($type.'_package_id');$t->string('type')->default('domestic');$t->string('label_text')->default('Pilihan');$t->integer('sort_order')->default(1);$t->integer('price')->default(125000);});
         Schema::create('hotel_rooms',function(Blueprint $t){$t->id();$t->unsignedBigInteger('hotel_package_id');$t->string('name');$t->integer('sort_order')->default(1);$t->integer('price')->default(100000);$t->integer('price_with_breakfast')->default(120000);});
+        Schema::create('travel_bus_packages',function(Blueprint $t){$t->id();foreach((new \App\Models\TravelBusPackage)->getFillable() as $field)$t->text($field)->nullable();$t->timestamps();});
         Schema::create('restoran_menus',function(Blueprint $t){$t->id();$t->unsignedBigInteger('restoran_package_id');$t->string('name');$t->integer('price')->default(50000);$t->boolean('is_ready')->default(true);});
         Schema::create('orders',function(Blueprint $t){
             $t->id();$t->unsignedBigInteger('user_id')->nullable();$t->unsignedBigInteger('product_id')->nullable();
@@ -192,12 +194,47 @@ class MobileCheckoutTest extends TestCase
         $this->getJson('/api/v1/guest/checkout/1',$headers)->assertOk();
         DB::table('payment_methods')->insert(['id'=>1,'type'=>'manual','method_name'=>'Bank','bank_name'=>'Bank']);
         $billing=['billing_first_name'=>'Guest','billing_last_name'=>'Buyer','billing_country'=>'Indonesia','billing_address'=>'Street','billing_city'=>'City','billing_state'=>'State','billing_postal'=>'12345','billing_phone'=>'08123456789','payment_method'=>'manual:1'];
-        $this->postJson('/api/v1/guest/checkout/1/process',$billing,$headers)->assertOk();
-        $this->assertSame(0,User::count());
+        $result=$this->postJson('/api/v1/guest/checkout/1/process',$billing,$headers)->assertOk()->assertJsonPath('data.account_created',true)->assertJsonPath('data.session.user.roles.0','user');
+        $this->assertNotEmpty($result->json('data.session.token'));
+        $repeat=$this->postJson('/api/v1/guest/checkout/1/process',$billing,$headers)->assertOk();
+        $this->assertArrayNotHasKey('session',$repeat->json('data'));
+        $this->assertSame(1,User::count());
+        $this->assertSame(1,(int)Order::first()->user_id);
         $this->post('/api/v1/guest/checkout/1/proof',['proof'=>UploadedFile::fake()->image('proof.jpg')],array_merge($headers,['Accept'=>'application/json']))->assertOk();
         $this->assertSame('waiting_verification',Order::first()->payment_status);
         DB::table('mobile_guest_bookings')->update(['expires_at'=>now()->subDay()]);
         $this->getJson('/api/v1/guest/resume',$headers)->assertForbidden();
+    }
+    public function test_guest_checkout_with_registered_email_requires_login_and_never_issues_account_token()
+    {
+        Schema::create('mobile_guest_bookings',function(Blueprint $t){$t->id();$t->string('token_hash')->unique();$t->string('fingerprint');$t->unsignedBigInteger('order_id')->nullable();$t->timestamp('expires_at');$t->timestamps();});
+        $existing=User::create(['name'=>'Partner','email'=>'existing@example.test','password'=>Hash::make('Password123'),'email_verified_at'=>now()]);$existing->assignRole('partner');
+        $order=Order::create(['invoice_number'=>'GUEST','customer_email'=>$existing->email,'user_id'=>null,'type'=>'tour','product_name'=>'Trip','final_price'=>100000,'payment_status'=>'waiting_payment','order_status'=>'pending']);
+        $token=str_repeat('c',64);
+        DB::table('mobile_guest_bookings')->insert(['token_hash'=>hash('sha256',$token),'fingerprint'=>'test','order_id'=>$order->id,'expires_at'=>now()->addDay(),'created_at'=>now(),'updated_at'=>now()]);
+        $billing=['billing_first_name'=>'Buyer','billing_last_name'=>'Guest','billing_country'=>'Indonesia','billing_address'=>'Street','billing_city'=>'City','billing_state'=>'State','billing_postal'=>'12345','billing_phone'=>'08123456789','payment_method'=>'manual:1'];
+        $this->postJson('/api/v1/guest/checkout/'.$order->id.'/process',$billing,['X-Guest-Token'=>$token])->assertUnprocessable();
+        $this->assertNull($order->fresh()->user_id);$this->assertSame(1,User::count());$this->assertSame(0,DB::table('personal_access_tokens')->count());$this->assertTrue($existing->fresh()->hasRole('partner'));
+    }
+    public function test_manual_payment_reaches_paid_after_admin_approval_and_cannot_be_paid_again()
+    {
+        $buyer=$this->user();$order=$this->order($buyer);
+        DB::table('payment_methods')->insert(['id'=>1,'type'=>'manual','method_name'=>'BCA','bank_name'=>'BCA','is_active'=>true]);
+        $proof=UploadedFile::fake()->createWithContent('proof.png',base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j9WQAAAAASUVORK5CYII='));
+        $this->post('/api/v1/checkout/'.$order->id.'/proof',['proof'=>$proof],['Accept'=>'application/json'])->assertOk();
+        $this->assertSame('waiting_verification',$order->fresh()->payment_status);
+        Role::create(['name'=>'admin','guard_name'=>'web']);
+        Schema::create('permissions',function(Blueprint $t){$t->id();$t->string('name');$t->string('guard_name');$t->timestamps();});
+        Schema::create('role_has_permissions',function(Blueprint $t){$t->unsignedBigInteger('permission_id');$t->unsignedBigInteger('role_id');});
+        Schema::create('model_has_permissions',function(Blueprint $t){$t->unsignedBigInteger('permission_id');$t->string('model_type');$t->unsignedBigInteger('model_id');});
+        \Spatie\Permission\Models\Permission::create(['name'=>'admin.dashboard.view','guard_name'=>'web']);
+        Role::findByName('admin','web')->givePermissionTo(\Spatie\Permission\Models\Permission::findByName('admin.dashboard.view','web'));
+        $admin=User::create(['name'=>'Admin','email'=>'admin@example.test','password'=>Hash::make('Password123'),'email_verified_at'=>now()]);$admin->assignRole('admin');Sanctum::actingAs($admin);
+        $this->postJson('/api/v1/admin/workflows/orders/'.$order->id.'/action/update',['action'=>'approve','request_id'=>(string)\Illuminate\Support\Str::uuid()])->assertOk();
+        Sanctum::actingAs($buyer);
+        $this->getJson('/api/v1/checkout/'.$order->id)->assertOk()->assertJsonPath('data.order.payment_status','paid')->assertJsonPath('data.order.order_status','approved');
+        $this->assertSame('paid',Payment::first()->status);
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertStatus(409);
     }
     public function test_checkout_rejects_wrong_owner_and_unverified_or_partner_accounts()
     {
@@ -225,6 +262,81 @@ class MobileCheckoutTest extends TestCase
         $body['promo_code']='INVALID';
         $this->postJson('/api/v1/bookings/tour/trip',$body)->assertUnprocessable();
         $this->assertSame(1,DB::table('mobile_mutations')->count());
+    }
+    public function test_checkout_lists_only_active_admin_methods_with_bank_names_and_one_xendit_option()
+    {
+        $order=$this->order($this->user());
+        DB::table('payment_methods')->insert([['method_name'=>'Offline Payment','type'=>'manual','bank_name'=>'BCA','is_active'=>true],['method_name'=>'Disabled','type'=>'manual','bank_name'=>'BNI','is_active'=>false]]);
+        DB::table('payment_gateways')->insert([
+            ['name'=>'xendit','credentials'=>'{}','is_active'=>true,'channels'=>json_encode([['channel_code'=>'INVOICE','name'=>'Invoice','active'=>true],['channel_code'=>'OTHER','name'=>'Other','active'=>true]])],
+            ['name'=>'midtrans','credentials'=>'{}','is_active'=>false,'channels'=>json_encode([['channel_code'=>'BCA','name'=>'BCA','active'=>true]])],
+            ['name'=>'tripay','credentials'=>'{}','is_active'=>true,'channels'=>json_encode([['channel_code'=>'BRIVA','name'=>'BRI','active'=>true],['channel_code'=>'BCAVA','name'=>'BCA','active'=>false]])],
+        ]);
+        $this->getJson('/api/v1/checkout/'.$order->id)->assertOk()->assertJsonCount(3,'data.methods')->assertJsonPath('data.methods.0.label','BCA')->assertJsonPath('data.methods.1.label','Xendit')->assertJsonPath('data.methods.2.label','BRI');
+    }
+    public function test_xendit_recovers_invoice_after_connection_reset_and_reuses_it_without_new_payment()
+    {
+        $order=$this->order($this->user());$order->update(['payment_method'=>'gateway:xendit:INVOICE']);
+        DB::table('payment_gateways')->insert(['name'=>'xendit','is_active'=>true,'credentials'=>json_encode(['secret_key'=>'test','callback_token'=>'test-callback']),'channels'=>json_encode([['channel_code'=>'INVOICE','active'=>true]])]);
+        \Illuminate\Support\Facades\Http::fake(function($request)use($order){
+            if($request->method()==='POST')throw new \Illuminate\Http\Client\ConnectionException('Connection reset');
+            return \Illuminate\Support\Facades\Http::response([['id'=>'X1','external_id'=>$order->invoice_number,'amount'=>100123,'currency'=>'IDR','status'=>'PENDING','invoice_url'=>'https://checkout.xendit.co/test']],200);
+        });
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertOk()->assertJsonPath('data.payment_url','https://checkout.xendit.co/test');
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertOk();
+        $this->assertSame(1,Payment::count());
+        $this->assertSame('X1',Payment::first()->gateway_reference);
+        $this->assertSame('waiting_payment',$order->fresh()->payment_status);
+        \Illuminate\Support\Facades\Http::assertSent(fn($request)=>$request->method()==='GET'&&$request['external_id']==='TEST1');
+        $callback=['id'=>'X1','external_id'=>$order->invoice_number,'status'=>'PAID','amount'=>100123,'paid_amount'=>100123,'currency'=>'IDR'];
+        $this->postJson('/api/webhooks/xendit',$callback,['x-callback-token'=>'test-callback'])->assertOk();
+        $this->getJson('/api/v1/checkout/'.$order->id)->assertOk()->assertJsonPath('data.order.payment_status','paid');
+        $this->assertSame('paid',Payment::first()->status);
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertStatus(409);
+    }
+    public function test_xendit_unconfirmed_connection_failure_does_not_mark_paid_or_repeat_create()
+    {
+        $order=$this->order($this->user());$order->update(['payment_method'=>'gateway:xendit:INVOICE']);
+        DB::table('payment_gateways')->insert(['name'=>'xendit','is_active'=>true,'credentials'=>json_encode(['secret_key'=>'test']),'channels'=>json_encode([['channel_code'=>'INVOICE','active'=>true]])]);
+        $posts=0;
+        \Illuminate\Support\Facades\Http::fake(function($request)use(&$posts){if($request->method()==='POST')$posts++;throw new \Illuminate\Http\Client\ConnectionException('Connection reset');});
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertUnprocessable();
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertUnprocessable();
+        $this->assertSame(1,$posts);
+        $this->assertSame(1,Payment::count());
+        $this->assertSame('waiting_payment',$order->fresh()->payment_status);
+    }
+    public function test_checkout_channel_sync_is_bounded_and_not_repeated_after_gateway_failure()
+    {
+        $order=$this->order($this->user());
+        DB::table('payment_methods')->insert(['id'=>1,'method_name'=>'Bank','type'=>'manual','bank_name'=>'Bank','is_active'=>true]);
+        DB::table('payment_gateways')->insert(['name'=>'tripay','credentials'=>json_encode(['api_key'=>'test']),'channels'=>'[]','is_active'=>true]);
+        $service=\Mockery::mock(\App\Services\Payments\TripayService::class);
+        $service->shouldReceive('fetchChannels')->once()->with(['api_key'=>'test'],5)->andThrow(new \RuntimeException('Channel sync unavailable'));
+        $this->app->instance(\App\Services\Payments\TripayService::class,$service);
+        $this->getJson('/api/v1/checkout/'.$order->id)->assertOk()->assertJsonPath('data.methods.0.value','manual:1');
+        $this->getJson('/api/v1/checkout/'.$order->id)->assertOk()->assertJsonPath('data.methods.0.value','manual:1');
+    }
+    public function test_mobile_invoice_is_sent_after_response_and_after_commit_only_once()
+    {
+        $events=[];
+        DB::beginTransaction();
+        app(\App\Services\Mobile\InvoiceDelivery::class)->send(\Illuminate\Http\Request::create('/api/v1/bookings/tour/trip','POST'),function()use(&$events){$events[]=DB::transactionLevel();});
+        $this->assertSame([],$events);
+        DB::commit();
+        $this->assertSame([],$events);
+        app()->terminate();
+        app()->terminate();
+        $this->assertSame([0],$events);
+    }
+    public function test_rolled_back_mobile_booking_does_not_send_invoice()
+    {
+        $sent=false;
+        DB::beginTransaction();
+        app(\App\Services\Mobile\InvoiceDelivery::class)->send(\Illuminate\Http\Request::create('/api/v1/bookings/tour/trip','POST'),function()use(&$sent){$sent=true;});
+        DB::rollBack();
+        app()->terminate();
+        $this->assertFalse($sent);
     }
     public function test_booking_all_other_product_types_uses_existing_web_pricing()
     {
@@ -300,4 +412,112 @@ class MobileCheckoutTest extends TestCase
         $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertOk();
         $this->assertSame(1,Payment::count());
     }
-}
+    public function test_gateway_failure_returns_validation_message_instead_of_session_error()
+    {
+        $order=$this->order($this->user());$order->update(['payment_method'=>'gateway:tripay:BRIVA']);
+        DB::table('payment_gateways')->insert(['name'=>'tripay','credentials'=>'{}','channels'=>json_encode([['channel_code'=>'BRIVA','name'=>'BRI','active'=>true]])]);
+        $service=\Mockery::mock(\App\Services\Payments\TripayService::class);
+        $service->shouldReceive('createTransaction')->once()->andThrow(new \RuntimeException('Gateway unavailable'));
+        $this->app->instance(\App\Services\Payments\TripayService::class,$service);
+        $this->postJson('/api/v1/checkout/'.$order->id.'/gateway')->assertUnprocessable();
+        $this->assertNotSame('paid',$order->fresh()->payment_status);
+    }    public function test_selected_tour_price_is_used_and_cross_package_tier_is_rejected()
+    {
+        $this->user();DB::table('tour_packages')->insert(['id'=>1,'title'=>'Trip','slug'=>'trip']);
+        DB::table('tour_package_tiers')->insert([['id'=>1,'tour_package_id'=>1,'min_people'=>1,'max_people'=>10,'price'=>125000],['id'=>2,'tour_package_id'=>1,'min_people'=>2,'max_people'=>5,'price'=>200000],['id'=>3,'tour_package_id'=>2,'min_people'=>1,'max_people'=>10,'price'=>1]]);
+        $body=['tier_id'=>2,'participants'=>2,'departure_date'=>now()->addDay()->toDateString(),'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid(),'frontend_total'=>1];
+        $this->postJson('/api/v1/catalog/tour/trip/quote',$body)->assertOk()->assertJsonPath('data.subtotal',400000);
+        $this->assertSame(0,Order::count());
+        $this->postJson('/api/v1/bookings/tour/trip',$body)->assertCreated()->assertJsonPath('data.final_price',400000);
+        $body['tier_id']=3;$body['idempotency_key']=(string)\Illuminate\Support\Str::uuid();
+        $this->postJson('/api/v1/bookings/tour/trip',$body)->assertUnprocessable();
+        $this->postJson('/api/v1/catalog/tour/trip/quote',$body)->assertUnprocessable();
+        $this->assertSame(1,Order::count());
+    }
+    public function test_web_active_partner_hotel_can_be_quoted_and_booked_by_member()
+    {
+        $this->user();
+        DB::table('hotel_packages')->insert(['id'=>1,'title'=>'New Atrium','slug'=>'atrium','created_by_partner_id'=>12,'partner_review_status'=>'pending','is_active'=>true]);
+        $body=['checkin_date'=>now()->addDay()->toDateString(),'checkout_date'=>now()->addDays(2)->toDateString(),'room_count'=>1,'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/hotel/atrium/quote',$body)->assertOk()->assertJsonPath('data.total',100000);
+        $this->postJson('/api/v1/bookings/hotel/atrium',$body)->assertCreated()->assertJsonPath('data.final_price',100000);
+        DB::table('hotel_packages')->where('id',1)->update(['is_active'=>false]);
+        $this->postJson('/api/v1/catalog/hotel/atrium/quote',$body)->assertNotFound();
+        $body['idempotency_key']=(string)\Illuminate\Support\Str::uuid();
+        $this->postJson('/api/v1/bookings/hotel/atrium',$body)->assertNotFound();
+        $this->assertSame(1,Order::count());
+    }
+    public function test_guest_can_book_web_active_partner_hotel_but_not_inactive_hotel()
+    {
+        Schema::create('mobile_guest_bookings',function(Blueprint $t){$t->id();$t->string('token_hash')->unique();$t->string('fingerprint');$t->unsignedBigInteger('order_id')->nullable();$t->timestamp('expires_at');$t->timestamps();});
+        DB::table('hotel_packages')->insert(['id'=>1,'title'=>'New Atrium','slug'=>'atrium','created_by_partner_id'=>12,'partner_review_status'=>'pending','is_active'=>false]);
+        $body=['email'=>'guest-hotel@example.test','checkin_date'=>now()->addDay()->toDateString(),'checkout_date'=>now()->addDays(2)->toDateString(),'room_count'=>1,'name'=>'Guest','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $headers=['X-Guest-Token'=>str_repeat('c',64)];
+        $this->postJson('/api/v1/guest/bookings/hotel/atrium',$body,$headers)->assertNotFound();
+        $this->assertSame(0,Order::count());
+        DB::table('hotel_packages')->where('id',1)->update(['is_active'=>true]);
+        $this->postJson('/api/v1/guest/bookings/hotel/atrium',$body,$headers)->assertCreated()->assertJsonPath('data.final_price',100000);
+        $this->assertSame(1,Order::count());
+    }
+    public function test_bus_quote_booking_and_guest_use_the_web_passenger_price()
+    {
+        $this->user();
+        DB::table('travel_bus_packages')->insert(['id'=>1,'slug'=>'night-bus','armada_name'=>'Night Bus','armada_type'=>'Bus','travel_type'=>'VIP','departure_location'=>'Jogja','arrival_location'=>'Jakarta','departure_time'=>'20:00','arrival_time'=>'06:00','arrival_days_offset'=>1,'price'=>250000,'is_active'=>true,'partner_review_status'=>'approved']);
+        $body=['departure_date'=>now()->addDay()->toDateString(),'pax'=>3,'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/travel_bus/night-bus/quote',$body)->assertOk()->assertJsonPath('data.total',750000);
+        $response=$this->postJson('/api/v1/bookings/travel_bus/night-bus',$body)->assertCreated()->assertJsonPath('data.final_price',750000);
+        $order=Order::findOrFail($response->json('data.id'));$this->assertSame('travel_bus',$order->type);$this->assertEquals(3,$order->order_items['pax']);
+        $this->getJson('/api/v1/account/orders?type=travel_bus')->assertOk();
+        DB::table('travel_bus_packages')->where('id',1)->update(['partner_review_status'=>'pending']);
+        $this->postJson('/api/v1/catalog/travel_bus/night-bus/quote',$body)->assertNotFound();
+        $this->postJson('/api/v1/bookings/travel_bus/night-bus',$body)->assertNotFound();
+    }
+    public function test_bus_guest_can_create_one_order_and_resume_it()
+    {
+        Schema::create('mobile_guest_bookings',function(Blueprint $t){$t->id();$t->string('token_hash')->unique();$t->string('fingerprint');$t->unsignedBigInteger('order_id')->nullable();$t->timestamp('expires_at');$t->timestamps();});
+        DB::table('travel_bus_packages')->insert(['id'=>1,'slug'=>'bus','armada_name'=>'Bus','travel_type'=>'VIP','price'=>200000,'is_active'=>true,'partner_review_status'=>'approved']);
+        $body=['email'=>'bus-guest@example.test','name'=>'Guest','phone'=>'08123456789','departure_date'=>now()->addDay()->toDateString(),'pax'=>2,'idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $headers=['X-Guest-Token'=>str_repeat('d',64)];
+        $this->postJson('/api/v1/guest/bookings/travel_bus/bus',$body,$headers)->assertCreated()->assertJsonPath('data.final_price',400000);
+        $this->postJson('/api/v1/guest/bookings/travel_bus/bus',$body,$headers)->assertCreated();$this->assertSame(1,Order::count());
+        $this->getJson('/api/v1/guest/resume',$headers)->assertOk();
+    }
+    public function test_hotel_breakfast_fallback_matches_quote_and_created_booking()
+    {
+        $this->user();
+        Schema::table('hotel_rooms',function(Blueprint $t){$t->boolean('has_breakfast')->default(false);});
+        DB::table('hotel_packages')->insert(['id'=>1,'title'=>'Hotel','slug'=>'hotel']);
+        DB::table('hotel_rooms')->insert(['id'=>1,'hotel_package_id'=>1,'name'=>'Breakfast room','price'=>100000,'price_with_breakfast'=>0,'has_breakfast'=>true]);
+        $body=['checkin_date'=>now()->addDay()->toDateString(),'checkout_date'=>now()->addDays(3)->toDateString(),'room_id'=>1,'room_count'=>2,'with_breakfast'=>true,'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/hotel/hotel/quote',$body)->assertOk()->assertJsonPath('data.total',740000);
+        $this->postJson('/api/v1/bookings/hotel/hotel',$body)->assertCreated()->assertJsonPath('data.final_price',740000);
+        $this->assertEquals(185000,Order::first()->order_items['price_per_night']);
+    }
+    public function test_quote_for_every_other_type_uses_web_prices_without_creating_orders()
+    {
+        foreach(['rent_car','ship','hotel','restoran','umrah','mice'] as $type)DB::table($type.'_packages')->insert(['id'=>1,'title'=>'Sample','slug'=>'sample']);
+        foreach(['ship','umrah','mice'] as $type)DB::table($type.'_package_tiers')->insert(['id'=>1,$type.'_package_id'=>1]);
+        DB::table('hotel_rooms')->insert(['id'=>1,'hotel_package_id'=>1,'name'=>'Room']);
+        DB::table('restoran_menus')->insert(['id'=>1,'restoran_package_id'=>1,'name'=>'Menu']);
+        $date=now()->addDay()->toDateString();$after=now()->addDays(2)->toDateString();
+        $cases=[
+            'rent_car'=>[['duration_type'=>'12_hours','pickup_date'=>$date.' 09:00','return_date'=>$date.' 21:00'],100000],
+            'ship'=>[['tier_id'=>1,'qty'=>2],250000],
+            'hotel'=>[['checkin_date'=>$date,'checkout_date'=>$after,'room_id'=>1,'room_count'=>2,'with_breakfast'=>true],240000],
+            'restoran'=>[['menus'=>[['id'=>1,'qty'=>2]]],100000],
+            'umrah'=>[['tier_id'=>1,'participants'=>2],250000],
+            'mice'=>[['tier_id'=>1,'participants'=>2],250000],
+        ];
+        foreach($cases as $type=>[$values,$amount])$this->postJson('/api/v1/catalog/'.$type.'/sample/quote',$values)->assertOk()->assertJsonPath('data.total',$amount);
+        $this->assertSame(0,Order::count());
+    }    public function test_quote_promo_uses_real_package_price_and_caps_discount_at_subtotal()
+    {
+        $this->user();
+        Schema::create('promos',function(Blueprint $t){$t->id();$t->string('code');$t->string('type');$t->integer('value');$t->integer('max_discount')->nullable();$t->integer('min_price')->nullable();$t->date('start_date')->nullable();$t->date('end_date')->nullable();$t->boolean('is_active');$t->timestamps();});
+        DB::table('tour_packages')->insert(['id'=>1,'title'=>'Trip','slug'=>'trip']);
+        DB::table('tour_package_tiers')->insert(['id'=>1,'tour_package_id'=>1,'min_people'=>1,'max_people'=>10,'price'=>125000]);
+        \App\Models\Promo::create(['code'=>'HEMAT','type'=>'nominal','value'=>300000,'is_active'=>true]);
+        $body=['tier_id'=>1,'participants'=>2,'promo_code'=>'HEMAT','price'=>1,'departure_date'=>now()->addDay()->toDateString(),'name'=>'Buyer','phone'=>'08123456789','idempotency_key'=>(string)\Illuminate\Support\Str::uuid()];
+        $this->postJson('/api/v1/catalog/tour/trip/quote',$body)->assertOk()->assertJsonPath('data.subtotal',250000)->assertJsonPath('data.discount',250000)->assertJsonPath('data.total',0);
+        $this->postJson('/api/v1/bookings/tour/trip',$body)->assertCreated()->assertJsonPath('data.final_price',0);
+    }}
