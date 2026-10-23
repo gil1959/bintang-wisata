@@ -23,6 +23,7 @@ class CheckoutController extends Controller
     public function show($orderId, TripayService $tripay)
     {
         $order = Order::findOrFail($orderId);
+        $order->cancelIfExpired();
 
         // Ambil paket buat ringkasan
         if ($order->type === 'tour') {
@@ -132,6 +133,13 @@ class CheckoutController extends Controller
     public function process(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
+        $order->cancelIfExpired();
+
+        if ($order->is_payment_expired || in_array($order->order_status, ['approved', 'rejected'], true)) {
+            return back()->withErrors([
+                'payment_method' => 'Batas waktu pembayaran (6 jam) telah berakhir. Pesanan otomatis dibatalkan.',
+            ])->withInput();
+        }
 
         $data = $request->validate([
             'billing_first_name' => 'required|string|max:120',

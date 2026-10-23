@@ -62,7 +62,7 @@ class TabunganUmrahController extends Controller
         $request->validate([
             'full_name' => ['required', 'string', 'max:191'],
             'whatsapp' => ['required', 'string', 'max:50'],
-            'saving_type' => ['required', 'in:umroh_reguler,haji_furoda'],
+            'saving_type' => ['required', 'in:tabungan_liburan,tabungan_umrah,tabungan_umrah_haji,umroh_reguler,haji_furoda'],
         ]);
 
         $account = TabunganUmrahAccount::create([
@@ -74,9 +74,15 @@ class TabunganUmrahController extends Controller
         ]);
 
         // email ke user + admin
-        Mail::to($user->email)->send(new TabunganUmrahAccountSubmittedUserMail($account));
-        $adminEmail = config('mail.from.address'); // pola di project ini sering pakai config/mail; kalau lu punya setting lain, ganti di sini.
-        Mail::to($adminEmail)->send(new TabunganUmrahAccountSubmittedAdminMail($account));
+        try {
+            Mail::to($user->email)->send(new TabunganUmrahAccountSubmittedUserMail($account));
+            $adminEmail = config('mail.from.address');
+            if ($adminEmail) {
+                Mail::to($adminEmail)->send(new TabunganUmrahAccountSubmittedAdminMail($account));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email pendaftaran tabungan: ' . $e->getMessage());
+        }
 
         $isEn = app()->getLocale() === 'en';
 
@@ -84,8 +90,8 @@ class TabunganUmrahController extends Controller
             ->with(
                 'success',
                 $isEn
-                    ? 'Umrah savings registration submitted. Waiting for admin verification.'
-                    : 'Registrasi tabungan umrah berhasil. Menunggu verifikasi admin.'
+                    ? 'Savings registration submitted. Waiting for admin verification.'
+                    : 'Registrasi tabungan berhasil. Menunggu verifikasi admin.'
             );
     }
 
@@ -96,7 +102,7 @@ class TabunganUmrahController extends Controller
 
         if ($account->status !== 'verified') {
             $isEn = app()->getLocale() === 'en';
-            abort(403, $isEn ? 'Umrah savings account is not verified yet.' : 'Akun tabungan umrah belum terverifikasi.');
+            abort(403, $isEn ? 'Savings account is not verified yet.' : 'Akun tabungan belum terverifikasi.');
         }
 
         $methods = PaymentMethod::where('type', 'manual')
@@ -113,7 +119,7 @@ class TabunganUmrahController extends Controller
         $account = TabunganUmrahAccount::where('user_id', $user->id)->latest()->firstOrFail();
 
         if ($account->status !== 'verified') {
-            abort(403, 'Akun tabungan umrah belum terverifikasi.');
+            abort(403, 'Akun tabungan belum terverifikasi.');
         }
 
         $request->validate([
@@ -145,9 +151,15 @@ class TabunganUmrahController extends Controller
             'submitted_at' => now(),
         ]);
 
-        Mail::to($user->email)->send(new TabunganUmrahDepositSubmittedUserMail($deposit));
-        $adminEmail = config('mail.from.address');
-        Mail::to($adminEmail)->send(new TabunganUmrahDepositSubmittedAdminMail($deposit));
+        try {
+            Mail::to($user->email)->send(new TabunganUmrahDepositSubmittedUserMail($deposit));
+            $adminEmail = config('mail.from.address');
+            if ($adminEmail) {
+                Mail::to($adminEmail)->send(new TabunganUmrahDepositSubmittedAdminMail($deposit));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email setoran tabungan: ' . $e->getMessage());
+        }
 
         $isEn = app()->getLocale() === 'en';
 
@@ -216,7 +228,8 @@ class TabunganUmrahController extends Controller
 
             $method = optional($d->paymentMethod)->name ?: '—';
             $isEn = app()->getLocale() === 'en';
-            $desc = ($isEn ? 'Umrah Savings Deposit' : 'Setoran Tabungan Umrah') . ' (' . $method . ')';
+            $savingLabel = $account->saving_type_label;
+            $desc = ($isEn ? ($savingLabel . ' Deposit') : ('Setoran ' . $savingLabel)) . ' (' . $method . ')';
 
             if (!empty($d->note)) {
                 $desc .= ' - ' . $d->note;

@@ -101,7 +101,7 @@
                     $nav = [
                     ['label'=> ($isEn ? 'Dashboard' : 'Dashboard'),'route'=>'user.dashboard','match'=>'user.dashboard','icon'=>'layout-dashboard'],
                     ['label'=> ($isEn ? 'Orders' : 'Pesanan'),'route'=>'user.orders','match'=>'user.orders.*','icon'=>'receipt'],
-                    ['label'=> ($isEn ? 'Umrah Savings' : 'Tabungan Umrah'),'route'=>'user.tabungan-umrah.index','match'=>'user.tabungan-umrah.*','icon'=>'wallet'],
+                    ['label'=> ($isEn ? 'My Savings' : 'Tabungan Saya'),'route'=>'user.tabungan-umrah.index','match'=>'user.tabungan-umrah.*','icon'=>'wallet'],
 
                     [
                     'label' => ($isEn ? 'Affiliate' : 'Afiliasi'),

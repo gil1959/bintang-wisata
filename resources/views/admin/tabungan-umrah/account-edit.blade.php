@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', 'Edit Akun Tabungan Umrah')
+@section('title', 'Edit Akun Tabungan Saya')
 
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <div class="flex items-start justify-between gap-4">
         <div>
-            <div class="text-2xl font-extrabold text-slate-900">Edit Akun Tabungan Umrah</div>
+            <div class="text-2xl font-extrabold text-slate-900">Edit Akun Tabungan Saya</div>
             <div class="mt-1 text-sm text-slate-600 font-bold">
                 Edit data user + data tabungan. Password opsional (kosongkan jika tidak diganti).
             </div>
@@ -99,7 +99,7 @@
         {{-- TABUNGAN --}}
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
             <div class="flex items-center justify-between">
-                <div class="font-extrabold text-slate-900">Data Tabungan Umrah</div>
+                <div class="font-extrabold text-slate-900">Data Tabungan Saya</div>
                 <div class="text-xs text-slate-500 font-bold">Account ID: {{ $account->id }}</div>
             </div>
 
@@ -120,8 +120,11 @@
                     <div class="text-sm font-extrabold text-slate-700">Jenis</div>
                     <select name="account_saving_type"
                             class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 bg-white font-bold">
-                        <option value="umroh_reguler" {{ old('account_saving_type', $account->saving_type) === 'umroh_reguler' ? 'selected' : '' }}>Umroh Reguler</option>
-                        <option value="haji_furoda" {{ old('account_saving_type', $account->saving_type) === 'haji_furoda' ? 'selected' : '' }}>Haji Furoda</option>
+                        <option value="tabungan_liburan" {{ in_array(old('account_saving_type', $account->saving_type), ['tabungan_liburan', 'liburan'], true) ? 'selected' : '' }}>Tabungan Liburan</option>
+                        <option value="tabungan_umrah" {{ in_array(old('account_saving_type', $account->saving_type), ['tabungan_umrah', 'tabungan_umrah_haji', 'umroh_reguler'], true) ? 'selected' : '' }}>Tabungan Umroh/Haji</option>
+                        @if($account->saving_type === 'haji_furoda')
+                            <option value="haji_furoda" selected>Haji Furoda (Legacy)</option>
+                        @endif
                     </select>
                 </div>
 
@@ -145,7 +148,7 @@
                 </div>
 
                 <div>
-                    <div class="text-sm font-extrabold text-slate-700">Tanggal Keberangkatan</div>
+                    <div class="text-sm font-extrabold text-slate-700">Tanggal Keberangkatan / Liburan</div>
                     <input type="date" name="target_departure_date"
                            value="{{ old('target_departure_date', $account->target_departure_date ? $account->target_departure_date->format('Y-m-d') : '') }}"
                            class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 bg-slate-50 focus:bg-white">

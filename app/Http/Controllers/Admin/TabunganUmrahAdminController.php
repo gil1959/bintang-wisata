@@ -66,7 +66,11 @@ class TabunganUmrahAdminController extends Controller
             'suspended_at' => null,
         ]);
 
-        Mail::to($account->user->email)->send(new TabunganUmrahAccountVerifiedUserMail($account));
+        try {
+            Mail::to($account->user->email)->send(new TabunganUmrahAccountVerifiedUserMail($account));
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email verifikasi akun: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.tabungan-umrah.accounts.show', $account->id)
             ->with('success', 'Akun berhasil diverifikasi.');
@@ -84,10 +88,14 @@ class TabunganUmrahAdminController extends Controller
             'rejected_reason' => $request->rejected_reason,
         ]);
 
-        Mail::to($account->user->email)->send(new TabunganUmrahAccountRejectedUserMail($account));
+        try {
+            Mail::to($account->user->email)->send(new TabunganUmrahAccountRejectedUserMail($account));
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email penolakan akun: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.tabungan-umrah.accounts.show', $account->id)
-            ->with('success', 'Akun ditolak dan email terkirim.');
+            ->with('success', 'Akun ditolak.');
     }
 
     public function suspendAccount(TabunganUmrahAccount $account)
@@ -146,8 +154,15 @@ class TabunganUmrahAdminController extends Controller
             'note' => null,
         ]);
 
-        Mail::to($deposit->user->email)->send(new TabunganUmrahDepositApprovedUserMail($deposit));
-        Mail::to(config('mail.from.address'))->send(new TabunganUmrahDepositStatusAdminMail($deposit)); // notifikasi admin juga
+        try {
+            Mail::to($deposit->user->email)->send(new TabunganUmrahDepositApprovedUserMail($deposit));
+            $adminEmail = config('mail.from.address');
+            if ($adminEmail) {
+                Mail::to($adminEmail)->send(new TabunganUmrahDepositStatusAdminMail($deposit));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email approval setoran: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Setoran approved.');
     }
@@ -165,8 +180,15 @@ class TabunganUmrahAdminController extends Controller
             'note' => $request->note,
         ]);
 
-        Mail::to($deposit->user->email)->send(new TabunganUmrahDepositRejectedUserMail($deposit));
-        Mail::to(config('mail.from.address'))->send(new TabunganUmrahDepositStatusAdminMail($deposit));
+        try {
+            Mail::to($deposit->user->email)->send(new TabunganUmrahDepositRejectedUserMail($deposit));
+            $adminEmail = config('mail.from.address');
+            if ($adminEmail) {
+                Mail::to($adminEmail)->send(new TabunganUmrahDepositStatusAdminMail($deposit));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal kirim email penolakan setoran: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Setoran rejected.');
     }
@@ -210,7 +232,7 @@ public function printStatement(TabunganUmrahAccount $account, Request $request)
         }
 
         $method = optional($d->paymentMethod)->name ?: '—';
-        $desc = 'Setoran Tabungan Umrah ('.$method.')';
+        $desc = 'Setoran ' . $account->saving_type_label . ' ('.$method.')';
         if (!empty($d->note)) {
             $desc .= ' - '.$d->note;
         }
@@ -263,10 +285,10 @@ public function updateAccount(Request $request, TabunganUmrahAccount $account)
         'user_full_address' => ['nullable','string','max:255'],
         'user_sub_district' => ['nullable','string','max:255'],
 
-        // TABUNGAN UMRAH ACCOUNT FIELDS
+        // TABUNGAN ACCOUNT FIELDS
         'account_full_name' => ['required','string','max:191'],
         'account_whatsapp' => ['required','string','max:50'],
-        'account_saving_type' => ['required', Rule::in(['umroh_reguler','haji_furoda'])],
+        'account_saving_type' => ['required', Rule::in(['tabungan_liburan','tabungan_umrah','tabungan_umrah_haji','umroh_reguler','haji_furoda'])],
         'account_status' => ['required', Rule::in(['pending','verified','rejected','suspended'])],
         'target_amount' => ['nullable','integer','min:1000'],
         'target_departure_date' => ['nullable','date'],

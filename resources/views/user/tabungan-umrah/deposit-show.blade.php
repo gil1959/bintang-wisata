@@ -23,7 +23,7 @@ $statusMap = [
     <div class="flex items-start justify-between gap-3 relative">
         <div>
             <h2 class="text-sm font-extrabold text-slate-900">{{ $isEn ? 'Deposit Information' : 'Informasi Setoran' }}</h2>
-            <p class="text-sm text-slate-500 mt-1">{{ $isEn ? 'Umrah savings deposit transaction details.' : 'Detail transaksi setoran tabungan umrah.' }}</p>
+            <p class="text-sm text-slate-500 mt-1">{{ $isEn ? 'Savings deposit transaction details.' : 'Detail transaksi setoran tabungan.' }}</p>
         </div>
         <span class="pill pill-azure shrink-0">
             <i data-lucide="receipt" class="w-4 h-4"></i>

@@ -66,7 +66,7 @@
             <div class="text-xs font-extrabold text-slate-500">Paket Aktif</div>
             <div class="mt-2 text-2xl font-extrabold text-slate-900">{{ number_format($activePackages) }}</div>
             <div class="mt-2 text-xs text-slate-500">
-                Tour: {{ $activeTour }}, Rent: {{ $activeRent }}, Ship: {{ $activeShip }}
+                Tour: {{ $activeTour }}, Rent: {{ $activeRent }}, Ship: {{ $activeShip }}, Resto: {{ $activeResto ?? 0 }}, Hotel: {{ $activeHotel ?? 0 }}, Bus: {{ $activeTravelBus ?? 0 }}
             </div>
         </div>
     </div>

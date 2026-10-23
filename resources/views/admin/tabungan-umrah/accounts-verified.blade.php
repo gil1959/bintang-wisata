@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', 'Tabungan Umrah - Akun Terverifikasi')
+@section('title', 'Tabungan Saya - Akun Terverifikasi')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <div class="flex items-start justify-between gap-4">
         <div>
-            <div class="text-2xl font-extrabold text-slate-900">Tabungan Umrah</div>
+            <div class="text-2xl font-extrabold text-slate-900">Tabungan Saya</div>
             <div class="text-sm text-slate-600 font-bold mt-1">Akun yang sudah terverifikasi dan aktif menabung.</div>
         </div>
 
@@ -64,9 +64,9 @@
             <table class="w-full text-sm">
                 <thead>
                 <tr class="text-slate-400 font-extrabold">
-                    <th class="text-left px-6 py-4">Nama</th>
+                    <th class="text-left px-6 py-4">Nama & Jenis</th>
                     <th class="text-left px-6 py-4">Target</th>
-                    <th class="text-left px-6 py-4">Keberangkatan</th>
+                    <th class="text-left px-6 py-4">Keberangkatan / Liburan</th>
                     <th class="text-left px-6 py-4">Status</th>
                     <th class="text-right px-6 py-4">Aksi</th>
                 </tr>
@@ -77,7 +77,9 @@
                     <tr class="hover:bg-slate-50/60">
                         <td class="px-6 py-4">
                             <div class="font-extrabold text-slate-900">{{ $a->full_name }}</div>
-                            <div class="text-xs text-slate-500 font-bold">WhatsApp: {{ $a->whatsapp }}</div>
+                            <div class="text-xs text-slate-500 font-bold">
+                                <span class="font-extrabold text-brand-600">{{ $a->saving_type_label }}</span> • WA: {{ $a->whatsapp }}
+                            </div>
                         </td>
                         <td class="px-6 py-4 font-extrabold text-slate-900">
                             Rp {{ number_format((int)$a->target_amount,0,',','.') }}

@@ -15,6 +15,10 @@ $isEn = app()->getLocale() === 'en';
     </p>
   </div>
 
+  <div class="mb-6">
+    @include('front.partials.payment-countdown', ['order' => $order])
+  </div>
+
 
   <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 

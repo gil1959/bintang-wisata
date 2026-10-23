@@ -39,6 +39,8 @@
         </div>
     </div>
 
+    @include('front.partials.payment-countdown', ['order' => $order])
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         <div class="lg:col-span-6 space-y-5">

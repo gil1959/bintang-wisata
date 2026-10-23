@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', 'Tabungan Umrah - Setoran')
+@section('title', 'Tabungan Saya - Setoran')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <div class="flex items-start justify-between gap-4">
         <div>
-            <div class="text-2xl font-extrabold text-slate-900">Setoran Tabungan Umrah</div>
+            <div class="text-2xl font-extrabold text-slate-900">Setoran Tabungan Saya</div>
             <div class="text-sm text-slate-600 font-bold mt-1">Kelola setoran dan verifikasi bukti pembayaran.</div>
         </div>
 
@@ -125,7 +125,9 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="font-extrabold text-slate-900">{{ $d->account->full_name }}</div>
-                            <div class="text-xs text-slate-500 font-bold">Account ID: {{ $d->account_id }}</div>
+                            <div class="text-xs text-slate-500 font-bold">
+                                <span class="text-brand-600 font-extrabold">{{ $d->account->saving_type_label }}</span> • ID: {{ $d->account_id }}
+                            </div>
                         </td>
                         <td class="px-6 py-4 font-extrabold text-slate-900">
                             Rp {{ number_format((int)$d->amount,0,',','.') }}

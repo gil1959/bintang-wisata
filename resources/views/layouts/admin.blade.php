@@ -222,7 +222,7 @@
                 ],
 
                 [
-                'label' => 'Tabungan Umrah',
+                'label' => 'Tabungan Saya',
                 'icon' => 'wallet',
                 'children' => [
                 ['label'=>'Verifikasi Akun','route'=>'admin.tabungan-umrah.accounts.pending','match'=>'admin.tabungan-umrah.accounts.*','icon'=>'user-check','perm'=>'admin.dashboard.view'],

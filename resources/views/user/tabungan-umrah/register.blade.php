@@ -1,9 +1,9 @@
 @extends('user.layouts.app')
 @php $isEn = app()->getLocale() === 'en'; @endphp
 
-@section('title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
-@section('page-title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
-@section('page-subtitle', $isEn ? 'Umrah savings registration' : 'Registrasi tabungan umrah')
+@section('title', $isEn ? 'My Savings' : 'Tabungan Saya')
+@section('page-title', $isEn ? 'My Savings' : 'Tabungan Saya')
+@section('page-subtitle', $isEn ? 'Savings registration' : 'Registrasi tabungan')
 
 
 @section('content')
@@ -32,8 +32,8 @@
 
         <div class="flex items-start justify-between gap-3 relative">
             <div>
-                <h2 class="text-sm font-extrabold text-slate-900">{{ $isEn ? 'New Pilgrim Registration' : 'Registrasi Jamaah Baru' }}</h2>
-                <p class="text-sm text-slate-500 mt-1">{{ $isEn ? 'Fill in the form below to apply for Umrah savings.' : 'Isi data di bawah untuk mengajukan tabungan umrah.' }}</p>
+                <h2 class="text-sm font-extrabold text-slate-900">{{ $isEn ? 'New Savings Registration' : 'Registrasi Tabungan Baru' }}</h2>
+                <p class="text-sm text-slate-500 mt-1">{{ $isEn ? 'Fill in the form below to apply for savings.' : 'Isi data di bawah untuk mengajukan tabungan.' }}</p>
             </div>
             <span class="pill pill-azure shrink-0">
                 <i data-lucide="wallet" class="w-4 h-4"></i>
@@ -57,8 +57,8 @@
             <div>
                 <label class="label">{{ $isEn ? 'Type of Savings' : 'Jenis Tabungan' }}</label>
                 <select name="saving_type" class="input" required>
-                    <option value="umroh_reguler" {{ old('saving_type','umroh_reguler')==='umroh_reguler' ? 'selected' : '' }}>Umroh Reguler</option>
-                    <option value="haji_furoda" {{ old('saving_type')==='haji_furoda' ? 'selected' : '' }}>Haji Furoda</option>
+                    <option value="tabungan_liburan" {{ old('saving_type','tabungan_liburan')==='tabungan_liburan' ? 'selected' : '' }}>Tabungan Liburan</option>
+                    <option value="tabungan_umrah" {{ in_array(old('saving_type'), ['tabungan_umrah', 'tabungan_umrah_haji', 'umroh_reguler'], true) ? 'selected' : '' }}>Tabungan Umroh/Haji</option>
                 </select>
             </div>
 

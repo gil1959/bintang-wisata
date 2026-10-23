@@ -1,8 +1,8 @@
 @extends('user.layouts.app')
 @php $isEn = app()->getLocale() === 'en'; @endphp
 
-@section('title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
-@section('page-title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
+@section('title', $isEn ? 'My Savings' : 'Tabungan Saya')
+@section('page-title', $isEn ? 'My Savings' : 'Tabungan Saya')
 @section('page-subtitle', $isEn ? 'Track savings progress and deposit history' : 'Pantau progres tabungan dan riwayat setoran')
 
 
@@ -66,7 +66,11 @@ $statusMap = [
                     Rp {{ number_format((int)$approvedTotal, 0, ',', '.') }}
                 </div>
                 <div class="mt-1 text-xs text-slate-500">
-                    Keberangkatan:
+                    {{ $isEn ? 'Type' : 'Jenis' }}:
+                    <span class="font-semibold text-slate-900">{{ $account->saving_type_label }}</span>
+                </div>
+                <div class="mt-0.5 text-xs text-slate-500">
+                    {{ $isEn ? 'Target Date' : 'Target Tanggal' }}:
                     <span class="font-semibold text-slate-900">
                         {{ $account->target_departure_date ? $account->target_departure_date->format('d M Y') : '-' }}
                     </span>

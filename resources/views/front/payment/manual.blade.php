@@ -24,6 +24,11 @@ $isEn = app()->getLocale() === 'en';
     @endif
   </div>
 
+  {{-- Sisa Waktu Pembayaran (Countdown 6 Jam) --}}
+  <div class="mt-6">
+    @include('front.partials.payment-countdown', ['order' => $order])
+  </div>
+
   {{-- Header --}}
   <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
     <div>
@@ -162,6 +167,7 @@ $isEn = app()->getLocale() === 'en';
           {{ $isEn ? 'After uploading, the status will be ready' : 'Setelah upload, status akan menjadi' }} <span class="font-extrabold text-slate-900">waiting_verification</span>.
         </p>
 
+        @if(!$order->is_payment_expired && $order->payment_status !== 'failed' && $order->order_status !== 'rejected')
         <form method="POST"
           action="{{ route('payment.manual.submit', $order) }}"
           enctype="multipart/form-data"
@@ -208,6 +214,15 @@ $isEn = app()->getLocale() === 'en';
             </ul>
           </div>
         </form>
+        @else
+        <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center">
+          <p class="text-sm font-bold text-rose-800">{{ $isEn ? 'Payment closed' : 'Pembayaran Ditutup' }}</p>
+          <p class="text-xs text-rose-600 mt-1">{{ $isEn ? 'This order is expired or cancelled.' : 'Batas waktu pembayaran 6 jam telah habis. Pesanan dibatalkan otomatis.' }}</p>
+          <a href="{{ route('home') }}" class="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 text-xs font-extrabold text-white bg-slate-800 hover:bg-slate-900 transition">
+            {{ $isEn ? 'Back to Home' : 'Kembali ke Beranda' }}
+          </a>
+        </div>
+        @endif
       </div>
     </aside>
 

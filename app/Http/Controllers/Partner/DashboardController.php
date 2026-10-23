@@ -20,12 +20,18 @@ class DashboardController extends Controller
     $tourIds = \App\Models\TourPackage::where('created_by_partner_id', $partnerId)->pluck('id');
     $rentIds = \App\Models\RentCarPackage::where('created_by_partner_id', $partnerId)->pluck('id');
     $shipIds = \App\Models\ShipPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+    $restoIds = \App\Models\RestoranPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+    $hotelIds = \App\Models\HotelPackage::where('created_by_partner_id', $partnerId)->pluck('id');
+    $travelBusIds = \App\Models\TravelBusPackage::where('created_by_partner_id', $partnerId)->pluck('id');
 
     $ordersQuery = \App\Models\Order::query()
-        ->where(function ($q) use ($tourIds, $rentIds, $shipIds) {
+        ->where(function ($q) use ($tourIds, $rentIds, $shipIds, $restoIds, $hotelIds, $travelBusIds) {
             $q->where(fn($w) => $w->where('type','tour')->whereIn('product_id', $tourIds))
               ->orWhere(fn($w) => $w->where('type','rent_car')->whereIn('product_id', $rentIds))
-              ->orWhere(fn($w) => $w->where('type','ship')->whereIn('product_id', $shipIds));
+              ->orWhere(fn($w) => $w->where('type','ship')->whereIn('product_id', $shipIds))
+              ->orWhere(fn($w) => $w->where('type','restoran')->whereIn('product_id', $restoIds))
+              ->orWhere(fn($w) => $w->where('type','hotel')->whereIn('product_id', $hotelIds))
+              ->orWhere(fn($w) => $w->where('type','travel_bus')->whereIn('product_id', $travelBusIds));
         });
 
     $totalOrders = (clone $ordersQuery)->count();
@@ -48,7 +54,10 @@ class DashboardController extends Controller
     $activeTour = \App\Models\TourPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
     $activeRent = \App\Models\RentCarPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
     $activeShip = \App\Models\ShipPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
-    $activePackages = $activeTour + $activeRent + $activeShip;
+    $activeResto = \App\Models\RestoranPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
+    $activeHotel = \App\Models\HotelPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
+    $activeTravelBus = \App\Models\TravelBusPackage::where('created_by_partner_id', $partnerId)->where('is_active', 1)->count();
+    $activePackages = $activeTour + $activeRent + $activeShip + $activeResto + $activeHotel + $activeTravelBus;
 
     $recentOrders = (clone $ordersQuery)->latest()->limit(8)->get();
 
@@ -85,6 +94,9 @@ return view('partner.dashboard', compact(
     'activeTour',
     'activeRent',
     'activeShip',
+    'activeResto',
+    'activeHotel',
+    'activeTravelBus',
     'recentOrders',
 
     // new

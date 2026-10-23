@@ -19,6 +19,8 @@ $isEn = app()->getLocale() === 'en';
     </div>
     @endif
 
+    @include('front.partials.payment-countdown', ['order' => $order])
+
     {{-- RINGKASAN PESANAN --}}
     <div class="bg-white shadow rounded-xl p-5 space-y-2">
         <h1 class="text-xl font-bold mb-1">{{ $isEn ? 'Order Summary' : 'Ringkasan Pesanan' }}</h1>

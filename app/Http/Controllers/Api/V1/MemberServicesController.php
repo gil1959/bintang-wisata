@@ -59,7 +59,7 @@ class MemberServicesController extends Controller
         $f=fn($key,$label,$type='text',$extra=[])=>ProductForms::field($key,$label,$type,$extra);
         $select=fn($key,$label,$options)=>$f($key,$label,'select',['options'=>collect($options)->map(fn($label,$id)=>['id'=>(string)$id,'label'=>$label])->values()->all()]);
         if($module==='wallet'&&$action==='withdraw')$fields=[$f('amount','Nominal','number'),$f('email','Email'),$f('bank_name','Nama bank'),$f('account_number','Nomor rekening'),$f('account_holder','Pemilik rekening'),$f('password','Sandi akun','password')];
-        elseif($module==='savings'&&$action==='register')$fields=[$f('full_name','Nama lengkap'),$f('whatsapp','WhatsApp'),$select('saving_type','Jenis tabungan',['umroh_reguler'=>'Umrah reguler','haji_furoda'=>'Haji Furoda'])];
+        elseif($module==='savings'&&$action==='register')$fields=[$f('full_name','Nama lengkap'),$f('whatsapp','WhatsApp'),$select('saving_type','Jenis tabungan',['tabungan_liburan'=>'Tabungan Liburan','tabungan_umrah'=>'Tabungan Umroh/Haji'])];
         elseif($module==='savings'&&$action==='deposit') {
             $methods=PaymentMethod::where('type','manual')->where('is_active',true)->get();
             $fields=[$select('payment_method_id','Rekening tujuan',$methods->mapWithKeys(fn($m)=>[$m->id=>$m->bank_name.' '.$m->account_number.' a.n. '.$m->account_holder])->all()),$f('amount','Nominal setoran','number'),$f('proof_image','Bukti transfer','file')];

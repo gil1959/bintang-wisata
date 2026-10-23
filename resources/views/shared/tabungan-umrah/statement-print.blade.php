@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 
-    <title>{{ $isEn ? 'Umrah Savings Statement' : 'Rekening Koran Tabungan Umrah' }} - {{ $siteSettings['seo_site_title'] ?? config('app.name') }}</title>
+    <title>{{ $isEn ? 'Savings Statement' : 'Rekening Koran Tabungan' }} ({{ $account->saving_type_label ?? 'Tabungan Saya' }}) - {{ $siteSettings['seo_site_title'] ?? config('app.name') }}</title>
     {{-- Fonts + Theme CSS (sama seperti layout user/partner/admin) --}}
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700;800&display=swap">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
@@ -70,7 +70,7 @@
 
                     <div class="min-w-0">
                         <div class="text-lg font-extrabold text-slate-900 leading-tight">
-                            {{ $isEn ? 'Umrah Savings Statement' : 'Rekening Koran Tabungan Umrah' }}
+                            {{ $isEn ? ($account->saving_type_label . ' Statement') : ('Rekening Koran ' . $account->saving_type_label) }}
                         </div>
                         <div class="text-sm text-slate-500 font-bold">
                             {{ $isEn ? 'Savings movements are based on transactions in the system' : 'Mutasi tabungan berdasarkan transaksi pada sistem' }}
@@ -110,7 +110,7 @@
                             <div>
                                 <div class="text-xs text-slate-500 font-extrabold">{{ $isEn ? 'Savings Type' : 'Jenis Tabungan' }}</div>
                                 <div class="text-sm font-extrabold text-slate-900">
-                                    {{ ($account->saving_type ?? null) === 'haji_furoda' ? 'Haji Furoda' : 'Umroh Reguler' }}
+                                    {{ $account->saving_type_label }}
                                 </div>
                             </div>
                         </div>

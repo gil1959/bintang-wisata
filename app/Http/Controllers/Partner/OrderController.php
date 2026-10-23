@@ -52,7 +52,7 @@ class OrderController extends Controller
 
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'type' => ['nullable', 'in:tour,rent_car,ship'],
+            'type' => ['nullable', 'in:tour,rent_car,ship,restoran,hotel,travel_bus'],
         ]);
 
         $keyword = isset($validated['q']) ? trim($validated['q']) : null;
@@ -132,6 +132,9 @@ class OrderController extends Controller
         } elseif ($order->type === 'hotel') {
             $isMine = HotelPackage::where('id', $order->product_id)
                 ->where('created_by_partner_id', $partnerId)->exists();
+        } elseif ($order->type === 'travel_bus') {
+            $isMine = TravelBusPackage::where('id', $order->product_id)
+                ->where('created_by_partner_id', $partnerId)->exists();
         }
 
         abort_unless($isMine, 403);
@@ -140,6 +143,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $this->assertOwner($order);
+        $order->cancelIfExpired();
         $order->load('payments');
 
         return view('partner.orders.show', compact('order'));

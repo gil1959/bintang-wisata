@@ -1,7 +1,7 @@
 <header
   x-data="{ scrolled:false }"
   x-init="window.addEventListener('scroll', ()=> scrolled = window.scrollY > 10)"
-  class="sticky top-0 z-50 transition"
+  class="{{ request()->routeIs('home') ? 'hidden lg:block' : '' }} sticky top-0 z-50 transition"
   :class="scrolled ? 'bg-white/80 backdrop-blur border-b border-slate-200 shadow-sm' : 'bg-white/60 backdrop-blur'">
   <div class="max-w-7xl mx-auto px-4 py-2 lg:py-4 flex items-center gap-3">
 
@@ -9,9 +9,10 @@
     {{-- BRAND --}}
     <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0">
       <img
-        src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
+        src="{{ asset('images/logo.png') }}"
         alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
-        class="h-7 lg:h-8 w-auto max-w-[160px] object-contain shrink-0" />
+        class="h-7 lg:h-8 w-auto max-w-[160px] object-contain shrink-0"
+        onerror="this.src='{{ asset('images/logo.png') }}'" />
     </a>
 
 

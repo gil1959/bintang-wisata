@@ -87,6 +87,36 @@ class Order extends Model
     {
         return $this->hasMany(\App\Models\Payment::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EXPIRY & TIMEOUT HELPERS (6 JAM)
+    |--------------------------------------------------------------------------
+    */
+
+    public function getPaymentDeadlineAttribute()
+    {
+        return $this->created_at ? $this->created_at->copy()->addHours(\App\Services\OrderExpiryService::EXPIRY_HOURS) : null;
+    }
+
+    public function getPaymentRemainingSecondsAttribute(): int
+    {
+        return app(\App\Services\OrderExpiryService::class)->getRemainingSeconds($this);
+    }
+
+    public function getIsPaymentExpiredAttribute(): bool
+    {
+        if ($this->payment_deadline === null) {
+            return false;
+        }
+        return now()->greaterThanOrEqualTo($this->payment_deadline);
+    }
+
+    public function cancelIfExpired(): bool
+    {
+        return app(\App\Services\OrderExpiryService::class)->cancelIfExpired($this);
+    }
+
     protected static function booted()
     {
         static::saved(function (Order $order) {

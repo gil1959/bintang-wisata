@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', 'Tabungan Umrah - Pending Verifikasi')
+@section('title', 'Tabungan Saya - Pending Verifikasi')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <div class="flex items-start justify-between gap-4">
         <div>
-            <div class="text-2xl font-extrabold text-slate-900">Tabungan Umrah</div>
+            <div class="text-2xl font-extrabold text-slate-900">Tabungan Saya</div>
             <div class="text-sm text-slate-600 font-bold mt-1">Daftar akun yang menunggu verifikasi admin.</div>
         </div>
 
@@ -70,7 +70,7 @@
                 <tbody class="divide-y divide-slate-100">
                 @forelse($accounts as $a)
                     <tr class="hover:bg-slate-50/60">
-                        <td class="px-6 py-4 font-bold text-slate-700">{{ $a->created_at->format('Y-m-d') }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-700">{{ optional($a->created_at)->format('Y-m-d') ?? '-' }}</td>
                         <td class="px-6 py-4">
                             <div class="font-extrabold text-slate-900">{{ $a->full_name }}</div>
                             <div class="text-xs text-slate-500 font-bold">User ID: {{ $a->user_id }}</div>
@@ -81,7 +81,7 @@
                             </a>
                         </td>
                         <td class="px-6 py-4 text-slate-700 font-bold">
-                            {{ $a->saving_type === 'haji_furoda' ? 'Haji Furoda' : 'Umroh Reguler' }}
+                            {{ $a->saving_type_label }}
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-700 border border-amber-100">

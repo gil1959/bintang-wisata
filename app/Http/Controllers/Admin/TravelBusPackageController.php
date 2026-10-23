@@ -145,6 +145,8 @@ class TravelBusPackageController extends Controller
             'terms_conditions' => 'nullable|string',
             'created_by_partner_id' => 'nullable|exists:users,id',
             'is_active' => 'nullable|boolean',
+            'partner_review_status' => 'nullable|string|in:approved,pending,rejected,disabled',
+            'partner_review_note' => 'nullable|string',
         ]);
 
         // Filter route_details
@@ -169,6 +171,25 @@ class TravelBusPackageController extends Controller
         }
 
         $data['is_active'] = $request->has('is_active');
+
+        // Logika update status review partner
+        if ($request->filled('partner_review_status')) {
+            $data['partner_review_status'] = $request->input('partner_review_status');
+            $data['partner_review_note'] = $request->input('partner_review_note');
+            $data['partner_reviewed_by'] = auth()->id();
+            $data['partner_reviewed_at'] = now();
+
+            if ($data['partner_review_status'] === 'approved' && $request->has('is_active')) {
+                $data['is_active'] = true;
+            } elseif ($data['partner_review_status'] !== 'approved') {
+                $data['is_active'] = false;
+            }
+        } elseif ($travelBus->created_by_partner_id && $request->has('is_active') && $travelBus->partner_review_status === 'pending') {
+            // Jika admin mengaktifkan paket partner yang pending, otomatis set approved
+            $data['partner_review_status'] = 'approved';
+            $data['partner_reviewed_by'] = auth()->id();
+            $data['partner_reviewed_at'] = now();
+        }
 
         if ($request->hasFile('thumbnail')) {
             if ($travelBus->thumbnail_path) {

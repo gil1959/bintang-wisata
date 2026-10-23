@@ -83,6 +83,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        $order->cancelIfExpired();
         $order->load('payments');
 
         return view('admin.orders.show', compact('order'));

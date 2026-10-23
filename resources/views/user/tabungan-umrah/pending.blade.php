@@ -1,9 +1,9 @@
 @extends('user.layouts.app')
 @php $isEn = app()->getLocale() === 'en'; @endphp
 
-@section('title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
-@section('page-title', $isEn ? 'Umrah Savings' : 'Tabungan Umrah')
-@section('page-subtitle', $isEn ? 'Application status' : 'Status pengajuan tabungan umrah')
+@section('title', $isEn ? 'My Savings' : 'Tabungan Saya')
+@section('page-title', $isEn ? 'My Savings' : 'Tabungan Saya')
+@section('page-subtitle', $isEn ? 'Application status' : 'Status pengajuan tabungan')
 
 
 @section('content')
@@ -53,7 +53,7 @@
         <div class="rounded-2xl border border-slate-200 p-4 bg-white">
             <div class="text-xs font-semibold text-slate-500">{{ $isEn ? 'Type' : 'Jenis' }}</div>
             <div class="mt-1 text-sm font-semibold text-slate-900">
-                {{ $account->saving_type === 'haji_furoda' ? 'Haji Furoda' : 'Umroh Reguler' }}
+                {{ $account->saving_type_label }}
             </div>
         </div>
     </div>

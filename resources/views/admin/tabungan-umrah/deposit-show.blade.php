@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Detail Setoran Tabungan Umrah')
+@section('title', 'Detail Setoran Tabungan Saya')
 
 @section('content')
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -9,6 +9,8 @@
             <div class="text-2xl font-extrabold text-slate-900">Detail Setoran</div>
             <div class="mt-1 text-sm text-slate-600 font-bold">
                 Atas nama: <span class="text-slate-900">{{ $deposit->account->full_name }}</span>
+                <span class="mx-2 text-slate-300">•</span>
+                Jenis: <span class="text-brand-600 font-extrabold">{{ $deposit->account->saving_type_label }}</span>
                 <span class="mx-2 text-slate-300">•</span>
                 Nominal: <span class="text-slate-900">Rp {{ number_format((int)$deposit->amount,0,',','.') }}</span>
             </div>

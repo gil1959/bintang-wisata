@@ -48,4 +48,14 @@ class TabunganUmrahAccount extends Model
     {
         return (int) $this->approvedDeposits()->sum('amount');
     }
+
+    public function getSavingTypeLabelAttribute(): string
+    {
+        return match ($this->saving_type) {
+            'tabungan_liburan', 'liburan' => 'Tabungan Liburan',
+            'tabungan_umrah', 'tabungan_umrah_haji', 'umroh_reguler' => 'Tabungan Umroh/Haji',
+            'haji_furoda' => 'Haji Furoda',
+            default => ucwords(str_replace('_', ' ', $this->saving_type ?? 'Tabungan')),
+        };
+    }
 }

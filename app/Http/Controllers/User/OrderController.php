@@ -66,6 +66,7 @@ class OrderController extends Controller
         abort_unless($canView, 403);
 
 
+        $order->cancelIfExpired();
         $order->load('payments');
 
         return view('user.orders.show', compact('order'));

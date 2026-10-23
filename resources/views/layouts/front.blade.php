@@ -312,7 +312,7 @@
   <div class="min-h-screen flex flex-col">
     @include('front.partials.navbar')
 
-    <main class="flex-1 pb-24 lg:pb-0">
+    <main class="flex-1 {{ request()->routeIs('home') ? '' : 'pb-24' }} lg:pb-0">
       @yield('content')
     </main>
 

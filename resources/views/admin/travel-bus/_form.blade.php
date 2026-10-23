@@ -264,6 +264,34 @@
                     <span class="text-sm font-bold text-slate-800">Aktifkan paket untuk pemesanan umum</span>
                 </label>
             </div>
+
+            @if($isEdit && !empty($package->created_by_partner_id))
+            <div class="mt-4 pt-4 border-t border-slate-200 bg-amber-50/60 p-4 rounded-xl border border-amber-200/80">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="inline-flex rounded-full bg-amber-500 text-white p-1 text-xs font-bold">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                    </span>
+                    <span class="text-xs font-extrabold text-amber-900 uppercase">Status Review Produk Partner</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase mb-1">Status Persetujuan Admin</label>
+                        <select name="partner_review_status" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800">
+                            <option value="pending" {{ old('partner_review_status', $package->partner_review_status ?? '') === 'pending' ? 'selected' : '' }}>Menunggu Review (Pending)</option>
+                            <option value="approved" {{ old('partner_review_status', $package->partner_review_status ?? '') === 'approved' ? 'selected' : '' }}>Disetujui (Approved & Aktif)</option>
+                            <option value="rejected" {{ old('partner_review_status', $package->partner_review_status ?? '') === 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
+                            <option value="disabled" {{ old('partner_review_status', $package->partner_review_status ?? '') === 'disabled' ? 'selected' : '' }}>Dinonaktifkan (Disabled)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase mb-1">Catatan Review untuk Partner (Opsional)</label>
+                        <input type="text" name="partner_review_note" value="{{ old('partner_review_note', $package->partner_review_note ?? '') }}"
+                               placeholder="Contoh: Dokumen lengkap, rute disetujui..."
+                               class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800">
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 

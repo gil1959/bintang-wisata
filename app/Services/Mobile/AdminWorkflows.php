@@ -37,7 +37,7 @@ class AdminWorkflows
             $target=[$f('target_amount','Target tabungan','number'),$f('target_departure_date','Rencana keberangkatan','date')];
             if($action==='verifyAccount')return $target;
             $fields=[];foreach(['user_name'=>'Nama user','user_email'=>'Email user','user_phone'=>'Telepon','user_address'=>'Alamat','user_full_address'=>'Alamat lengkap','user_sub_district'=>'Kecamatan','account_full_name'=>'Nama penabung','account_whatsapp'=>'WhatsApp'] as $key=>$label)$fields[]=$f($key,$label);
-            return array_merge($fields,[$f('user_password','Sandi baru','password'),$f('user_password_confirmation','Konfirmasi sandi','password'),$s('account_saving_type','Jenis',['umroh_reguler'=>'Umrah reguler','haji_furoda'=>'Haji Furoda']),$s('account_status','Status',['pending'=>'Menunggu','verified'=>'Terverifikasi','rejected'=>'Ditolak','suspended'=>'Ditangguhkan']),$f('rejected_reason','Alasan penolakan','multiline')],$target);
+            return array_merge($fields,[$f('user_password','Sandi baru','password'),$f('user_password_confirmation','Konfirmasi sandi','password'),$s('account_saving_type','Jenis',['tabungan_liburan'=>'Tabungan Liburan','tabungan_umrah'=>'Tabungan Umroh/Haji']),$s('account_status','Status',['pending'=>'Menunggu','verified'=>'Terverifikasi','rejected'=>'Ditolak','suspended'=>'Ditangguhkan']),$f('rejected_reason','Alasan penolakan','multiline')],$target);
         }
         if($module==='reviews') {
             if(in_array($action,['approve','reject']))return [];

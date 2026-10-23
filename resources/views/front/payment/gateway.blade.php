@@ -18,6 +18,8 @@ $isEn = app()->getLocale() === 'en';
     <div class="bg-red-100 text-red-800 p-3 rounded">{{ session('error') }}</div>
     @endif
 
+    @include('front.partials.payment-countdown', ['order' => $order])
+
     <div class="bg-white shadow rounded-xl p-5 space-y-2">
         <h1 class="text-xl font-bold mb-1">{{ $isEn ? 'Order Summary' : 'Ringkasan Pesanan' }}</h1>
         <p class="text-sm text-gray-600">
@@ -53,12 +55,22 @@ $isEn = app()->getLocale() === 'en';
             {{ $isEn ? 'Method selected' : 'Metode dipilih' }}: <b>{{ $gatewayMethodLabel }}</b>
         </p>
 
+        @if(!$order->is_payment_expired && $order->payment_status !== 'failed' && $order->order_status !== 'rejected')
         <form method="POST" action="{{ route('payment.gateway.start', $order) }}">
             @csrf
             <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold">
                 {{ $isEn ? 'Continue Paying' : 'Lanjut Bayar' }}
             </button>
         </form>
+        @else
+        <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center">
+            <p class="text-sm font-bold text-rose-800">{{ $isEn ? 'Payment closed' : 'Pembayaran Ditutup' }}</p>
+            <p class="text-xs text-rose-600 mt-1">{{ $isEn ? 'This order is expired or cancelled.' : 'Batas waktu pembayaran 6 jam telah habis. Pesanan dibatalkan otomatis.' }}</p>
+            <a href="{{ route('home') }}" class="mt-3 inline-flex items-center justify-center w-full rounded-xl px-4 py-2 text-xs font-extrabold text-white bg-slate-800 hover:bg-slate-900 transition">
+                {{ $isEn ? 'Back to Home' : 'Kembali ke Beranda' }}
+            </a>
+        </div>
+        @endif
 
         @if(session('show_change_method'))
         <a href="{{ route('checkout.show', $order->id) }}#payment-method"

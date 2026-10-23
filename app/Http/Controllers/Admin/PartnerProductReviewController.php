@@ -8,6 +8,7 @@ use App\Models\RentCarPackage;
 use App\Models\ShipPackage;
 use App\Models\RestoranPackage;
 use App\Models\HotelPackage;
+use App\Models\TravelBusPackage;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -21,13 +22,14 @@ class PartnerProductReviewController extends Controller
         $q = trim((string)$request->get('q'));
 
         // helper filter
-        $applyFilters = function ($query) use ($status, $q) {
+        $applyFilters = function ($query, $isBus = false) use ($status, $q) {
             if (!empty($status)) {
                 $query->where('partner_review_status', $status);
             }
             if (!empty($q)) {
-                $query->where(function ($qq) use ($q) {
-                    $qq->where('title', 'like', "%{$q}%")
+                $nameCol = $isBus ? 'armada_name' : 'title';
+                $query->where(function ($qq) use ($q, $nameCol) {
+                    $qq->where($nameCol, 'like', "%{$q}%")
                        ->orWhere('slug', 'like', "%{$q}%");
                 });
             }
@@ -90,6 +92,18 @@ class PartnerProductReviewController extends Controller
                 ->get()
                 ->map(fn($p) => $this->toItem($p, 'hotel'));
             $items = $items->concat($hotel);
+        }
+
+        if ($type === 'travel_bus' || empty($type)) {
+            $travelBus = $applyFilters(
+                TravelBusPackage::query()->whereNotNull('created_by_partner_id'),
+                true
+            )
+                ->latest()
+                ->take(300)
+                ->get()
+                ->map(fn($p) => $this->toItem($p, 'travel_bus'));
+            $items = $items->concat($travelBus);
         }
 
         // sort gabungan by created_at desc
@@ -165,6 +179,7 @@ class PartnerProductReviewController extends Controller
             'ship' => ShipPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             'restoran' => RestoranPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             'hotel' => HotelPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
+            'travel_bus' => TravelBusPackage::query()->whereNotNull('created_by_partner_id')->findOrFail($id),
             default => abort(404, 'Unknown type'),
         };
     }
@@ -174,7 +189,7 @@ class PartnerProductReviewController extends Controller
         return [
             'type' => $type,
             'id' => $p->id,
-            'title' => $p->title ?? '-',
+            'title' => $p->armada_name ?? ($p->title ?? '-'),
             'slug' => $p->slug ?? '-',
             'is_active' => (bool)($p->is_active ?? false),
             'status' => $p->partner_review_status ?? null,
@@ -186,6 +201,7 @@ class PartnerProductReviewController extends Controller
                 'ship' => route('admin.ship-packages.edit', $p->id),
                 'restoran' => route('admin.restoran-packages.edit', $p->id),
                 'hotel' => route('admin.hotel-packages.edit', $p->id),
+                'travel_bus' => route('admin.travel-bus.edit', $p->id),
                 default => '#'
             },
         ];

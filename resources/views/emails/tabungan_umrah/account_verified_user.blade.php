@@ -1,10 +1,10 @@
 @extends('emails.tabungan_umrah.layout')
-@section('email_title', 'Akun Tabungan Umrah Terverifikasi')
-@section('title', 'Akun Tabungan Umrah Anda Terverifikasi')
+@section('email_title', 'Akun Tabungan Terverifikasi')
+@section('title', 'Akun ' . $account->saving_type_label . ' Anda Terverifikasi')
 
 @section('content')
 <p>Halo <b>{{ $account->full_name }}</b>,</p>
-<p>Akun Tabungan Umrah Anda telah <b>terverifikasi</b>. Anda sekarang dapat mulai melakukan setoran.</p>
+<p>Akun {{ $account->saving_type_label }} Anda telah <b>terverifikasi</b>. Anda sekarang dapat mulai melakukan setoran.</p>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
     <tr>
@@ -14,7 +14,7 @@
         </td>
     </tr>
     <tr>
-        <td style="padding:10px 12px;font-size:13px;color:#334155;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;"><b>Target Keberangkatan</b></td>
+        <td style="padding:10px 12px;font-size:13px;color:#334155;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;"><b>Target Keberangkatan / Liburan</b></td>
         <td style="padding:10px 12px;font-size:13px;color:#0f172a;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
             {{ $account->target_departure_date ? $account->target_departure_date->format('Y-m-d') : '-' }}
         </td>

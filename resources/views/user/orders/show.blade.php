@@ -30,12 +30,11 @@
 
 
 
-            @if($order->payment_status === 'waiting_payment')
+            @if(($order->payment_status === 'waiting_payment' || $order->payment_status === 'unpaid') && !$order->is_payment_expired && $order->order_status !== 'rejected')
             <a href="{{ route('checkout.show', $order->id) }}"
                 class="btn btn-primary px-4 py-2.5">
                 <i data-lucide="credit-card" class="w-4 h-4"></i>
                 {{ $isEn ? 'Pay Now' : 'Bayar Sekarang' }}
-
             </a>
             @endif
 
@@ -60,6 +59,10 @@
 
 
     </div>
+</div>
+
+<div class="mb-5">
+    @include('front.partials.payment-countdown', ['order' => $order])
 </div>
 
 <div class="grid grid-cols-1 2xl:grid-cols-12 gap-5">

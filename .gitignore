@@ -16,3 +16,4 @@ yarn-error.log
 *.sql
 error_log
 /.agents
+/deployment/

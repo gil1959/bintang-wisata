@@ -109,7 +109,9 @@
         <option value="agency_hotel_vila" {{ $pt == 'agency_hotel_vila' ? 'selected' : '' }}>
             AGENCY HOTEL/VILA
         </option>
-
+        <option value="agency_travel_bus" {{ $pt == 'agency_travel_bus' ? 'selected' : '' }}>
+            AGENCY PAKET BUS&TRAVEL
+        </option>
     </select>
 
     @error('partner_type') <div class="text-sm text-red-600 mt-2">{{ $message }}</div> @enderror

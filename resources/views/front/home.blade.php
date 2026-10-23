@@ -6,8 +6,11 @@
 
 @section('content')
 
-{{-- ================= HERO ================= --}}
-<section class="relative min-h-[88vh] flex items-center justify-center text-center overflow-hidden">
+{{-- ================= MOBILE/TABLET HERO (< lg) ================= --}}
+@include('front.partials.home-hero-mobile')
+
+{{-- ================= DESKTOP HERO (>= lg) ================= --}}
+<section class="hidden lg:flex relative min-h-[88vh] items-center justify-center text-center overflow-hidden">
     {{-- background --}}
     <div class="absolute inset-0">
         <img

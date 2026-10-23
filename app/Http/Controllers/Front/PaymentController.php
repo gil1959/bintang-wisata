@@ -28,6 +28,7 @@ class PaymentController extends Controller
     
     public function show(Request $request, Order $order, TripayService $tripay)
 {
+    $order->cancelIfExpired();
     // ✅ Sync status Tripay kalau user balik dari gateway tapi webhook belum update
     $gatewayName = null;
 
@@ -219,6 +220,7 @@ if (
     // ===== PAGE MANUAL =====
     public function manualPage(Order $order)
     {
+        $order->cancelIfExpired();
         if (strpos($order->payment_method, 'manual:') !== 0) {
             abort(403);
         }
@@ -236,6 +238,7 @@ if (
     // ===== PAGE GATEWAY =====
     public function gatewayPage(Order $order)
     {
+        $order->cancelIfExpired();
         if (strpos($order->payment_method, 'gateway:') !== 0) {
             abort(403);
         }
@@ -274,7 +277,8 @@ if (
             ($order->user_id === null && $user->hasVerifiedEmail() && $order->customer_email === $user->email))), 403);
         return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $order) {
         $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
-        abort_if($order->payment_status === 'paid' || in_array($order->order_status, ['approved', 'rejected'], true), 409, 'Pesanan tidak dapat dibayar ulang.');
+        $order->cancelIfExpired();
+        abort_if($order->payment_status === 'paid' || in_array($order->order_status, ['approved', 'rejected'], true) || $order->is_payment_expired, 409, 'Pesanan tidak dapat dibayar atau batas waktu pembayaran 6 jam telah berakhir.');
         if (strpos($order->payment_method, 'manual:') !== 0) {
             abort(403);
         }
@@ -360,6 +364,8 @@ return redirect()
         DokuService $doku,
         MidtransService $midtrans
     ) {
+        $order->cancelIfExpired();
+        abort_if($order->payment_status === 'paid' || in_array($order->order_status, ['approved', 'rejected'], true) || $order->is_payment_expired, 409, 'Pesanan tidak dapat dibayar atau batas waktu pembayaran 6 jam telah berakhir.');
         if (strpos($order->payment_method, 'gateway:') !== 0) {
             abort(403);
         }

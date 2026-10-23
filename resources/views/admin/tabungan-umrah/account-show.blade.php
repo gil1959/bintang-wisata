@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Detail Akun Tabungan Umrah')
+@section('title', 'Detail Akun Tabungan Saya')
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -10,7 +10,7 @@
             <div class="mt-1 text-sm text-slate-600 font-bold">
                 WhatsApp: <span class="text-slate-900">{{ $account->whatsapp }}</span>
                 <span class="mx-2 text-slate-300">•</span>
-                Jenis: <span class="text-slate-900">{{ $account->saving_type === 'haji_furoda' ? 'Haji Furoda' : 'Umroh Reguler' }}</span>
+                Jenis: <span class="text-brand-600 font-extrabold">{{ $account->saving_type_label }}</span>
             </div>
         </div>
 <a href="{{ route('admin.tabungan-umrah.accounts.statement.print', $account) }}" target="_blank"
@@ -69,7 +69,7 @@
                 {{ $account->target_amount ? 'Rp '.number_format((int)$account->target_amount,0,',','.') : '-' }}
             </div>
             <div class="text-xs text-slate-500 font-bold mt-1">
-                Keberangkatan: {{ $account->target_departure_date ? $account->target_departure_date->format('Y-m-d') : '-' }}
+                Keberangkatan / Liburan: {{ $account->target_departure_date ? $account->target_departure_date->format('Y-m-d') : '-' }}
             </div>
         </div>
     </div>
@@ -95,7 +95,7 @@
                     </div>
 
                     <div>
-                        <div class="text-sm font-extrabold text-slate-700">Tanggal Keberangkatan</div>
+                        <div class="text-sm font-extrabold text-slate-700">Tanggal Keberangkatan / Liburan</div>
                         <input type="date" name="target_departure_date"
                                class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 bg-slate-50 focus:bg-white"
                                required>
