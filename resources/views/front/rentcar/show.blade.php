@@ -204,6 +204,9 @@ $i18n = [
         id="rentcarBookingBox"
         data-price-12="{{ (int) $package->price_per_12_hours }}"
         data-price-24="{{ (int) $package->price_per_24_hours }}"
+        data-price12="{{ (int) $package->price_per_12_hours }}"
+        data-price24="{{ (int) $package->price_per_24_hours }}"
+        data-price-per-hour="{{ (int) $package->price_per_hour }}"
         class="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-soft p-6">
 
         <h3 class="text-lg font-extrabold text-slate-900 mb-4">
@@ -244,12 +247,15 @@ $i18n = [
             <label class="cursor-pointer flex items-center justify-between rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition duration-option" data-type="custom">
               <div class="flex items-center gap-3">
                 <input type="radio" name="duration_type" value="custom" class="w-4 h-4 text-brand-500 focus:ring-brand-500">
-                <div class="font-extrabold text-brand-600">Pilih DURASI Sendiri</div>
+                <div>
+                  <div class="font-extrabold text-brand-600">Pilih DURASI Sendiri</div>
+                  <div class="text-xs text-slate-500">Bebas atur tanggal & jam (min. 12 jam)</div>
+                </div>
               </div>
             </label>
           </div>
 
-          {{-- CUSTOM DATES (Hidden by default) --}}
+          {{-- DATES SELECTION (Hidden by default until duration chosen) --}}
           <div id="customDatesBox" class="hidden space-y-4 pt-3 border-t border-slate-100">
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['pickup_date'] }}</label>
@@ -261,9 +267,10 @@ $i18n = [
               <label class="block text-sm font-semibold text-slate-700 mb-1">{{ $i18n['return_date'] }}</label>
               <input type="datetime-local" id="return"
                 class="w-full rounded-xl border-slate-200 focus:ring-brand-500 focus:border-brand-500">
+              <p id="returnAutoNote" class="text-xs text-slate-500 mt-1"></p>
             </div>
 
-            {{-- SUMMARY FOR CUSTOM --}}
+            {{-- SUMMARY --}}
             <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm">
               <div class="flex justify-between">
                 <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
@@ -271,7 +278,7 @@ $i18n = [
               </div>
               <div class="flex justify-between mt-2">
                 <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
-                <strong id="total">Rp0</strong>
+                <strong id="total" class="text-brand-600 font-extrabold text-base">Rp0</strong>
               </div>
             </div>
           </div>
@@ -497,20 +504,49 @@ $i18n = [
     const customDatesBox = document.getElementById('customDatesBox');
     const pickup = document.getElementById('pickup');
     const ret = document.getElementById('return');
+    const returnAutoNote = document.getElementById('returnAutoNote');
     const daysEl = document.getElementById('days');
     const totalEl = document.getElementById('total');
     const btnBook = document.getElementById('btnBook');
     const box = document.getElementById('rentcarBookingBox');
     
-    const price12 = box ? parseInt(box.dataset.price12 || '0', 10) : 0;
-    const price24 = box ? parseInt(box.dataset.price24 || '0', 10) : 0;
-    
-    // Perhitungan per jam berdasar harga 12 jam
-    const pricePerHour = Math.round(price12 / 12);
+    function getBoxPrice(attr1, attr2, fallback) {
+      if (!box) return fallback;
+      const v = box.getAttribute(attr1) || box.getAttribute(attr2) || box.dataset[attr1] || '';
+      const num = parseInt(v, 10);
+      return !isNaN(num) && num > 0 ? num : fallback;
+    }
+
+    const price12 = getBoxPrice('data-price-12', 'data-price12', 0);
+    const price24 = getBoxPrice('data-price-24', 'data-price24', 0);
+    const pricePerHourFallback = getBoxPrice('data-price-per-hour', 'data-price-per-hour', 0);
+
+    const effectivePrice12 = price12 > 0 ? price12 : (pricePerHourFallback > 0 ? pricePerHourFallback * 12 : 0);
+    const effectivePrice24 = price24 > 0 ? price24 : (pricePerHourFallback > 0 ? pricePerHourFallback * 24 : 0);
+    const effectiveHourly = effectivePrice12 > 0 ? Math.round(effectivePrice12 / 12) : pricePerHourFallback;
 
     let currentDurationType = null;
     let finalCustomHours = 0;
     let finalCustomPrice = 0;
+
+    function formatDateTimeLocal(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const year = d.getFullYear();
+      const month = pad(d.getMonth() + 1);
+      const day = pad(d.getDate());
+      const hours = pad(d.getHours());
+      const minutes = pad(d.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    // Set minimal waktu pickup & return
+    const now = new Date();
+    if (pickup) {
+      pickup.min = formatDateTimeLocal(now);
+    }
+    if (ret) {
+      ret.min = formatDateTimeLocal(now);
+    }
 
     function resetCustomStyles() {
       document.querySelectorAll('.duration-option').forEach(el => {
@@ -526,65 +562,137 @@ $i18n = [
         this.closest('.duration-option').classList.remove('bg-white', 'border-slate-200');
         this.closest('.duration-option').classList.add('bg-blue-50', 'border-blue-500');
 
-        if (this.value === 'custom') {
+        if (customDatesBox) {
           customDatesBox.classList.remove('hidden');
-          recalcCustom();
-        } else {
-          customDatesBox.classList.add('hidden');
-          btnBook.disabled = false;
         }
+
+        if (this.value === '12_hours' || this.value === '24_hours') {
+          if (ret) {
+            ret.readOnly = true;
+            ret.classList.add('bg-slate-100', 'cursor-not-allowed');
+          }
+          if (returnAutoNote) {
+            returnAutoNote.classList.remove('hidden');
+            returnAutoNote.textContent = this.value === '12_hours' 
+              ? '*Otomatis dihitung 12 jam dari penjemputan' 
+              : '*Otomatis dihitung 24 jam dari penjemputan';
+          }
+        } else {
+          if (ret) {
+            ret.readOnly = false;
+            ret.classList.remove('bg-slate-100', 'cursor-not-allowed');
+          }
+          if (returnAutoNote) {
+            returnAutoNote.classList.remove('hidden');
+            returnAutoNote.textContent = '*Minimal sewa durasi 12 jam';
+          }
+        }
+
+        recalc(null);
       });
     });
 
-    function recalcCustom() {
-      if (currentDurationType !== 'custom') return;
+    function recalc(e) {
+      if (!currentDurationType) {
+        if (btnBook) btnBook.disabled = true;
+        return;
+      }
 
-      if (!pickup.value || !ret.value) {
-        daysEl.textContent = '0 Jam';
-        totalEl.textContent = 'Rp0';
-        btnBook.disabled = true;
+      if (!pickup || !pickup.value) {
+        if (daysEl) daysEl.textContent = '0 Jam';
+        if (totalEl) totalEl.textContent = 'Rp0';
+        if (btnBook) btnBook.disabled = true;
         return;
       }
 
       const start = new Date(pickup.value);
-      const end = new Date(ret.value);
-
-      if (end <= start) {
-        daysEl.textContent = '0 Jam';
-        totalEl.textContent = 'Rp0';
-        btnBook.disabled = true;
+      if (isNaN(start.getTime())) {
+        if (daysEl) daysEl.textContent = '0 Jam';
+        if (totalEl) totalEl.textContent = 'Rp0';
+        if (btnBook) btnBook.disabled = true;
         return;
       }
 
-      let diffHours = Math.ceil((end - start) / (1000 * 60 * 60));
-      // Minimal 12 jam
-      if (diffHours < 12) {
-        diffHours = 12;
+      if (currentDurationType === '12_hours') {
+        const end = new Date(start.getTime() + 12 * 60 * 60 * 1000);
+        if (ret) ret.value = formatDateTimeLocal(end);
+        finalCustomHours = 12;
+        finalCustomPrice = effectivePrice12;
+        if (daysEl) daysEl.textContent = '12 Jam';
+        if (totalEl) totalEl.textContent = 'Rp' + effectivePrice12.toLocaleString('id-ID');
+        if (btnBook) btnBook.disabled = false;
+        return;
       }
 
-      finalCustomHours = diffHours;
-      finalCustomPrice = diffHours * pricePerHour;
+      if (currentDurationType === '24_hours') {
+        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+        if (ret) ret.value = formatDateTimeLocal(end);
+        finalCustomHours = 24;
+        finalCustomPrice = effectivePrice24;
+        if (daysEl) daysEl.textContent = '24 Jam';
+        if (totalEl) totalEl.textContent = 'Rp' + effectivePrice24.toLocaleString('id-ID');
+        if (btnBook) btnBook.disabled = false;
+        return;
+      }
 
-      daysEl.textContent = diffHours + ' Jam';
-      totalEl.textContent = 'Rp' + finalCustomPrice.toLocaleString('id-ID');
-      btnBook.disabled = false;
+      if (currentDurationType === 'custom') {
+        // Jika return belum diisi atau user ubah pickup dan return lebih awal dari start
+        if (ret && (!ret.value || (e && e.target === pickup && new Date(ret.value) <= start))) {
+          const defaultEnd = new Date(start.getTime() + 12 * 60 * 60 * 1000);
+          ret.value = formatDateTimeLocal(defaultEnd);
+        }
+
+        const end = ret && ret.value ? new Date(ret.value) : null;
+        if (!end || isNaN(end.getTime()) || end <= start) {
+          if (daysEl) daysEl.textContent = '0 Jam';
+          if (totalEl) totalEl.textContent = 'Rp0';
+          if (btnBook) btnBook.disabled = true;
+          return;
+        }
+
+        let diffHours = Math.ceil((end - start) / (1000 * 60 * 60));
+        // Minimal 12 jam
+        if (diffHours < 12) {
+          diffHours = 12;
+        }
+
+        finalCustomHours = diffHours;
+        finalCustomPrice = diffHours * effectiveHourly;
+
+        if (daysEl) daysEl.textContent = diffHours + ' Jam';
+        if (totalEl) totalEl.textContent = 'Rp' + finalCustomPrice.toLocaleString('id-ID');
+        if (btnBook) btnBook.disabled = false;
+      }
     }
 
-    if(pickup) pickup.addEventListener('change', recalcCustom);
-    if(ret) ret.addEventListener('change', recalcCustom);
+    ['input', 'change'].forEach(evt => {
+      if (pickup) pickup.addEventListener(evt, (e) => recalc(e));
+      if (ret) ret.addEventListener(evt, (e) => recalc(e));
+    });
 
-    if(btnBook) {
+    if (btnBook) {
       btnBook.addEventListener('click', function() {
+        let hoursToSend = finalCustomHours;
+        let priceToSend = finalCustomPrice;
+
+        if (currentDurationType === '12_hours') {
+          hoursToSend = 12;
+          priceToSend = effectivePrice12;
+        } else if (currentDurationType === '24_hours') {
+          hoursToSend = 24;
+          priceToSend = effectivePrice24;
+        }
+
         window.dispatchEvent(
           new CustomEvent('open-rentcar-booking', {
             detail: {
               durationType: currentDurationType,
               pickup: pickup ? pickup.value : '',
               ret: ret ? ret.value : '',
-              customHours: finalCustomHours,
-              customPrice: finalCustomPrice,
-              price12: price12,
-              price24: price24
+              customHours: hoursToSend,
+              customPrice: priceToSend,
+              price12: effectivePrice12,
+              price24: effectivePrice24
             },
           })
         );

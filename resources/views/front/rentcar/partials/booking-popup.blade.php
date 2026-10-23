@@ -78,11 +78,11 @@ $i18n = [
         <div class="grid sm:grid-cols-2 gap-3">
           <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
             <div class="text-xs text-slate-500">Pickup</div>
-            <div class="text-sm font-bold text-slate-900" x-text="pickup || '-'"></div>
+            <div class="text-sm font-bold text-slate-900" x-text="formatDateTime(pickup)"></div>
           </div>
           <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
             <div class="text-xs text-slate-500">Return</div>
-            <div class="text-sm font-bold text-slate-900" x-text="ret || '-'"></div>
+            <div class="text-sm font-bold text-slate-900" x-text="formatDateTime(ret)"></div>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ $i18n = [
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm">
           <div class="flex justify-between">
             <span class="text-slate-600">{{ $i18n['total_days'] }}</span>
-            <b x-text="hours"></b>
+            <b x-text="hours ? (hours + ' Jam') : '-'"></b>
           </div>
           <div class="flex justify-between mt-1">
             <span class="text-slate-600">{{ $i18n['total_price'] }}</span>
@@ -224,6 +224,23 @@ $i18n = [
           return Number(n || 0).toLocaleString('id-ID');
         } catch (e) {
           return n;
+        }
+      },
+
+      formatDateTime(val) {
+        if (!val) return '-';
+        try {
+          const d = new Date(val);
+          if (isNaN(d.getTime())) return val;
+          return d.toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (e) {
+          return val;
         }
       },
 

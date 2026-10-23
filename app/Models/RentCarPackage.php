@@ -53,8 +53,38 @@ class RentCarPackage extends Model
         'is_active' => 'boolean',
         'features' => 'array',
         'features_en' => 'array',
-
     ];
+
+    public function getPricePer12HoursAttribute($value)
+    {
+        if (!is_null($value) && (float)$value > 0) {
+            return (float)$value;
+        }
+        $hourly = (float)($this->attributes['price_per_hour'] ?? 0);
+        return $hourly > 0 ? $hourly : 0;
+    }
+
+    public function getPricePer24HoursAttribute($value)
+    {
+        if (!is_null($value) && (float)$value > 0) {
+            return (float)$value;
+        }
+        $hourly = (float)($this->attributes['price_per_hour'] ?? 0);
+        if ($hourly > 0) {
+            return $hourly * 2;
+        }
+        $p12 = (float)($this->price_per_12_hours ?? 0);
+        return $p12 > 0 ? ($p12 * 2) : 0;
+    }
+
+    public function getPricePerHourAttribute($value)
+    {
+        if (!is_null($value) && (float)$value > 0) {
+            return (float)$value;
+        }
+        $p12 = (float)($this->attributes['price_per_12_hours'] ?? 0);
+        return $p12 > 0 ? round($p12 / 12) : 0;
+    }
 
     public function reviews()
     {

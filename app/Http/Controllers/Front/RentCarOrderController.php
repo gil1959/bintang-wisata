@@ -92,13 +92,15 @@ class RentCarOrderController extends Controller
         
         if ($durationType === '12_hours') {
             $hours = 12;
-            $subtotal = $package->price_per_12_hours;
+            $subtotal = $package->price_per_12_hours > 0 ? $package->price_per_12_hours : ($package->price_per_hour * 12);
         } elseif ($durationType === '24_hours') {
             $hours = 24;
-            $subtotal = $package->price_per_24_hours;
+            $subtotal = $package->price_per_24_hours > 0 ? $package->price_per_24_hours : ($package->price_per_hour * 24);
         } else {
             $hours = max(12, $diffHours);
-            $pricePerHour = round($package->price_per_12_hours / 12);
+            $pricePerHour = $package->price_per_12_hours > 0 
+                ? round($package->price_per_12_hours / 12) 
+                : ($package->price_per_hour > 0 ? round($package->price_per_hour / 12) : 0);
             $subtotal = $hours * $pricePerHour;
         }
 
