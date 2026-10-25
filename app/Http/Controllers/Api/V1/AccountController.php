@@ -28,7 +28,13 @@ class AccountController extends Controller
     }
     private function orderData($order): array
     {
-        return $order->only(['id','invoice_number','type','product_name','customer_name','customer_email','customer_phone','departure_date','pickup_date','return_date','participants','total_days','total_hours','order_items','subtotal','discount','unique_code','promo_code','final_price','payable_amount','payment_method','payment_status','order_status','created_at']);
+        $order->cancelIfExpired();
+        $data = $order->only(['id','invoice_number','type','product_name','customer_name','customer_email','customer_phone','departure_date','pickup_date','return_date','participants','total_days','total_hours','order_items','subtotal','discount','unique_code','promo_code','final_price','payable_amount','payment_method','payment_status','order_status','created_at']);
+        $data['payment_deadline'] = $order->payment_deadline?->toIso8601String();
+        $data['payment_remaining_seconds'] = $order->payment_remaining_seconds;
+        $data['is_payment_expired'] = $order->is_payment_expired;
+        $data['payment_expiry_hours'] = \App\Services\OrderExpiryService::EXPIRY_HOURS;
+        return $data;
     }
     public function orders(Request $request)
     {

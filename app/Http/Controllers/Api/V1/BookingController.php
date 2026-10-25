@@ -38,7 +38,17 @@ class BookingController extends Controller
             $payload=$response->getData(true);
             $id=(int)basename((string)parse_url($payload['redirect']??'',PHP_URL_PATH));
             $order=Order::where('user_id',$request->user()->id)->findOrFail($id);
-            $data=['id'=>$order->id,'invoice_number'=>$order->invoice_number,'subtotal'=>$order->subtotal,'discount'=>$order->discount,'final_price'=>$order->final_price];
+            $data=[
+                'id'=>$order->id,
+                'invoice_number'=>$order->invoice_number,
+                'subtotal'=>$order->subtotal,
+                'discount'=>$order->discount,
+                'final_price'=>$order->final_price,
+                'payment_deadline'=>$order->payment_deadline?->toIso8601String(),
+                'payment_remaining_seconds'=>$order->payment_remaining_seconds,
+                'is_payment_expired'=>$order->is_payment_expired,
+                'payment_expiry_hours'=>\App\Services\OrderExpiryService::EXPIRY_HOURS,
+            ];
             return ['data'=>$data];
         })->setStatusCode(201);
     }

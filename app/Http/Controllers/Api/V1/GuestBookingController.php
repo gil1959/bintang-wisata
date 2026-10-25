@@ -46,12 +46,21 @@ class GuestBookingController extends Controller
             return $this->result($order);
         },3);
     }
-    private function result(Order $order){return response()->json(['data'=>$order->only(['id','invoice_number','product_name','subtotal','discount','final_price'])],201);}
+    private function result(Order $order){
+        $order->cancelIfExpired();
+        $data = $order->only(['id','invoice_number','product_name','subtotal','discount','final_price']);
+        $data['payment_deadline'] = $order->payment_deadline?->toIso8601String();
+        $data['payment_remaining_seconds'] = $order->payment_remaining_seconds;
+        $data['is_payment_expired'] = $order->is_payment_expired;
+        $data['payment_expiry_hours'] = \App\Services\OrderExpiryService::EXPIRY_HOURS;
+        return response()->json(['data'=>$data],201);
+    }
     private function authorizeOrder(Request $request,$id=null):Order
     {
         $entry=DB::table('mobile_guest_bookings')->where('token_hash',$this->hash($request))->where('expires_at','>',now())->first();
         abort_unless($entry&&$entry->order_id&&($id===null||(int)$id===(int)$entry->order_id),403);
         $order=Order::findOrFail($entry->order_id);
+        $order->cancelIfExpired();
         $request->attributes->set('mobile_guest_order_id',$order->id);
         return $order;
     }
