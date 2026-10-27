@@ -277,6 +277,17 @@
 </head>
 
 <body class="bg-slate-50 font-[Poppins] text-slate-800 antialiased">
+  @if(session()->has('impersonating_admin_id') || session()->has('impersonator_id'))
+    <div class="bg-amber-500 text-white text-xs sm:text-sm font-bold px-4 py-2 flex items-center justify-between sticky top-0 z-50 shadow-md">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Mode Penyamaran: Anda sedang login sebagai {{ auth()->user()->name ?? 'Pengguna' }}</span>
+      </div>
+      <a href="{{ route('leave-impersonate') }}" class="bg-white text-amber-700 hover:bg-amber-50 px-3 py-1 rounded-lg text-xs font-extrabold transition">
+        Kembali ke Admin
+      </a>
+    </div>
+  @endif
   {{-- Tracking (Admin > Settings > General) --}}
   @if(!empty($siteSettings['tracking_body']))
   {!! $siteSettings['tracking_body'] !!}

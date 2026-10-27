@@ -231,6 +231,18 @@ Route::prefix('bw-admin')
         Route::resource('users', AdminUserController::class)->middleware('permission:admin.users.manage');
         Route::post('users/{user}/impersonate', [AdminUserController::class, 'impersonate'])
             ->name('users.impersonate')->middleware('permission:admin.users.manage');
+
+        // Google Indexing API
+        Route::get('/google-indexing', [\App\Http\Controllers\Admin\GoogleIndexingController::class, 'index'])
+            ->name('google-indexing.index')->middleware('permission:admin.seo.manage');
+        Route::post('/google-indexing/upload-json', [\App\Http\Controllers\Admin\GoogleIndexingController::class, 'uploadJson'])
+            ->name('google-indexing.upload_json')->middleware('permission:admin.seo.manage');
+        Route::post('/google-indexing/submit', [\App\Http\Controllers\Admin\GoogleIndexingController::class, 'submitUrls'])
+            ->name('google-indexing.submit')->middleware('permission:admin.seo.manage');
+        Route::get('/google-indexing/oauth', [\App\Http\Controllers\Admin\GoogleIndexingController::class, 'oauthRedirect'])
+            ->name('google-indexing.oauth')->middleware('permission:admin.seo.manage');
+        Route::get('/google-indexing/callback', [\App\Http\Controllers\Admin\GoogleIndexingController::class, 'oauthCallback'])
+            ->name('google-indexing.callback');
         // Rent Car Package CRUD
         Route::delete('rent-car-packages/photo/{photo}', [RentCarPackageController::class, 'deletePhoto'])
             ->name('rent-car-packages.delete-photo')->middleware('permission:admin.dashboard.view');
@@ -718,6 +730,9 @@ Route::prefix('travel-bus')->name('travel-bus.')->group(function () {
 | Breeze Dashboard
 |--------------------------------------------------------------------------
 */
+
+Route::get('/leave-impersonate', [AdminUserController::class, 'leaveImpersonate'])->name('leave-impersonate');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');

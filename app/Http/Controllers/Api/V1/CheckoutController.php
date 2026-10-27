@@ -40,7 +40,7 @@ class CheckoutController extends Controller
         $view=app()->call([app(\App\Http\Controllers\Front\CheckoutController::class),'show'],['orderId'=>$order->id]);
         $data=$view->getData();
         $manual=collect($data['manualMethods'])->map(fn($m)=>['value'=>'manual:'.$m->id,'label'=>$m->bank_name?:$m->method_name,'bank_name'=>$m->bank_name,'account_number'=>$m->account_number,'account_holder'=>$m->account_holder]);
-        $orderData = $order->only(['id','invoice_number','product_name','customer_name','customer_phone','type','departure_date','pickup_date','return_date','participants','total_days','subtotal','discount','final_price','unique_code','payable_amount','payment_method','payment_status','order_status','billing_first_name','billing_last_name','billing_address','billing_country','billing_city','billing_state','billing_postal','billing_phone','created_at']);
+        $orderData = $order->only(['id','invoice_number','product_name','customer_name','customer_phone','type','departure_date','pickup_date','return_date','participants','total_days','order_items','subtotal','discount','final_price','unique_code','payable_amount','payment_method','payment_status','order_status','billing_first_name','billing_last_name','billing_address','billing_country','billing_city','billing_state','billing_postal','billing_phone','created_at']);
         $orderData['payment_deadline'] = $order->payment_deadline?->toIso8601String();
         $orderData['payment_remaining_seconds'] = $order->payment_remaining_seconds;
         $orderData['is_payment_expired'] = $order->is_payment_expired;

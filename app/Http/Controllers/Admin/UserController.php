@@ -245,6 +245,7 @@ return redirect()
 
         // Simpan admin ID asli ke session
         session()->put('impersonating_admin_id', auth()->id());
+        session()->put('impersonator_id', auth()->id());
 
         // Login sebagai user
         Auth::loginUsingId($user->id);
@@ -262,7 +263,7 @@ return redirect()
      */
     public function leaveImpersonate()
     {
-        $adminId = session()->pull('impersonating_admin_id');
+        $adminId = session()->pull('impersonating_admin_id') ?? session()->pull('impersonator_id');
 
         if (!$adminId) {
             return redirect()->route('home');
@@ -270,7 +271,7 @@ return redirect()
 
         Auth::loginUsingId($adminId);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.dashboard')
             ->with('success', 'Berhasil kembali ke akun admin.');
     }
 }

@@ -23,4 +23,12 @@ class Setting extends Model
     {
         return static::getValue('invoice_admin_email', static::getValue('footer_email'));
     }
+
+    public static function setValue(string $key, $value): self
+    {
+        return static::updateOrCreate(
+            ['key' => $key],
+            ['value' => is_array($value) ? json_encode($value) : $value]
+        );
+    }
 }
