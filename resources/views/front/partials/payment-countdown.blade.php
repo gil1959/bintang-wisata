@@ -67,7 +67,7 @@
                     @if($deadline)
                     <div class="text-[11px] text-slate-600 mt-1">
                         {{ $isEn ? 'Expires on:' : 'Batas akhir:' }}
-                        <span class="font-bold text-slate-800">{{ $deadline->format('d M Y, H:i') }} WIB</span>
+                        <span class="font-bold text-slate-800">{{ $deadline->copy()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB</span>
                     </div>
                     @endif
                 </div>
