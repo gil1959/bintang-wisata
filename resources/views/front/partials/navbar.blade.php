@@ -9,7 +9,7 @@
     {{-- BRAND --}}
     <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0">
       <img
-        src="{{ asset('images/logo.png') }}"
+        src="{{ $siteSettings['site_logo'] ?? asset('images/logo.png') }}"
         alt="{{ $siteSettings['seo_site_title'] ?? 'Bintang Wisata' }}"
         class="h-7 lg:h-8 w-auto max-w-[160px] object-contain shrink-0"
         onerror="this.src='{{ asset('images/logo.png') }}'" />

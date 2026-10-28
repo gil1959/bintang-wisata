@@ -10,7 +10,7 @@
         <div class="flex items-center justify-between gap-2 pb-3">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center shrink-0 p-1.5 shadow-sm">
-                    <img src="{{ asset('favicon.ico') }}" alt="Bintang Wisata" class="w-full h-full object-contain">
+                    <img src="{{ $siteSettings['site_logo'] ?? asset('favicon.ico') }}" alt="{{ $siteSettings['site_name'] ?? 'Bintang Wisata Holiday' }}" class="w-full h-full object-contain" onerror="this.src='{{ asset('favicon.ico') }}'">
                 </div>
                 <div class="min-w-0">
                     <div class="text-sm font-extrabold text-white leading-tight truncate">
