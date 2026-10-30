@@ -106,8 +106,10 @@ $seoDesc = $isEn ? (($article->seo_description_en ?? null) ?: ($article->seo_des
             </div>
             @endif
 
-            <div class="prose prose-lg max-w-none break-words overflow-hidden">
-                {!! $isEn ? (($article->content_en ?? null) ?: ($article->content ?? '')) : ($article->content ?? '') !!}
+            <div class="ql-snow">
+                <div class="ql-editor article-content leading-relaxed text-slate-800 break-words !p-0">
+                    {!! $isEn ? (($article->content_en ?? null) ?: ($article->content ?? '')) : ($article->content ?? '') !!}
+                </div>
             </div>
 
             @if (is_array($article->tags) && count($article->tags))
@@ -163,3 +165,26 @@ $seoDesc = $isEn ? (($article->seo_description_en ?? null) ?: ($article->seo_des
     </div>
 </article>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const articleContainer = document.querySelector('.article-content');
+    if (!articleContainer) return;
+
+    articleContainer.querySelectorAll('a').forEach(function (link) {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+            try {
+                const url = new URL(href, window.location.origin);
+                if (url.origin !== window.location.origin) {
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
+                }
+            } catch (e) {}
+        }
+    });
+});
+</script>
+@endpush
