@@ -43,7 +43,7 @@ class NotificationController extends Controller
         foreach ($recipients as $u) {
             $u->notify(new AdminBroadcastNotification($data['message'], $data['target_role']));
 
-            // push payload untuk service worker
+            // push payload untuk service worker & mobile
             $payload = [
                 'title' => 'Notifikasi dari Admin',
                 'body' => $data['message'],
@@ -53,7 +53,8 @@ class NotificationController extends Controller
             ];
 
             $webPush->sendToUserId((int)$u->id, $payload);
-            \App\Services\Mobile\FirebasePush::dispatch((int)$u->id,$payload);
+            \App\Services\Mobile\FirebasePush::dispatch((int)$u->id, $payload);
+            \App\Services\Mobile\OneSignalPush::dispatch((int)$u->id, $payload);
         }
 
         return redirect()->route('admin.notifications.create')->with('success', 'Notifikasi berhasil dikirim.');
