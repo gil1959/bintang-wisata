@@ -15,6 +15,7 @@ class StoreRentCarPackageRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'label' => ['nullable', 'string', 'max:30'],
 
             'price_per_hour' => 'nullable|numeric|min:0',

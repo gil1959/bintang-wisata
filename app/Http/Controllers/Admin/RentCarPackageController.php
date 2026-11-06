@@ -57,7 +57,16 @@ class RentCarPackageController extends Controller
     public function store(StoreRentCarPackageRequest $request)
     {
         $data = $request->validated();
-        $data['slug'] = Str::slug($data['title']);
+
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        $slug = !empty($customSlug) ? $customSlug : Str::slug($data['title']);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (RentCarPackage::where('slug', $slug)->exists()) {
+            $slug = "{$originalSlug}-{$counter}";
+            $counter++;
+        }
+        $data['slug'] = $slug;
 
         $package = null;
 
@@ -118,7 +127,29 @@ class RentCarPackageController extends Controller
     public function update(UpdateRentCarPackageRequest $request, RentCarPackage $rent_car_package)
     {
         $data = $request->validated();
-        $data['slug'] = Str::slug($data['title']);
+
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        if (!empty($customSlug) && $customSlug !== $rent_car_package->slug) {
+            $slug = $customSlug;
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RentCarPackage::where('slug', $slug)->where('id', '!=', $rent_car_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } elseif ($data['title'] !== $rent_car_package->title || empty($rent_car_package->slug)) {
+            $slug = Str::slug($data['title']);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RentCarPackage::where('slug', $slug)->where('id', '!=', $rent_car_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } else {
+            $data['slug'] = $rent_car_package->slug;
+        }
 
         DB::transaction(function () use ($request, &$data, $rent_car_package) {
 

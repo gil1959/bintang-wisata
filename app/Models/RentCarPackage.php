@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class RentCarPackage extends Model
 {
@@ -54,6 +55,22 @@ class RentCarPackage extends Model
         'features' => 'array',
         'features_en' => 'array',
     ];
+
+    protected static function booted()
+    {
+        static::saving(function ($package) {
+            if (empty($package->slug) && !empty($package->title)) {
+                $slug = Str::slug($package->title);
+                $originalSlug = $slug;
+                $counter = 1;
+                while (static::where('slug', $slug)->where('id', '!=', $package->id ?? 0)->exists()) {
+                    $slug = "{$originalSlug}-{$counter}";
+                    $counter++;
+                }
+                $package->slug = $slug;
+            }
+        });
+    }
 
     public function getPricePer12HoursAttribute($value)
     {

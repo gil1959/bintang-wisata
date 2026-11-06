@@ -18,3 +18,8 @@ error_log
 /.agents
 /deployment/
 /bintangwisata-app
+
+*.jks
+*.keystore
+*.aab
+*.apk

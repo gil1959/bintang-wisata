@@ -45,7 +45,16 @@ return view('partner.rentcar.create', compact('categories'));
         abort_unless(auth()->user()->partner_type === 'agency_rental_mobil', 403);
 
         $data = $request->validated();
-        $data['slug'] = Str::slug($data['title']);
+
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        $slug = !empty($customSlug) ? $customSlug : Str::slug($data['title']);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (RentCarPackage::where('slug', $slug)->exists()) {
+            $slug = "{$originalSlug}-{$counter}";
+            $counter++;
+        }
+        $data['slug'] = $slug;
 
         // wajib
         $data['is_active'] = 0;
@@ -109,7 +118,29 @@ return view('partner.rentcar.edit', compact('package', 'categories'));
         abort_unless((int)$rent_car_package->created_by_partner_id === (int)auth()->id(), 403);
 
         $data = $request->validated();
-        $data['slug'] = Str::slug($data['title']);
+
+        $customSlug = $request->filled('slug') ? Str::slug($request->input('slug')) : null;
+        if (!empty($customSlug) && $customSlug !== $rent_car_package->slug) {
+            $slug = $customSlug;
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RentCarPackage::where('slug', $slug)->where('id', '!=', $rent_car_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } elseif ($data['title'] !== $rent_car_package->title || empty($rent_car_package->slug)) {
+            $slug = Str::slug($data['title']);
+            $originalSlug = $slug;
+            $counter = 1;
+            while (RentCarPackage::where('slug', $slug)->where('id', '!=', $rent_car_package->id)->exists()) {
+                $slug = "{$originalSlug}-{$counter}";
+                $counter++;
+            }
+            $data['slug'] = $slug;
+        } else {
+            $data['slug'] = $rent_car_package->slug;
+        }
 
         if ($request->hasFile('thumbnail')) {
             if ($rent_car_package->thumbnail_path) {
